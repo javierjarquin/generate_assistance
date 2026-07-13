@@ -1,0 +1,30 @@
+[project]
+name = "illustrated-narrator"
+version = "0.1.0"
+description = "Genera videos narrados con ilustraciones dinamicas a partir de un guion por planos y una grabacion de audio"
+authors = [{ name = "Javier Jarquin Chooc" }]
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "typer (>=0.15,<1.0)",
+    "python-dotenv (>=1.0,<2.0)",
+    "faster-whisper (>=1.2.1,<2.0.0)",
+    "requests (>=2.34.2,<3.0.0)",
+]
+
+[project.scripts]
+narrator = "illustrated_narrator.cli.main:app"
+
+[tool.poetry]
+packages = [{ include = "illustrated_narrator", from = "src" }]
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.0"
+
+[build-system]
+requires = ["poetry-core>=2.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+

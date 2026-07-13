@@ -1,0 +1,16 @@
+# Entornos y dependencias
+.venv/
+__pycache__/
+*.py[cod]
+dist/
+*.egg-info/
+
+# Configuracion local y proyectos generados
+.env
+projects/
+tools/stable-diffusion-webui-directml/
+*.log
+
+# Herramientas
+.pytest_cache/
+.ruff_cache/
