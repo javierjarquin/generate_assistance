@@ -26,6 +26,10 @@ class VisualSpec:
     descripcion: str = ""
     prompt_ia: str = ""
     nota: str | None = None
+    # Overlay animado del clip: niebla|polvo|lluvia|burbujas|fuego (parpadeo)
+    overlay: str | None = None
+    # Sacudida de cámara (terremotos, impactos)
+    shake: bool = False
 
 
 @dataclass(frozen=True)

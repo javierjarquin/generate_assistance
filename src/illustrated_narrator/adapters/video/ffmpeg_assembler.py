@@ -1,7 +1,8 @@
-"""Ensamblador ffmpeg: Ken Burns por plano + xfade entre clips + subtítulos ASS.
+"""Ensamblador ffmpeg: Ken Burns + overlays animados + xfade variado + subtítulos
+ASS + grading global + mezcla de audio con ducking.
 
-Detección de encoder por hardware portada de shorts-factory (mismo build de
-ffmpeg, mismo GPU AMD -> h264_amf en esta máquina).
+Detección de encoder por hardware portada de shorts-factory. Canvas
+configurable: 1920x1080 (YouTube) o 1080x1920 (Shorts/Reels).
 """
 
 import logging
@@ -12,12 +13,6 @@ from illustrated_narrator.ports.video_assembler import VideoAssemblerPort
 
 logger = logging.getLogger(__name__)
 
-# Variantes de Ken Burns: zoom/pan expresados en las variables nativas de zoompan
-# (iw/ih = tamaño de entrada, zoom = factor actual, on = numero de frame de salida).
-# "d" (frames totales) NO es una variable evaluable dentro de x/y/z en este build
-# de ffmpeg -- solo existe como opcion del filtro -- por eso las variantes de pan
-# usan "{total_frames}" como placeholder, sustituido por el numero real de frames
-# al construir el filtro (ver _pan_expr).
 _PAN_VARIANTS: dict[str, dict[str, str]] = {
     "zoom-in-center": {
         "z": "min(zoom+0.0015,1.3)", "x": "iw/2-(iw/zoom/2)", "y": "ih/2-(ih/zoom/2)",
@@ -39,14 +34,56 @@ _PAN_VARIANTS: dict[str, dict[str, str]] = {
     },
 }
 
-_CANVAS_W, _CANVAS_H = 1920, 1080
+# Transiciones xfade rotadas por índice: variedad sin decidir a mano
+_TRANSITIONS = ("fade", "wipeleft", "circleopen", "slideleft", "fadeblack", "wiperight")
+
+# Acabado global: contraste/saturación leves + viñeta + grano fino
+_GRADING = "eq=saturation=1.08:contrast=1.05,vignette=PI/4.6,noise=alls=6:allf=t"
+
+
+def _overlay_chain(kind: str, w: int, h: int, fps: int) -> tuple[str, str] | None:
+    """(fuente lavfi, cadena de mezcla) para el overlay animado, o None."""
+    if kind in ("niebla", "fog", "humo"):
+        src = (
+            f"nullsrc=s={w}x{h}:r={fps},noise=alls=70:allf=t,"
+            "boxblur=24:3,scroll=h=0.0018,format=gray"
+        )
+        blend = "blend=all_mode=screen:all_opacity=0.14"
+    elif kind in ("polvo", "dust", "particulas", "partículas"):
+        src = (
+            f"nullsrc=s={w}x{h}:r={fps},noise=alls=100:allf=t,"
+            "eq=brightness=-0.42:contrast=6,boxblur=1:1,scroll=v=-0.004,format=gray"
+        )
+        blend = "blend=all_mode=screen:all_opacity=0.20"
+    elif kind in ("lluvia", "rain"):
+        src = (
+            f"nullsrc=s={w}x{int(h / 5)}:r={fps},noise=alls=45:allf=t,"
+            f"eq=brightness=-0.35:contrast=5,scale={w}:{h},scroll=v=0.45,format=gray"
+        )
+        blend = "blend=all_mode=screen:all_opacity=0.16"
+    elif kind in ("burbujas", "bubbles", "submarino"):
+        src = (
+            f"nullsrc=s={w}x{h}:r={fps},noise=alls=90:allf=t,"
+            "eq=brightness=-0.45:contrast=7,boxblur=2:1,scroll=v=-0.010,format=gray"
+        )
+        blend = "blend=all_mode=screen:all_opacity=0.17"
+    else:
+        return None
+    return src, blend
 
 
 class FFmpegAssembler(VideoAssemblerPort):
-    def __init__(self, ffmpeg_path: str = "ffmpeg", encoder: str = "auto", fps: int = 30) -> None:
+    def __init__(
+        self,
+        ffmpeg_path: str = "ffmpeg",
+        encoder: str = "auto",
+        fps: int = 30,
+        canvas: tuple[int, int] = (1920, 1080),
+    ) -> None:
         self._ffmpeg = ffmpeg_path
         self._encoder = encoder
         self._fps = fps
+        self._canvas_w, self._canvas_h = canvas
         self._resolved_encoder: str | None = None
 
     def _run(self, args: list[str]) -> None:
@@ -80,43 +117,85 @@ class FFmpegAssembler(VideoAssemblerPort):
 
     def _encode_args(self) -> list[str]:
         encoder = self._pick_encoder()
-        args = ["-c:v", encoder, "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart"]
+        args = ["-c:v", encoder, "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart"]
         if encoder == "libx264":
             args += ["-preset", "veryfast", "-crf", "23"]
         else:
-            args += ["-b:v", "6M"]
+            args += ["-b:v", "8M"]
         return args
 
+    # ------------------------------------------------------------ clips
+
     def render_plano_clip(
-        self, image_path: Path, duration_seconds: float, pan_direction: str, dest: Path
+        self,
+        image_path: Path,
+        duration_seconds: float,
+        pan_direction: str,
+        dest: Path,
+        overlay: str | None = None,
+        shake: bool = False,
     ) -> Path:
         dest.parent.mkdir(parents=True, exist_ok=True)
+        w, h = self._canvas_w, self._canvas_h
         variant = _PAN_VARIANTS.get(pan_direction, _PAN_VARIANTS["zoom-in-center"])
         frames = max(2, round(duration_seconds * self._fps))
         x_expr = variant["x"].format(total_frames=frames)
         y_expr = variant["y"].format(total_frames=frames)
         z_expr = variant["z"].format(total_frames=frames)
-        filter_complex = (
-            "[0:v]split=2[bg][fg];"
-            f"[bg]scale={_CANVAS_W}:{_CANVAS_H}:force_original_aspect_ratio=increase,"
-            f"crop={_CANVAS_W}:{_CANVAS_H},gblur=sigma=20,eq=brightness=-0.1[bg];"
-            f"[fg]scale={_CANVAS_W}:{_CANVAS_H}:force_original_aspect_ratio=decrease,"
-            "pad=ceil(iw/2)*2:ceil(ih/2)*2[fg];"
-            "[bg][fg]overlay=(W-w)/2:(H-h)/2,format=yuv420p[composited];"
-            f"[composited]scale={_CANVAS_W * 2}:{_CANVAS_H * 2}:flags=lanczos,"
+
+        parts = [
+            "[0:v]split=2[bg][fg]",
+            f"[bg]scale={w}:{h}:force_original_aspect_ratio=increase,"
+            f"crop={w}:{h},gblur=sigma=20,eq=brightness=-0.1[bg]",
+            f"[fg]scale={w}:{h}:force_original_aspect_ratio=decrease,"
+            "pad=ceil(iw/2)*2:ceil(ih/2)*2[fg]",
+            "[bg][fg]overlay=(W-w)/2:(H-h)/2,format=yuv420p[composited]",
+            f"[composited]scale={w * 2}:{h * 2}:flags=lanczos,"
             f"zoompan=z='{z_expr}':x='{x_expr}':y='{y_expr}':"
-            f"d={frames}:s={_CANVAS_W}x{_CANVAS_H}:fps={self._fps},format=yuv420p[vout]"
-        )
+            f"d={frames}:s={w}x{h}:fps={self._fps}[kb]",
+        ]
+        current = "[kb]"
+        inputs = ["-loop", "1", "-i", str(image_path)]
+
+        if overlay in ("fuego", "fire", "llamas"):
+            # Parpadeo cálido: la propia imagen pulsa como iluminada por llamas
+            parts.append(
+                f"{current}eq=brightness='0.02*sin(9*t)+0.014*sin(23*t)':"
+                "saturation=1.06[flick]"
+            )
+            current = "[flick]"
+        else:
+            chain = _overlay_chain(overlay or "", w, h, self._fps) if overlay else None
+            if chain:
+                src, blend = chain
+                inputs += ["-f", "lavfi", "-t", f"{duration_seconds:.3f}", "-i", src]
+                parts.append(f"[1:v]format=yuv420p[ov]")
+                parts.append(f"{current}[ov]{blend}[mixed]")
+                current = "[mixed]"
+
+        if shake:
+            parts.append(
+                f"{current}crop=w=iw-12:h=ih-12:"
+                "x='6+5*sin(52*t)':y='6+5*cos(41*t)',"
+                f"scale={w}:{h}[shaken]"
+            )
+            current = "[shaken]"
+
+        parts.append(f"{current}format=yuv420p[vout]")
         self._run(
             [
-                "-loop", "1", "-i", str(image_path), "-t", f"{duration_seconds:.3f}",
-                "-filter_complex", filter_complex, "-map", "[vout]",
+                *inputs,
+                "-t", f"{duration_seconds:.3f}",
+                "-filter_complex", ";".join(parts),
+                "-map", "[vout]",
                 "-t", f"{duration_seconds:.3f}",
                 *self._encode_args(),
                 str(dest),
             ]
         )
         return dest
+
+    # --------------------------------------------------------- ensamble
 
     def assemble(
         self,
@@ -125,6 +204,7 @@ class FFmpegAssembler(VideoAssemblerPort):
         audio_path: Path,
         dest: Path,
         xfade_duration: float = 0.5,
+        bed_path: Path | None = None,
     ) -> Path:
         if not clip_paths:
             raise ValueError("assemble() necesita al menos un clip")
@@ -135,41 +215,52 @@ class FFmpegAssembler(VideoAssemblerPort):
         for p in clip_paths:
             inputs += ["-i", str(p)]
 
+        filter_lines: list[str] = []
         if len(clip_paths) == 1:
             video_label = "0:v"
         else:
-            chain_parts = []
             running_offset = durations[0] - xfade_duration
             prev_label = "0:v"
             for i in range(1, len(clip_paths)):
-                out_label = f"v{i}" if i < len(clip_paths) - 1 else "vout_pre"
-                chain_parts.append(
-                    f"[{prev_label}][{i}:v]xfade=transition=fade:duration={xfade_duration:.3f}:"
-                    f"offset={running_offset:.3f}[{out_label}]"
+                out_label = f"v{i}"
+                transition = _TRANSITIONS[(i - 1) % len(_TRANSITIONS)]
+                filter_lines.append(
+                    f"[{prev_label}][{i}:v]xfade=transition={transition}:"
+                    f"duration={xfade_duration:.3f}:offset={running_offset:.3f}[{out_label}]"
                 )
                 prev_label = out_label
                 running_offset += durations[i] - xfade_duration
             video_label = prev_label
 
-        filter_lines = []
-        if len(clip_paths) > 1:
-            filter_lines.extend(chain_parts)
+        # Grading global antes de subtítulos (el texto no debe granularse)
+        filter_lines.append(f"[{video_label}]{_GRADING}[graded]")
+        video_label = "graded"
+
         if ass_subtitle_path is not None and ass_subtitle_path.exists():
             escaped = str(ass_subtitle_path).replace("\\", "/").replace(":", "\\:")
             filter_lines.append(f"[{video_label}]ass='{escaped}'[vout]")
-            final_label = "vout"
-        else:
-            final_label = video_label
+            video_label = "vout"
 
-        filter_complex = ";".join(filter_lines) if filter_lines else None
-        audio_input_index = len(clip_paths)
-
+        narr_index = len(clip_paths)
         args = [*inputs, "-i", str(audio_path)]
-        if filter_complex:
-            args += ["-filter_complex", filter_complex, "-map", f"[{final_label}]"]
+
+        if bed_path is not None and bed_path.exists():
+            bed_index = narr_index + 1
+            args += ["-i", str(bed_path)]
+            filter_lines.append(
+                f"[{bed_index}:a][{narr_index}:a]"
+                "sidechaincompress=threshold=0.04:ratio=12:attack=60:release=500[duck]"
+            )
+            filter_lines.append(
+                f"[{narr_index}:a][duck]amix=inputs=2:duration=first:normalize=0[aout]"
+            )
+            audio_map = "[aout]"
         else:
-            args += ["-map", f"{final_label}"]
-        args += ["-map", f"{audio_input_index}:a", "-shortest", *self._encode_args(), str(dest)]
+            audio_map = f"{narr_index}:a"
+
+        args += ["-filter_complex", ";".join(filter_lines)]
+        args += ["-map", f"[{video_label}]" if not video_label.endswith(":v") else video_label]
+        args += ["-map", audio_map, "-shortest", *self._encode_args(), str(dest)]
 
         self._run(args)
         return dest

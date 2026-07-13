@@ -6,6 +6,7 @@ from pathlib import Path
 @dataclass(frozen=True)
 class ImageGenerationRequest:
     prompt: str
+    label: str = ""  # texto humano (español) para backends que dibujan texto, ej. placeholder
     negative_prompt: str = ""
     width: int = 512
     height: int = 512

@@ -16,7 +16,8 @@ from illustrated_narrator.ports.image_generator import ImageGenerationRequest, I
 logger = logging.getLogger(__name__)
 
 _HEALTH_TIMEOUT = 5
-_GENERATE_TIMEOUT = 300
+# fp32 en GPU modesta (T600) tarda 3-5 min por imagen: margen amplio
+_GENERATE_TIMEOUT = 900
 
 
 class Automatic1111ImageAdapter(ImageGeneratorPort):
