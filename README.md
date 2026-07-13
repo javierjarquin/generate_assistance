@@ -53,8 +53,11 @@ hechas (borra ese archivo o `images/`/`clips/` para forzar regeneración).
       "visual": {
         "tipo": "imagen_ia",
         "descripcion": "para humanos",
-        "prompt_ia": "prompt en inglés para Stable Diffusion"
+        "prompt_ia": "prompt en inglés para Stable Diffusion",
+        "overlay": "niebla",
+        "shake": false
       },
+      "audio": { "sfx": "olas de mar", "musica": "opcional" },
       "texto_en_pantalla": "opcional"
     }
   ]
@@ -63,6 +66,28 @@ hechas (borra ese archivo o `images/`/`clips/` para forzar regeneración).
 
 `narracion` es la fuente de verdad para la alineación; `prompt_ia` genera la
 ilustración (se le agrega `NARR_STYLE_SUFFIX` para estilo consistente).
+`visual.overlay` (niebla/polvo/lluvia/burbujas/fuego) y `visual.shake` animan
+el plano; `audio.sfx` dispara un efecto (olas/fuego/viento/terremoto/burbujas).
+
+**El gancho manda**: el plano 1 decide si el usuario se queda. Su `prompt_ia`
+debe mostrar la promesa de la narración (si la voz dice "una torre con una luz
+que se veía a 50 km", la imagen debe ser esa torre con esa luz — no una escena
+genérica).
+
+## Estándares de retención (automáticos)
+
+La herramienta aplica a CUALQUIER video, sin configurar nada:
+
+- **Karaoke** palabra por palabra + **título de gancho** con caja de contraste
+- **Audio a -14 LUFS** (estándar YouTube/Shorts) — un video callado pierde al espectador
+- **Cambio visual cada ~4s**: los planos largos se parten en varias "tomas"
+  (imágenes distintas del mismo tema) con corte seco — `retention_plan.py`
+- **Transiciones cortas** (0.28s) + variadas, grading global
+- **Tarjeta de cierre (CTA)** que invita a seguir — `NARR_CTA_TEXT`
+- **Cama de audio** (música + SFX + whoosh) con ducking bajo la voz
+
+Palancas de calidad de imagen: `NARR_SD_CHECKPOINT` (usa un modelo afinado en
+vez del base SD 1.5) y `NARR_SD_WIDTH/HEIGHT` (16:9 nativo).
 
 ## Sincronía audio-video
 
@@ -72,6 +97,6 @@ coincide con el momento en que empiezas a decirlo en el audio.
 
 ## Validado
 
-Pipeline completo verificado end-to-end con narración TTS de 55s
-(`projects/demo-tts/`): 6/6 planos alineados, sincronía audio-video < 0.3s,
-encode por hardware.
+Pipeline completo verificado end-to-end con narración real (`projects/demo/`):
+6/6 planos alineados, sincronía < 0.3s, imágenes SD, karaoke, cama de audio a
+-14 LUFS, multi-toma y CTA. También validado en 9:16 con `--vertical`.

@@ -37,6 +37,20 @@ _PAN_VARIANTS: dict[str, dict[str, str]] = {
 # Transiciones xfade rotadas por índice: variedad sin decidir a mano
 _TRANSITIONS = ("fade", "wipeleft", "circleopen", "slideleft", "fadeblack", "wiperight")
 
+# Pan alternado para las tomas de un mismo plano: la 2ª contrasta con la 1ª
+_SHOT_PAN_POOL = ("zoom-in-center", "zoom-out-center", "pan-right", "pan-left", "zoom-in-top-right")
+
+
+def _shot_pan_cycle(base: str, n: int) -> list[str]:
+    """Movimientos de cámara para las n tomas: la primera respeta el base,
+    las siguientes alternan para que cada corte se sienta distinto."""
+    if n == 1:
+        return [base]
+    pans = [base]
+    for i in range(1, n):
+        pans.append(_SHOT_PAN_POOL[i % len(_SHOT_PAN_POOL)])
+    return pans
+
 # Acabado global: contraste/saturación leves + viñeta + grano fino
 _GRADING = "eq=saturation=1.08:contrast=1.05,vignette=PI/4.6,noise=alls=6:allf=t"
 
@@ -128,12 +142,50 @@ class FFmpegAssembler(VideoAssemblerPort):
 
     def render_plano_clip(
         self,
-        image_path: Path,
+        image_paths: list[Path],
         duration_seconds: float,
         pan_direction: str,
         dest: Path,
         overlay: str | None = None,
         shake: bool = False,
+    ) -> Path:
+        """Clip de un plano. Con varias imágenes, se reparten la duración con
+        cortes secos (una imagen fija > ~4s se siente estática y pierde al
+        espectador; cambiar de toma sostiene la atención)."""
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        images = [p for p in image_paths if p and Path(p).exists()]
+        if not images:
+            raise ValueError("render_plano_clip necesita al menos una imagen")
+
+        if len(images) == 1:
+            return self._render_shot(
+                images[0], duration_seconds, pan_direction, dest, overlay, shake
+            )
+
+        # Reparte la duración en tomas ~iguales, alterna el sentido del Ken Burns
+        n = len(images)
+        each = duration_seconds / n
+        shot_pans = _shot_pan_cycle(pan_direction, n)
+        temp_clips: list[Path] = []
+        for i, img in enumerate(images):
+            temp = dest.with_name(f"{dest.stem}__shot{i}.mp4")
+            self._render_shot(img, each, shot_pans[i], temp, overlay, shake)
+            temp_clips.append(temp)
+        try:
+            self._concat(temp_clips, dest)
+        finally:
+            for t in temp_clips:
+                t.unlink(missing_ok=True)
+        return dest
+
+    def _render_shot(
+        self,
+        image_path: Path,
+        duration_seconds: float,
+        pan_direction: str,
+        dest: Path,
+        overlay: str | None,
+        shake: bool,
     ) -> Path:
         dest.parent.mkdir(parents=True, exist_ok=True)
         w, h = self._canvas_w, self._canvas_h
@@ -195,6 +247,35 @@ class FFmpegAssembler(VideoAssemblerPort):
         )
         return dest
 
+    def _concat(self, clips: list[Path], dest: Path) -> None:
+        """Une clips con corte seco (concat demuxer, sin re-encode)."""
+        listing = dest.with_name(f"{dest.stem}__concat.txt")
+        listing.write_text(
+            "".join(f"file '{c.as_posix()}'\n" for c in clips), encoding="utf-8"
+        )
+        try:
+            self._run(
+                ["-f", "concat", "-safe", "0", "-i", str(listing), "-c", "copy", str(dest)]
+            )
+        finally:
+            listing.unlink(missing_ok=True)
+
+    def render_end_card(self, text: str, duration_seconds: float, dest: Path) -> Path:
+        """Tarjeta CTA de cierre: fondo oscuro con leve zoom + texto (vía ASS aparte)."""
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        w, h = self._canvas_w, self._canvas_h
+        self._run(
+            [
+                "-f", "lavfi",
+                "-i", f"color=c=0x0d0d12:s={w}x{h}:d={duration_seconds:.3f}:r={self._fps}",
+                "-vf", "format=yuv420p,fade=t=in:d=0.3",
+                "-t", f"{duration_seconds:.3f}",
+                *self._encode_args(),
+                str(dest),
+            ]
+        )
+        return dest
+
     # --------------------------------------------------------- ensamble
 
     def assemble(
@@ -244,23 +325,35 @@ class FFmpegAssembler(VideoAssemblerPort):
         narr_index = len(clip_paths)
         args = [*inputs, "-i", str(audio_path)]
 
+        # Duración total del video tras encadenar (cada xfade solapa xfade_duration).
+        # La narración se rellena con silencio hasta cubrir la tarjeta de cierre.
+        video_total = durations[0] + sum(d - xfade_duration for d in durations[1:])
+
+        # loudnorm a -14 LUFS: estándar de YouTube/Shorts. Sin esto el audio
+        # sale muy bajo (nuestra narración salía a -34 LUFS medios) y el video
+        # se siente flojo frente al resto del feed -> el usuario hace scroll.
         if bed_path is not None and bed_path.exists():
             bed_index = narr_index + 1
             args += ["-i", str(bed_path)]
+            filter_lines.append(f"[{narr_index}:a]apad[narrpad]")
             filter_lines.append(
-                f"[{bed_index}:a][{narr_index}:a]"
+                f"[{bed_index}:a][narrpad]"
                 "sidechaincompress=threshold=0.04:ratio=12:attack=60:release=500[duck]"
             )
             filter_lines.append(
-                f"[{narr_index}:a][duck]amix=inputs=2:duration=first:normalize=0[aout]"
+                f"[narrpad][duck]amix=inputs=2:duration=first:normalize=0,"
+                "loudnorm=I=-14:TP=-1.5:LRA=11[aout]"
             )
             audio_map = "[aout]"
         else:
-            audio_map = f"{narr_index}:a"
+            filter_lines.append(
+                f"[{narr_index}:a]apad,loudnorm=I=-14:TP=-1.5:LRA=11[aout]"
+            )
+            audio_map = "[aout]"
 
         args += ["-filter_complex", ";".join(filter_lines)]
         args += ["-map", f"[{video_label}]" if not video_label.endswith(":v") else video_label]
-        args += ["-map", audio_map, "-shortest", *self._encode_args(), str(dest)]
+        args += ["-map", audio_map, "-t", f"{video_total:.3f}", *self._encode_args(), str(dest)]
 
         self._run(args)
         return dest

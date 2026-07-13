@@ -23,9 +23,10 @@ PlayResY: {h}
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Karaoke,Arial,{karaoke_size},&H0000E8FF,&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,1,0,1,4,0,2,60,60,{karaoke_margin},1
+Style: Karaoke,Arial,{karaoke_size},&H0000E8FF,&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,1,0,1,4,1,2,60,60,{karaoke_margin},1
 Style: Rotulo,Arial,{rotulo_size},&H00FFFFFF,&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,0,0,1,3,0,8,60,60,70,1
-Style: Titulo,Arial,{title_size},&H00FFFFFF,&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,1,0,1,5,0,5,60,60,60,1
+Style: Titulo,Arial,{title_size},&H00FFFFFF,&H00FFFFFF,&H00101010,&HB0000000,-1,0,0,0,100,100,1,0,3,18,0,5,80,80,60,1
+Style: CTA,Arial,{title_size},&H0000E8FF,&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,1,0,1,5,1,5,80,80,60,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -85,6 +86,9 @@ def write_ass(
     transcript: Transcript | None = None,
     meta: GuionMeta | None = None,
     play_res: tuple[int, int] = (1920, 1080),
+    cta_text: str | None = None,
+    cta_start_seconds: float | None = None,
+    cta_duration: float = 3.0,
 ) -> Path:
     w, h = play_res
     vertical = h > w
@@ -99,12 +103,21 @@ def write_ass(
         )
     ]
 
-    # Gancho: título grande los primeros segundos
+    # Gancho: título grande con caja de contraste los primeros segundos
     if meta and meta.titulo:
         titulo = meta.titulo.upper().replace("\n", " ")
         lines.append(
             f"Dialogue: 1,0:00:00.20,0:00:02.80,Titulo,,0,0,0,,"
-            f"{{\\fad(250,350)}}{titulo}\n"
+            f"{{\\fad(250,350)}} {titulo} \n"
+        )
+
+    # CTA de cierre: la tarjeta final necesita un texto que empuje a la acción
+    if cta_text and cta_start_seconds is not None:
+        start = _format_ts(cta_start_seconds + 0.2)
+        end = _format_ts(cta_start_seconds + cta_duration)
+        cta = cta_text.upper().replace("\n", "\\N")
+        lines.append(
+            f"Dialogue: 1,{start},{end},CTA,,0,0,0,,{{\\fad(300,300)}}{cta}\n"
         )
 
     for plano in planos:

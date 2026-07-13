@@ -35,7 +35,9 @@ class Container:
             )
 
             return PlaceholderImageAdapter()
-        return Automatic1111ImageAdapter(self.settings.a1111_base_url)
+        return Automatic1111ImageAdapter(
+            self.settings.a1111_base_url, checkpoint=self.settings.sd_checkpoint
+        )
 
     @cached_property
     def transcriber(self) -> TranscriptionPort:
@@ -88,4 +90,6 @@ class Container:
             xfade_duration=self.settings.xfade_duration,
             audio_bed_builder=self.audio_bed_builder,
             canvas=self.canvas,
+            cta_text=self.settings.cta_text,
+            cta_duration=self.settings.cta_duration,
         )
