@@ -66,13 +66,89 @@ hechas (borra ese archivo o `images/`/`clips/` para forzar regeneración).
 
 `narracion` es la fuente de verdad para la alineación; `prompt_ia` genera la
 ilustración (se le agrega `NARR_STYLE_SUFFIX` para estilo consistente).
-`visual.overlay` (niebla/polvo/lluvia/burbujas/fuego) y `visual.shake` animan
-el plano; `audio.sfx` dispara un efecto (olas/fuego/viento/terremoto/burbujas).
 
 **El gancho manda**: el plano 1 decide si el usuario se queda. Su `prompt_ia`
 debe mostrar la promesa de la narración (si la voz dice "una torre con una luz
 que se veía a 50 km", la imagen debe ser esa torre con esa luz — no una escena
 genérica).
+
+### Diccionario de datos
+
+Campos que lee el sistema (los demás en el JSON se ignoran: son metadata de
+producción para humanos). Referencia: `script_loader.py` y `entities/`.
+
+#### `meta` (objeto, opcional)
+
+| Campo | Tipo | Default | Uso |
+|-------|------|---------|-----|
+| `serie` | string | `""` | Informativo |
+| `capitulo` | int | `0` | Informativo |
+| `titulo` | string | `""` | **Título de gancho** (0–2.8s, caja de contraste) |
+| `subtitulo` | string \| null | `null` | Informativo |
+| `idioma` | string | `"es-MX"` | Sus 2 primeras letras fuerzan el idioma de whisper (`es`, `en`…) |
+
+#### `planos[]` (array, **requerido**, ≥1)
+
+| Campo | Tipo | Req. | Default | Uso |
+|-------|------|:----:|---------|-----|
+| `id` | string | ✅ | — | Identificador único (nombre de archivos: `<id>.png`, `<id>.mp4`). IDs duplicados = error |
+| `narracion` | string | ✅ | — | Texto EXACTO a leer. Fuente de verdad de la alineación. No puede ser vacío |
+| `visual` | objeto | ✅ | — | Ver abajo. Su `tipo` es obligatorio |
+| `seccion` | string | | `""` | Informativo (gancho/desarrollo/cierre…) |
+| `texto_en_pantalla` | string \| null | | `null` | Rótulo superior durante la ventana del plano (usa `\N` para salto de línea) |
+| `audio` | objeto | | `{}` | Ver abajo |
+| `inicio_aprox` | string \| null | | `null` | Solo planeación — **ignorado** (el tiempo real sale de la alineación) |
+| `duracion_seg` | number \| null | | `null` | Solo planeación — **ignorado** (la duración real sale de la alineación) |
+
+#### `planos[].visual` (objeto, **requerido**)
+
+| Campo | Tipo | Req. | Default | Uso |
+|-------|------|:----:|---------|-----|
+| `tipo` | enum | ✅ | — | Debe ser uno de la lista de abajo. Hoy todos generan imagen IA con `prompt_ia`; el resto de tipos son etiquetas para uso futuro |
+| `prompt_ia` | string | | `""` | Prompt (en inglés) para Stable Diffusion. Se le concatena `NARR_STYLE_SUFFIX` |
+| `descripcion` | string | | `""` | Texto humano; en el backend `placeholder` se dibuja como cartel |
+| `nota` | string \| null | | `null` | Informativo |
+| `overlay` | string \| null | | `null` | Animación del plano (ver tabla) |
+| `shake` | bool | | `false` | Sacudida de cámara (terremotos, impactos) |
+
+**`visual.tipo`** (valores válidos): `imagen_ia`, `video_stock`, `animacion_3d`,
+`mapa_animado`, `grafico_movimiento`, `cartel_texto`, `archivo_historico`.
+*Nota:* hoy la generación es la misma para todos (imagen IA desde `prompt_ia`);
+un `tipo` inválido aborta la carga del guion.
+
+**`visual.overlay`** (sinónimos aceptados → efecto):
+
+| Valor(es) | Efecto |
+|-----------|--------|
+| `niebla`, `fog`, `humo` | Niebla que se desplaza |
+| `polvo`, `dust`, `particulas` | Partículas de polvo ascendentes |
+| `lluvia`, `rain` | Lluvia cayendo |
+| `burbujas`, `bubbles`, `submarino` | Burbujas ascendentes |
+| `fuego`, `fire`, `llamas` | Parpadeo cálido (la imagen pulsa como iluminada por fuego) |
+
+Cualquier otro valor se ignora (sin overlay).
+
+#### `planos[].audio` (objeto, opcional)
+
+| Campo | Tipo | Default | Uso |
+|-------|------|---------|-----|
+| `sfx` | string \| null | `null` | Dispara un efecto según palabras clave (ver tabla) |
+| `musica` | string \| null | `null` | Reservado — la música global se toma de `assets/music.*` o se genera |
+
+**`audio.sfx`** — el efecto se elige por palabra clave contenida en el texto:
+
+| Si el texto contiene… | Efecto |
+|-----------------------|--------|
+| `ola`, `mar`, `agua`, `puerto` | Olas |
+| `fuego`, `llama`, `hoguera`, `crepit` | Fuego crepitando |
+| `terremoto`, `retumb`, `derrumb`, `temblor` | Retumbe grave |
+| `viento`, `niebla`, `brisa` | Viento |
+| `burbuja`, `submarino`, `buceo` | Burbujas |
+
+Sin palabra clave reconocida, el plano va sin SFX (no falla).
+
+> El movimiento de cámara (Ken Burns) no se configura por plano: se asigna
+> automáticamente y, en planos con varias tomas, alterna entre ellas.
 
 ## Estándares de retención (automáticos)
 
