@@ -18,14 +18,20 @@ class Settings:
     whisper_model: str
     whisper_cpu_threads: int
     whisper_language: str | None
+    image_backend: str  # "a1111" | "placeholder"
     a1111_base_url: str
     sd_negative_prompt: str
     sd_steps: int
     sd_cfg_scale: float
     sd_sampler: str
+    sd_width: int
+    sd_height: int
     style_suffix: str
     target_fps: int
     xfade_duration: float
+    vertical: bool
+    music_volume: float
+    enable_audio_bed: bool
 
 
 def load_settings() -> Settings:
@@ -39,6 +45,7 @@ def load_settings() -> Settings:
         whisper_model=os.getenv("NARR_WHISPER_MODEL", "small"),
         whisper_cpu_threads=int(os.getenv("NARR_WHISPER_CPU_THREADS", "0")),
         whisper_language=language or None,
+        image_backend=os.getenv("NARR_IMAGE_BACKEND", "a1111").strip().lower(),
         a1111_base_url=os.getenv("NARR_A1111_BASE_URL", "http://127.0.0.1:7860"),
         sd_negative_prompt=os.getenv(
             "NARR_SD_NEGATIVE_PROMPT", "blurry, low quality, deformed, watermark, text"
@@ -46,10 +53,15 @@ def load_settings() -> Settings:
         sd_steps=int(os.getenv("NARR_SD_STEPS", "20")),
         sd_cfg_scale=float(os.getenv("NARR_SD_CFG_SCALE", "7")),
         sd_sampler=os.getenv("NARR_SD_SAMPLER", "DPM++ 2M Karras"),
+        sd_width=int(os.getenv("NARR_SD_WIDTH", "768")),
+        sd_height=int(os.getenv("NARR_SD_HEIGHT", "448")),
         style_suffix=os.getenv(
             "NARR_STYLE_SUFFIX",
             "digital painting, historical illustration, warm muted earthy palette, painterly, cinematic lighting",
         ),
         target_fps=int(os.getenv("NARR_TARGET_FPS", "30")),
         xfade_duration=float(os.getenv("NARR_XFADE_DURATION", "0.5")),
+        vertical=os.getenv("NARR_VERTICAL", "").strip() in ("1", "true", "si", "sí"),
+        music_volume=float(os.getenv("NARR_MUSIC_VOLUME", "0.22")),
+        enable_audio_bed=os.getenv("NARR_AUDIO_BED", "1").strip() not in ("0", "false", "no"),
     )

@@ -31,6 +31,8 @@ class GeneratePlanoImages:
         steps: int,
         cfg_scale: float,
         sampler_name: str,
+        width: int = 768,
+        height: int = 448,
     ) -> None:
         self._images = image_generator
         self._style_suffix = style_suffix
@@ -38,6 +40,8 @@ class GeneratePlanoImages:
         self._steps = steps
         self._cfg_scale = cfg_scale
         self._sampler = sampler_name
+        self._width = width
+        self._height = height
 
     def execute(self, planos: list[Plano], images_dir: Path) -> GenerateImagesReport:
         report = GenerateImagesReport()
@@ -51,7 +55,10 @@ class GeneratePlanoImages:
                 prompt = f"{plano.visual.prompt_ia}, {self._style_suffix}"
                 request = ImageGenerationRequest(
                     prompt=prompt,
+                    label=plano.visual.descripcion or plano.narracion,
                     negative_prompt=self._negative_prompt,
+                    width=self._width,
+                    height=self._height,
                     steps=self._steps,
                     cfg_scale=self._cfg_scale,
                     sampler_name=self._sampler,

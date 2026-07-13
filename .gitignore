@@ -9,7 +9,10 @@ dist/
 .env
 projects/
 tools/stable-diffusion-webui-directml/
+tools/stable-diffusion-webui/
 *.log
+launch_log.txt
+launch_err.txt
 
 # Herramientas
 .pytest_cache/

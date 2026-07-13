@@ -31,8 +31,17 @@ def _project(slug: str) -> NarrationProject:
 
 
 @app.command()
-def generate(slug: str = typer.Argument(help="Nombre de la carpeta en projects/<slug>/")) -> None:
+def generate(
+    slug: str = typer.Argument(help="Nombre de la carpeta en projects/<slug>/"),
+    vertical: bool = typer.Option(
+        False, "--vertical", help="Lienzo 9:16 (Shorts/Reels) en lugar de 16:9"
+    ),
+) -> None:
     """Corre el pipeline completo: transcribe, alinea, genera imágenes, ensambla."""
+    import os
+
+    if vertical:
+        os.environ["NARR_VERTICAL"] = "1"
     container = _container()
     project = _project(slug)
     if not project.script_path.exists():
