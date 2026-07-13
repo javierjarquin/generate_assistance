@@ -21,8 +21,18 @@ _GENERATE_TIMEOUT = 900
 
 
 class Automatic1111ImageAdapter(ImageGeneratorPort):
-    def __init__(self, base_url: str, session: requests.Session | None = None) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        checkpoint: str | None = None,
+        session: requests.Session | None = None,
+    ) -> None:
         self._base_url = base_url.rstrip("/")
+        # Nombre del checkpoint a forzar por generación (override_settings). Si es
+        # None se usa el que A1111 tenga cargado — el checkpoint base SD 1.5 obedece
+        # mal los prompts; un modelo afinado (DreamShaper, Realistic Vision) mejora
+        # calidad y fidelidad sin tocar el pipeline.
+        self._checkpoint = checkpoint or None
         self._http = session or requests.Session()
 
     def is_available(self) -> bool:
@@ -43,6 +53,9 @@ class Automatic1111ImageAdapter(ImageGeneratorPort):
             "sampler_name": request.sampler_name,
             "seed": request.seed,
         }
+        if self._checkpoint:
+            payload["override_settings"] = {"sd_model_checkpoint": self._checkpoint}
+            payload["override_settings_restore_afterwards"] = False
         resp = self._http.post(
             f"{self._base_url}/sdapi/v1/txt2img", json=payload, timeout=_GENERATE_TIMEOUT
         )

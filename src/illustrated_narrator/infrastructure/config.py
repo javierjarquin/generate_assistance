@@ -20,6 +20,7 @@ class Settings:
     whisper_language: str | None
     image_backend: str  # "a1111" | "placeholder"
     a1111_base_url: str
+    sd_checkpoint: str | None
     sd_negative_prompt: str
     sd_steps: int
     sd_cfg_scale: float
@@ -32,6 +33,8 @@ class Settings:
     vertical: bool
     music_volume: float
     enable_audio_bed: bool
+    cta_text: str | None
+    cta_duration: float
 
 
 def load_settings() -> Settings:
@@ -47,6 +50,7 @@ def load_settings() -> Settings:
         whisper_language=language or None,
         image_backend=os.getenv("NARR_IMAGE_BACKEND", "a1111").strip().lower(),
         a1111_base_url=os.getenv("NARR_A1111_BASE_URL", "http://127.0.0.1:7860"),
+        sd_checkpoint=os.getenv("NARR_SD_CHECKPOINT", "").strip() or None,
         sd_negative_prompt=os.getenv(
             "NARR_SD_NEGATIVE_PROMPT", "blurry, low quality, deformed, watermark, text"
         ),
@@ -60,8 +64,10 @@ def load_settings() -> Settings:
             "digital painting, historical illustration, warm muted earthy palette, painterly, cinematic lighting",
         ),
         target_fps=int(os.getenv("NARR_TARGET_FPS", "30")),
-        xfade_duration=float(os.getenv("NARR_XFADE_DURATION", "0.5")),
+        xfade_duration=float(os.getenv("NARR_XFADE_DURATION", "0.28")),
         vertical=os.getenv("NARR_VERTICAL", "").strip() in ("1", "true", "si", "sí"),
         music_volume=float(os.getenv("NARR_MUSIC_VOLUME", "0.22")),
         enable_audio_bed=os.getenv("NARR_AUDIO_BED", "1").strip() not in ("0", "false", "no"),
+        cta_text=os.getenv("NARR_CTA_TEXT", "SÍGUEME PARA MÁS HISTORIAS").strip() or None,
+        cta_duration=float(os.getenv("NARR_CTA_DURATION", "3.0")),
     )

@@ -59,6 +59,27 @@ def test_rotulo_from_texto_en_pantalla(tmp_path: Path) -> None:
     assert "100 METROS" in content
 
 
+def test_cta_end_card_dialogue(tmp_path: Path) -> None:
+    dest = tmp_path / "caps.ass"
+    write_ass(
+        [_plano("p1", 1.0, 3.0)], dest, transcript=_transcript(),
+        cta_text="Sígueme para más", cta_start_seconds=10.0, cta_duration=3.0,
+    )
+    content = dest.read_text(encoding="utf-8")
+    assert "SÍGUEME PARA MÁS" in content
+    assert ",CTA," in content
+
+
+def test_title_style_has_contrast_box(tmp_path: Path) -> None:
+    dest = tmp_path / "caps.ass"
+    write_ass([_plano("p1", 0.5, 2.0)], dest, meta=GuionMeta(titulo="Prueba"))
+    content = dest.read_text(encoding="utf-8")
+    # BorderStyle=3 (caja opaca) en el estilo Titulo
+    titulo_line = next(l for l in content.splitlines() if l.startswith("Style: Titulo"))
+    fields = titulo_line.split(",")
+    assert fields[15] == "3"  # BorderStyle (caja opaca)
+
+
 def test_no_transcript_no_karaoke_but_valid_file(tmp_path: Path) -> None:
     dest = tmp_path / "caps.ass"
     write_ass([_plano("p1", 1.0, 3.0)], dest)

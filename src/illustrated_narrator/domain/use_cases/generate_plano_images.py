@@ -1,5 +1,10 @@
-"""Genera la imagen IA de cada plano a partir de su prompt_ia + un sufijo de
-estilo fijo (para que todas las imagenes del video se vean consistentes).
+"""Genera las imágenes IA de cada plano a partir de su prompt_ia + un sufijo de
+estilo fijo (consistencia visual entre todas las imágenes del video).
+
+Multi-toma: un plano largo puede necesitar varias imágenes para que ninguna
+quede fija más de unos segundos (ver retention_plan). La primera toma usa el
+prompt tal cual; las extra añaden una variación de encuadre y una semilla
+distinta — mismo tema, distinto ángulo.
 """
 
 import hashlib
@@ -7,6 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from illustrated_narrator.domain.entities.plano import Plano, PlanoEstado
+from illustrated_narrator.domain.services.retention_plan import Shot, variation_suffix
 from illustrated_narrator.ports.image_generator import ImageGenerationRequest, ImageGeneratorPort
 
 
@@ -14,12 +20,17 @@ from illustrated_narrator.ports.image_generator import ImageGenerationRequest, I
 class GenerateImagesReport:
     generated: list[Plano] = field(default_factory=list)
     failed: list[tuple[Plano, str]] = field(default_factory=list)
+    shots_generated: int = 0
 
 
-def _seed_for(plano_id: str) -> int:
-    """Semilla determinista por plano: reproducible entre corridas, a diferencia de hash()."""
-    digest = hashlib.sha256(plano_id.encode("utf-8")).digest()
+def _seed_for(shot_id: str) -> int:
+    """Semilla determinista por toma: reproducible entre corridas."""
+    digest = hashlib.sha256(shot_id.encode("utf-8")).digest()
     return int.from_bytes(digest[:4], "big") % (2**31)
+
+
+def shot_image_path(images_dir: Path, shot: Shot) -> Path:
+    return images_dir / f"{shot.shot_id}.png"
 
 
 class GeneratePlanoImages:
@@ -43,30 +54,47 @@ class GeneratePlanoImages:
         self._width = width
         self._height = height
 
-    def execute(self, planos: list[Plano], images_dir: Path) -> GenerateImagesReport:
+    def execute(
+        self,
+        planos: list[Plano],
+        images_dir: Path,
+        shots_by_plano: dict[str, list[Shot]] | None = None,
+    ) -> GenerateImagesReport:
         report = GenerateImagesReport()
         if not self._images.is_available():
             raise RuntimeError(
                 "El servicio de generación de imágenes (A1111) no responde. "
-                "Arráncalo con webui-user.bat --api y vuelve a intentar."
+                "Arráncalo con tools\\run_a1111.bat y vuelve a intentar."
             )
         for plano in planos:
+            shots = (shots_by_plano or {}).get(plano.id) or [
+                Shot(plano_id=plano.id, index=0, total=1)
+            ]
             try:
-                prompt = f"{plano.visual.prompt_ia}, {self._style_suffix}"
-                request = ImageGenerationRequest(
-                    prompt=prompt,
-                    label=plano.visual.descripcion or plano.narracion,
-                    negative_prompt=self._negative_prompt,
-                    width=self._width,
-                    height=self._height,
-                    steps=self._steps,
-                    cfg_scale=self._cfg_scale,
-                    sampler_name=self._sampler,
-                    seed=_seed_for(plano.id),
-                )
-                dest = images_dir / f"{plano.id}.png"
-                self._images.generate(request, dest)
-                plano.imagen_path = str(dest)
+                for shot in shots:
+                    dest = shot_image_path(images_dir, shot)
+                    if dest.exists():  # resumible: no re-generar tomas ya hechas
+                        if not shot.is_extra:
+                            plano.imagen_path = str(dest)
+                        continue
+                    prompt = (
+                        f"{plano.visual.prompt_ia}{variation_suffix(shot)}, {self._style_suffix}"
+                    )
+                    request = ImageGenerationRequest(
+                        prompt=prompt,
+                        label=plano.visual.descripcion or plano.narracion,
+                        negative_prompt=self._negative_prompt,
+                        width=self._width,
+                        height=self._height,
+                        steps=self._steps,
+                        cfg_scale=self._cfg_scale,
+                        sampler_name=self._sampler,
+                        seed=_seed_for(shot.shot_id),
+                    )
+                    self._images.generate(request, dest)
+                    report.shots_generated += 1
+                    if not shot.is_extra:
+                        plano.imagen_path = str(dest)
                 plano.estado = PlanoEstado.IMAGEN_GENERADA
                 report.generated.append(plano)
             except Exception as exc:  # noqa: BLE001 — un plano fallido no frena el resto
