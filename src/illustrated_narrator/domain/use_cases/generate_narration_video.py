@@ -24,6 +24,8 @@ from illustrated_narrator.domain.use_cases.generate_plano_images import (
     GeneratePlanoImages,
     shot_image_path,
 )
+from illustrated_narrator.domain.use_cases.research_audio_assets import ResearchAudioAssets
+from illustrated_narrator.domain.use_cases.research_plano_media import ResearchPlanoMedia
 from illustrated_narrator.adapters.video.ass_writer import write_ass
 from illustrated_narrator.ports.transcription import TranscriptionPort
 from illustrated_narrator.ports.video_assembler import VideoAssemblerPort
@@ -38,6 +40,7 @@ class GenerateVideoReport:
     images_failed: list[tuple[Plano, str]] = field(default_factory=list)
     clips_rendered: int = 0
     final_video_path: Path | None = None
+    media_shots_resolved: int = 0
 
 
 class GenerateNarrationVideo:
@@ -51,6 +54,8 @@ class GenerateNarrationVideo:
         canvas: tuple[int, int] = (1920, 1080),
         cta_text: str | None = None,
         cta_duration: float = 3.0,
+        research_plano_media: ResearchPlanoMedia | None = None,
+        research_audio_assets: ResearchAudioAssets | None = None,
     ) -> None:
         self._transcriber = transcriber
         self._generate_images = generate_images
@@ -60,6 +65,8 @@ class GenerateNarrationVideo:
         self._canvas = canvas
         self._cta_text = cta_text or None
         self._cta_duration = cta_duration
+        self._research_plano_media = research_plano_media
+        self._research_audio_assets = research_audio_assets
 
     def execute(self, project: NarrationProject) -> GenerateVideoReport:
         report = GenerateVideoReport()
@@ -99,6 +106,24 @@ class GenerateNarrationVideo:
         shots_by_plano = {
             p.id: plan_shots(p, render_durations[p.id]) for p in alignable
         }
+
+        # Enriquecimiento con medios reales: para cualquier plano (no solo
+        # histórico/documental), busca fotos reales antes de generar con IA.
+        # Escribe directo en images_dir -- generate_plano_images se salta los
+        # shots que ya tienen archivo, así que esto es un fallback silencioso
+        # sin tocar ese caso de uso.
+        if self._research_plano_media is not None:
+            try:
+                media_report = self._research_plano_media.execute(
+                    alignable,
+                    project.images_dir,
+                    project.media_dir,
+                    project.media_manifest_path,
+                    shots_by_plano,
+                )
+                report.media_shots_resolved = media_report.shots_resolved
+            except Exception as exc:  # noqa: BLE001 — sin medios reales, sigue la generación IA
+                logger.error("Investigación de medios falló (%s); se genera todo con IA", exc)
 
         pending_images = [p for p in alignable if p.estado == PlanoEstado.PENDIENTE or not p.imagen_path]
         if pending_images:
@@ -160,6 +185,12 @@ class GenerateNarrationVideo:
             cta_start_seconds=cta_start,
             cta_duration=self._cta_duration,
         )
+
+        if self._research_audio_assets is not None:
+            try:
+                self._research_audio_assets.execute(guion, project.assets_dir)
+            except Exception as exc:  # noqa: BLE001 — sin audio real, sigue el generador procedural
+                logger.error("Investigación de audio falló (%s); se usa la cama procedural", exc)
 
         bed_path = None
         if self._bed_builder is not None:

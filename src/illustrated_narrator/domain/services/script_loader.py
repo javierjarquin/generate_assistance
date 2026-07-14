@@ -70,6 +70,7 @@ def _parse_plano(raw: dict, index: int) -> Plano:
         nota=visual_raw.get("nota"),
         overlay=visual_raw.get("overlay"),
         shake=bool(visual_raw.get("shake", False)),
+        busqueda_medios=visual_raw.get("busqueda_medios"),
     )
     audio_raw = raw.get("audio", {})
     audio = AudioSpec(musica=audio_raw.get("musica"), sfx=audio_raw.get("sfx"))

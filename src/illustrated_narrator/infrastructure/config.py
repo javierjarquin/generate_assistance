@@ -35,6 +35,11 @@ class Settings:
     enable_audio_bed: bool
     cta_text: str | None
     cta_duration: float
+    enable_media_research: bool
+    pexels_api_key: str | None
+    freesound_api_key: str | None
+    media_candidates_per_shot: int
+    media_relevance_min_score: float
 
 
 def load_settings() -> Settings:
@@ -70,4 +75,10 @@ def load_settings() -> Settings:
         enable_audio_bed=os.getenv("NARR_AUDIO_BED", "1").strip() not in ("0", "false", "no"),
         cta_text=os.getenv("NARR_CTA_TEXT", "SÍGUEME PARA MÁS HISTORIAS").strip() or None,
         cta_duration=float(os.getenv("NARR_CTA_DURATION", "3.0")),
+        enable_media_research=os.getenv("NARR_ENABLE_MEDIA_RESEARCH", "1").strip()
+        not in ("0", "false", "no"),
+        pexels_api_key=os.getenv("NARR_PEXELS_API_KEY", "").strip() or None,
+        freesound_api_key=os.getenv("NARR_FREESOUND_API_KEY", "").strip() or None,
+        media_candidates_per_shot=int(os.getenv("NARR_MEDIA_CANDIDATES_PER_SHOT", "3")),
+        media_relevance_min_score=float(os.getenv("NARR_MEDIA_RELEVANCE_MIN_SCORE", "0.35")),
     )

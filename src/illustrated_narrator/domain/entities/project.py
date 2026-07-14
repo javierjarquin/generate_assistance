@@ -38,6 +38,14 @@ class NarrationProject:
         return self.root_dir / "assets"
 
     @property
+    def media_dir(self) -> Path:
+        return self.root_dir / "media"
+
+    @property
+    def media_manifest_path(self) -> Path:
+        return self.media_dir / "manifest.json"
+
+    @property
     def captions_path(self) -> Path:
         return self.root_dir / "captions.ass"
 
@@ -50,3 +58,4 @@ class NarrationProject:
         self.images_dir.mkdir(parents=True, exist_ok=True)
         self.clips_dir.mkdir(parents=True, exist_ok=True)
         self.assets_dir.mkdir(parents=True, exist_ok=True)
+        self.media_dir.mkdir(parents=True, exist_ok=True)

@@ -104,17 +104,19 @@ producción para humanos). Referencia: `script_loader.py` y `entities/`.
 
 | Campo | Tipo | Req. | Default | Uso |
 |-------|------|:----:|---------|-----|
-| `tipo` | enum | ✅ | — | Debe ser uno de la lista de abajo. Hoy todos generan imagen IA con `prompt_ia`; el resto de tipos son etiquetas para uso futuro |
-| `prompt_ia` | string | | `""` | Prompt (en inglés) para Stable Diffusion. Se le concatena `NARR_STYLE_SUFFIX` |
+| `tipo` | enum | ✅ | — | Debe ser uno de la lista de abajo. `archivo_historico` prioriza Wikimedia Commons al buscar medios reales; el resto no cambia el flujo |
+| `prompt_ia` | string | | `""` | Prompt (en inglés) para Stable Diffusion. Se le concatena `NARR_STYLE_SUFFIX`. También se usa (recortado) como query de búsqueda de medios reales si no hay `busqueda_medios` |
 | `descripcion` | string | | `""` | Texto humano; en el backend `placeholder` se dibuja como cartel |
+| `busqueda_medios` | string \| null | | `null` | Query explícita para investigar medios reales (ver sección de abajo); si falta, se deriva de `prompt_ia` |
 | `nota` | string \| null | | `null` | Informativo |
 | `overlay` | string \| null | | `null` | Animación del plano (ver tabla) |
 | `shake` | bool | | `false` | Sacudida de cámara (terremotos, impactos) |
 
 **`visual.tipo`** (valores válidos): `imagen_ia`, `video_stock`, `animacion_3d`,
 `mapa_animado`, `grafico_movimiento`, `cartel_texto`, `archivo_historico`.
-*Nota:* hoy la generación es la misma para todos (imagen IA desde `prompt_ia`);
-un `tipo` inválido aborta la carga del guion.
+Todo plano puede recibir una foto real (ver "Medios reales" abajo); si no se
+encuentra un candidato relevante, se genera con IA desde `prompt_ia`. Un
+`tipo` inválido aborta la carga del guion.
 
 **`visual.overlay`** (sinónimos aceptados → efecto):
 
@@ -164,6 +166,40 @@ La herramienta aplica a CUALQUIER video, sin configurar nada:
 
 Palancas de calidad de imagen: `NARR_SD_CHECKPOINT` (usa un modelo afinado en
 vez del base SD 1.5) y `NARR_SD_WIDTH/HEIGHT` (16:9 nativo).
+
+## Medios reales (antes de generar con IA)
+
+Antes de mandar un plano a Stable Diffusion, la herramienta investiga si hay
+una **foto real** que le sirva — para cualquier guion, no solo histórico o
+documental. Un plano de ficción sin equivalente real simplemente no encuentra
+candidatos y se genera con IA, igual que hoy.
+
+- **Fuentes**: [Pexels](https://www.pexels.com/api/) (stock general, licencia
+  libre) y [Wikimedia Commons](https://commons.wikimedia.org) (archivo
+  público/histórico, sin API key). `visual.tipo: archivo_historico` prueba
+  Wikimedia primero; el resto prueba Pexels primero.
+- **Filtro de relevancia**: si el mejor resultado no tiene suficiente
+  solapamiento de palabras clave con la búsqueda, se descarta — no se fuerza
+  una foto real irrelevante solo porque el proveedor devolvió "algo"
+  (`NARR_MEDIA_RELEVANCE_MIN_SCORE`).
+- **Dónde queda todo**: `projects/<slug>/media/<plano_id>/` guarda los
+  candidatos descargados y `media/manifest.json` registra elegido +
+  descartados con licencia/autor/url (créditos para la descripción de
+  YouTube). El elegido se copia a `images/<shot_id>.png`, el mismo archivo
+  que usaría la generación IA — cero cambios al ensamblador.
+- **Revisar antes de generar**: `poetry run narrator media <slug>` corre solo
+  la investigación (requiere narración ya grabada/transcrita). Para forzar
+  una foto a mano, coloca `media/<plano_id>/elegido.<ext>` — gana sobre
+  cualquier búsqueda.
+- **Audio real**: si `assets/music.*` no existe, busca en
+  [Freesound](https://freesound.org/apiv2/apply) una pista ambiental; igual
+  por cada tipo de SFX (`sfx/<kind>.mp3`) que el guion use. El mecanismo de
+  "el archivo del usuario gana" de la cama de audio no cambia.
+- **Activar**: `NARR_PEXELS_API_KEY` y `NARR_FREESOUND_API_KEY` (gratis,
+  registro simple) en `.env`. Sin keys, Wikimedia sigue funcionando solo;
+  `NARR_ENABLE_MEDIA_RESEARCH=0` apaga toda la capa.
+- **Fuera de alcance por ahora**: clips de video stock reales (solo fotos) y
+  música/SFX por plano (sigue siendo una pista global + SFX por categoría).
 
 ## Sincronía audio-video
 

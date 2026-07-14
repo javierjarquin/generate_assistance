@@ -60,11 +60,63 @@ def generate(
         )
         if report.alignment.unaligned_planos:
             typer.echo(f"  Sin alinear: {', '.join(report.alignment.unaligned_planos)}")
+    if report.media_shots_resolved:
+        typer.echo(f"Shots con medios reales: {report.media_shots_resolved}")
     typer.echo(f"Imágenes generadas: {report.images_generated}")
     for plano, error in report.images_failed:
         typer.echo(f"  FALLÓ imagen {plano.id}: {error}")
     typer.echo(f"Clips renderizados: {report.clips_rendered}")
     typer.echo(f"Video final: {report.final_video_path}")
+
+
+@app.command()
+def media(slug: str = typer.Argument(help="Nombre de la carpeta en projects/<slug>/")) -> None:
+    """Corre solo la investigación de medios reales (sin generar el video),
+    para revisar qué se encontró antes de correr `generate`."""
+    from illustrated_narrator.domain.services.forced_aligner import AlignScriptToAudio
+    from illustrated_narrator.domain.services.plano_state import load_planos_state, save_planos_state
+    from illustrated_narrator.domain.services.render_timeline import compute_render_durations
+    from illustrated_narrator.domain.services.retention_plan import plan_shots
+    from illustrated_narrator.domain.services.script_loader import load_guion
+    from illustrated_narrator.domain.services.transcript_store import load_transcript, save_transcript
+
+    container = _container()
+    project = _project(slug)
+    if not project.script_path.exists():
+        typer.echo(f"Falta {project.script_path} — coloca ahí el guion.json.")
+        raise typer.Exit(code=1)
+    if container.research_plano_media is None:
+        typer.echo("Investigación de medios deshabilitada (NARR_ENABLE_MEDIA_RESEARCH=0).")
+        raise typer.Exit(code=1)
+    if not project.audio_path.exists():
+        typer.echo(f"Falta {project.audio_path} — graba la narración antes de investigar medios.")
+        raise typer.Exit(code=1)
+
+    guion = load_guion(project.script_path)
+    load_planos_state(guion.planos, project.planos_alineados_path)
+
+    transcript = load_transcript(project.transcript_path)
+    already_aligned = all(p.inicio_real_seg is not None for p in guion.planos)
+    if not already_aligned or transcript is None:
+        transcript = container.transcriber.transcribe(
+            project.audio_path, language=guion.meta.idioma[:2]
+        )
+        save_transcript(transcript, project.transcript_path)
+    if not already_aligned:
+        AlignScriptToAudio().execute(guion, transcript)
+        save_planos_state(guion.planos, project.planos_alineados_path)
+
+    alignable = [p for p in guion.planos if p.inicio_real_seg is not None]
+    render_durations = compute_render_durations(alignable, container.settings.xfade_duration)
+    shots_by_plano = {p.id: plan_shots(p, render_durations[p.id]) for p in alignable}
+
+    report = container.research_plano_media.execute(
+        alignable, project.images_dir, project.media_dir, project.media_manifest_path, shots_by_plano
+    )
+    typer.echo(f"Shots resueltos con medios reales: {report.shots_resolved}/{sum(len(s) for s in shots_by_plano.values())}")
+    typer.echo(f"Manifest: {project.media_manifest_path}")
+    typer.echo("Revisa media/manifest.json; para forzar una foto elegida a mano, coloca")
+    typer.echo("media/<plano_id>/elegido.<ext> antes de correr `generate`.")
 
 
 @app.command()

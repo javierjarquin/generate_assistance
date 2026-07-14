@@ -30,6 +30,9 @@ class VisualSpec:
     overlay: str | None = None
     # Sacudida de cámara (terremotos, impactos)
     shake: bool = False
+    # Query explícita para buscar medios reales (stock/archivo); si es None se
+    # deriva de prompt_ia/descripcion (ver domain/services/media_relevance.py)
+    busqueda_medios: str | None = None
 
 
 @dataclass(frozen=True)

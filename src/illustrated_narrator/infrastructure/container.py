@@ -4,13 +4,20 @@ from functools import cached_property
 
 from illustrated_narrator.adapters.audio.audio_bed import AudioBedBuilder
 from illustrated_narrator.adapters.images.automatic1111_adapter import Automatic1111ImageAdapter
+from illustrated_narrator.adapters.media.freesound_adapter import FreesoundAdapter
+from illustrated_narrator.adapters.media.pexels_adapter import PexelsImageAdapter
+from illustrated_narrator.adapters.media.wikimedia_adapter import WikimediaCommonsAdapter
 from illustrated_narrator.adapters.transcription.faster_whisper_adapter import FasterWhisperTranscriber
 from illustrated_narrator.adapters.video.ffmpeg_assembler import FFmpegAssembler
 from illustrated_narrator.domain.use_cases.generate_narration_video import GenerateNarrationVideo
 from illustrated_narrator.domain.use_cases.generate_plano_images import GeneratePlanoImages
+from illustrated_narrator.domain.use_cases.research_audio_assets import ResearchAudioAssets
+from illustrated_narrator.domain.use_cases.research_plano_media import ResearchPlanoMedia
 from illustrated_narrator.infrastructure.config import Settings
 from illustrated_narrator.infrastructure.ffmpeg_locator import resolve_ffmpeg
 from illustrated_narrator.ports.image_generator import ImageGeneratorPort
+from illustrated_narrator.ports.stock_audio import StockAudioPort
+from illustrated_narrator.ports.stock_media import StockImagePort
 from illustrated_narrator.ports.transcription import TranscriptionPort
 from illustrated_narrator.ports.video_assembler import VideoAssemblerPort
 
@@ -64,6 +71,51 @@ class Container:
         )
 
     @cached_property
+    def _pexels_adapter(self) -> PexelsImageAdapter:
+        return PexelsImageAdapter(self.settings.pexels_api_key)
+
+    @cached_property
+    def _wikimedia_adapter(self) -> WikimediaCommonsAdapter:
+        return WikimediaCommonsAdapter()
+
+    @cached_property
+    def _freesound_adapter(self) -> FreesoundAdapter:
+        return FreesoundAdapter(self.settings.freesound_api_key)
+
+    @cached_property
+    def stock_image_sources_default(self) -> list[StockImagePort]:
+        """Orden por defecto: stock general primero, archivo como respaldo."""
+        candidates = [self._pexels_adapter, self._wikimedia_adapter]
+        return [c for c in candidates if c.is_available()]
+
+    @cached_property
+    def stock_image_sources_historico(self) -> list[StockImagePort]:
+        """Planos archivo_historico: archivo público primero, stock de respaldo."""
+        candidates = [self._wikimedia_adapter, self._pexels_adapter]
+        return [c for c in candidates if c.is_available()]
+
+    @cached_property
+    def stock_audio_source(self) -> StockAudioPort | None:
+        return self._freesound_adapter if self._freesound_adapter.is_available() else None
+
+    @cached_property
+    def research_plano_media(self) -> ResearchPlanoMedia | None:
+        if not self.settings.enable_media_research:
+            return None
+        return ResearchPlanoMedia(
+            sources_default=self.stock_image_sources_default,
+            sources_historico=self.stock_image_sources_historico,
+            candidates_per_shot=self.settings.media_candidates_per_shot,
+            min_score=self.settings.media_relevance_min_score,
+        )
+
+    @cached_property
+    def research_audio_assets(self) -> ResearchAudioAssets | None:
+        if not self.settings.enable_media_research:
+            return None
+        return ResearchAudioAssets(self.stock_audio_source)
+
+    @cached_property
     def generate_plano_images(self) -> GeneratePlanoImages:
         s = self.settings
         # En vertical las imágenes se generan altas (el lienzo lo pide)
@@ -92,4 +144,6 @@ class Container:
             canvas=self.canvas,
             cta_text=self.settings.cta_text,
             cta_duration=self.settings.cta_duration,
+            research_plano_media=self.research_plano_media,
+            research_audio_assets=self.research_audio_assets,
         )
