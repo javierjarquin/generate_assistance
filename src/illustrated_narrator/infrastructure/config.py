@@ -40,6 +40,11 @@ class Settings:
     freesound_api_key: str | None
     media_candidates_per_shot: int
     media_relevance_min_score: float
+    # Parallax 2.5D
+    enable_parallax: bool
+    depth_model_path: Path
+    # Consistencia de estilo: "auto" | "ilustracion" | "realista" | "unificado"
+    style_mode: str
 
 
 def load_settings() -> Settings:
@@ -81,4 +86,9 @@ def load_settings() -> Settings:
         freesound_api_key=os.getenv("NARR_FREESOUND_API_KEY", "").strip() or None,
         media_candidates_per_shot=int(os.getenv("NARR_MEDIA_CANDIDATES_PER_SHOT", "3")),
         media_relevance_min_score=float(os.getenv("NARR_MEDIA_RELEVANCE_MIN_SCORE", "0.35")),
+        enable_parallax=os.getenv("NARR_PARALLAX", "1").strip() not in ("0", "false", "no"),
+        depth_model_path=Path(
+            os.getenv("NARR_DEPTH_MODEL", _PROJECT_ROOT / "models" / "depth_anything_v2_vits.onnx")
+        ),
+        style_mode=os.getenv("NARR_STYLE_MODE", "auto").strip().lower(),
     )

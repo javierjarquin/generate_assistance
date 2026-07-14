@@ -54,6 +54,18 @@ def _shot_pan_cycle(base: str, n: int) -> list[str]:
 # Acabado global: contraste/saturación leves + viñeta + grano fino
 _GRADING = "eq=saturation=1.08:contrast=1.05,vignette=PI/4.6,noise=alls=6:allf=t"
 
+# Grade unificador: cuando el video mezcla fotos reales + imágenes IA, un
+# tratamiento fuerte y común (curva cálida cinematográfica + viñeta + grano)
+# hace que todo se sienta de la misma pieza en vez de fuentes distintas.
+_GRADING_UNIFIED = (
+    "curves=r='0/0.03 0.5/0.5 1/0.97':b='0/0.05 0.5/0.47 1/0.93',"
+    "eq=saturation=0.94:contrast=1.12,vignette=PI/4.2,noise=alls=9:allf=t"
+)
+
+
+def _grading_for(style_mode: str) -> str:
+    return _GRADING_UNIFIED if style_mode == "unificado" else _GRADING
+
 _HARD_CUT = 0.05  # transición casi-seca para los primeros 5s (sin dissolve)
 _HARD_CUT_WINDOW = 5.0
 
@@ -120,12 +132,17 @@ class FFmpegAssembler(VideoAssemblerPort):
         encoder: str = "auto",
         fps: int = 30,
         canvas: tuple[int, int] = (1920, 1080),
+        depth_estimator=None,
+        style_mode: str = "auto",
     ) -> None:
         self._ffmpeg = ffmpeg_path
         self._encoder = encoder
         self._fps = fps
         self._canvas_w, self._canvas_h = canvas
         self._resolved_encoder: str | None = None
+        # Estimador de profundidad para parallax 2.5D; None = solo Ken Burns
+        self._depth = depth_estimator
+        self._style_mode = style_mode
 
     def _run(self, args: list[str]) -> None:
         cmd = [self._ffmpeg, "-hide_banner", "-y", *args]
@@ -220,37 +237,49 @@ class FFmpegAssembler(VideoAssemblerPort):
         profile = motion if hasattr(motion, "zoom_per_frame") else profile_by_name(str(motion))
         dest.parent.mkdir(parents=True, exist_ok=True)
         w, h = self._canvas_w, self._canvas_h
-        variant = _PAN_VARIANTS.get(pan_direction, _PAN_VARIANTS["zoom-in-center"])
+
+        # --- Parallax 2.5D si hay estimador de profundidad; si no, Ken Burns ---
+        parallax_base = self._try_parallax(image_path, duration_seconds, profile, dest)
+        has_overlay = bool(overlay)
+        if parallax_base is not None and not has_overlay and profile.shake_px == 0:
+            # El clip de parallax ya es el resultado final (nada que superponer)
+            parallax_base.replace(dest)
+            return dest
+
         frames = max(2, round(duration_seconds * self._fps))
-        x_expr = variant["x"].format(total_frames=frames)
-        y_expr = variant["y"].format(total_frames=frames)
-
-        # Zoom construido desde el perfil: la velocidad marca la energía. Con
-        # punch-in, los primeros ~0.3s caen desde una escala mayor (golpe de
-        # entrada que "despierta" al scroller) y luego el zoom continúa.
-        pf = max(1, round(0.3 * self._fps))
-        zpf, maxz, punch = profile.zoom_per_frame, profile.max_zoom, profile.punch_in
-        if punch > 0:
-            z_expr = (
-                f"if(lt(on,{pf}),{1 + punch:.3f}-{punch:.3f}*on/{pf},"
-                f"min(zoom+{zpf:.4f},{maxz:.2f}))"
-            )
+        if parallax_base is not None:
+            # Base con movimiento 3D ya renderizada; se le aplican overlay/shake
+            inputs = ["-i", str(parallax_base)]
+            current = "[0:v]"
+            parts: list[str] = []
         else:
-            z_expr = f"min(zoom+{zpf:.4f},{maxz:.2f})"
-
-        parts = [
-            "[0:v]split=2[bg][fg]",
-            f"[bg]scale={w}:{h}:force_original_aspect_ratio=increase,"
-            f"crop={w}:{h},gblur=sigma=20,eq=brightness=-0.1[bg]",
-            f"[fg]scale={w}:{h}:force_original_aspect_ratio=decrease,"
-            "pad=ceil(iw/2)*2:ceil(ih/2)*2[fg]",
-            "[bg][fg]overlay=(W-w)/2:(H-h)/2,format=yuv420p[composited]",
-            f"[composited]scale={w * 2}:{h * 2}:flags=lanczos,"
-            f"zoompan=z='{z_expr}':x='{x_expr}':y='{y_expr}':"
-            f"d={frames}:s={w}x{h}:fps={self._fps}[kb]",
-        ]
-        current = "[kb]"
-        inputs = ["-loop", "1", "-i", str(image_path)]
+            variant = _PAN_VARIANTS.get(pan_direction, _PAN_VARIANTS["zoom-in-center"])
+            x_expr = variant["x"].format(total_frames=frames)
+            y_expr = variant["y"].format(total_frames=frames)
+            # Zoom desde el perfil: la velocidad marca la energía. Con punch-in,
+            # los primeros ~0.3s caen desde una escala mayor (golpe de entrada).
+            pf = max(1, round(0.3 * self._fps))
+            zpf, maxz, punch = profile.zoom_per_frame, profile.max_zoom, profile.punch_in
+            if punch > 0:
+                z_expr = (
+                    f"if(lt(on,{pf}),{1 + punch:.3f}-{punch:.3f}*on/{pf},"
+                    f"min(zoom+{zpf:.4f},{maxz:.2f}))"
+                )
+            else:
+                z_expr = f"min(zoom+{zpf:.4f},{maxz:.2f})"
+            parts = [
+                "[0:v]split=2[bg][fg]",
+                f"[bg]scale={w}:{h}:force_original_aspect_ratio=increase,"
+                f"crop={w}:{h},gblur=sigma=20,eq=brightness=-0.1[bg]",
+                f"[fg]scale={w}:{h}:force_original_aspect_ratio=decrease,"
+                "pad=ceil(iw/2)*2:ceil(ih/2)*2[fg]",
+                "[bg][fg]overlay=(W-w)/2:(H-h)/2,format=yuv420p[composited]",
+                f"[composited]scale={w * 2}:{h * 2}:flags=lanczos,"
+                f"zoompan=z='{z_expr}':x='{x_expr}':y='{y_expr}':"
+                f"d={frames}:s={w}x{h}:fps={self._fps}[kb]",
+            ]
+            current = "[kb]"
+            inputs = ["-loop", "1", "-i", str(image_path)]
 
         if overlay in ("fuego", "fire", "llamas"):
             # Parpadeo cálido: la propia imagen pulsa como iluminada por llamas
@@ -279,18 +308,42 @@ class FFmpegAssembler(VideoAssemblerPort):
             current = "[shaken]"
 
         parts.append(f"{current}format=yuv420p[vout]")
-        self._run(
-            [
-                *inputs,
-                "-t", f"{duration_seconds:.3f}",
-                "-filter_complex", ";".join(parts),
-                "-map", "[vout]",
-                "-t", f"{duration_seconds:.3f}",
-                *self._encode_args(),
-                str(dest),
-            ]
-        )
+        try:
+            self._run(
+                [
+                    *inputs,
+                    "-t", f"{duration_seconds:.3f}",
+                    "-filter_complex", ";".join(parts),
+                    "-map", "[vout]",
+                    "-t", f"{duration_seconds:.3f}",
+                    *self._encode_args(),
+                    str(dest),
+                ]
+            )
+        finally:
+            if parallax_base is not None and parallax_base.exists():
+                parallax_base.unlink(missing_ok=True)
         return dest
+
+    def _try_parallax(self, image_path: Path, duration_seconds: float, profile, dest: Path):
+        """Renderiza la base con parallax 2.5D si hay estimador de profundidad.
+        Devuelve la ruta del clip base o None (para caer a Ken Burns)."""
+        if self._depth is None or not self._depth.is_available():
+            return None
+        try:
+            from illustrated_narrator.adapters.video.parallax import render_parallax_clip
+
+            depth = self._depth.estimate(image_path)
+            base = dest.with_name(f"{dest.stem}__plx.mp4")
+            render_parallax_clip(
+                self._ffmpeg, self._encode_args(), image_path, depth,
+                duration_seconds, self._fps, (self._canvas_w, self._canvas_h),
+                base, motion_name=profile.name,
+            )
+            return base
+        except Exception as exc:  # noqa: BLE001 — sin parallax, seguimos con Ken Burns
+            logger.warning("Parallax falló para %s (%s); uso Ken Burns", image_path.name, exc)
+            return None
 
     def _concat(self, clips: list[Path], dest: Path) -> None:
         """Une clips con corte seco (concat demuxer, sin re-encode)."""
@@ -366,8 +419,9 @@ class FFmpegAssembler(VideoAssemblerPort):
                     running_offset += durations[i] - (xfds[i] if i < len(xfds) else 0.0)
             video_label = prev_label
 
-        # Grading global antes de subtítulos (el texto no debe granularse)
-        filter_lines.append(f"[{video_label}]{_GRADING}[graded]")
+        # Grading global antes de subtítulos (el texto no debe granularse).
+        # En modo "unificado" el grade es más fuerte para cohesionar fuentes mixtas.
+        filter_lines.append(f"[{video_label}]{_grading_for(self._style_mode)}[graded]")
         video_label = "graded"
 
         if ass_subtitle_path is not None and ass_subtitle_path.exists():

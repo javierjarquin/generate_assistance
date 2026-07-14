@@ -23,3 +23,6 @@ launch_err.txt
 # Herramientas
 .pytest_cache/
 .ruff_cache/
+
+# Modelos pesados (Depth-Anything ONNX ~99MB)
+models/

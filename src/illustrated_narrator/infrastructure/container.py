@@ -54,12 +54,25 @@ class Container:
         )
 
     @cached_property
+    def depth_estimator(self):
+        """Estimador de profundidad para parallax 2.5D; None = solo Ken Burns.
+        Solo el modelo real (ONNX); sin él se cae a Ken Burns, no a profundidad falsa."""
+        if not self.settings.enable_parallax:
+            return None
+        from illustrated_narrator.adapters.depth.onnx_depth import OnnxDepthEstimator
+
+        onnx = OnnxDepthEstimator(self.settings.depth_model_path)
+        return onnx if onnx.is_available() else None
+
+    @cached_property
     def video_assembler(self) -> VideoAssemblerPort:
         return FFmpegAssembler(
             ffmpeg_path=self.ffmpeg_path,
             encoder=self.settings.video_encoder,
             fps=self.settings.target_fps,
             canvas=self.canvas,
+            depth_estimator=self.depth_estimator,
+            style_mode=self.settings.style_mode,
         )
 
     @cached_property
@@ -100,7 +113,9 @@ class Container:
 
     @cached_property
     def research_plano_media(self) -> ResearchPlanoMedia | None:
-        if not self.settings.enable_media_research:
+        # Consistencia de estilo: en modo "ilustracion" se generan TODAS las
+        # imágenes con IA (mismo style_suffix) y no se mezclan fotos reales.
+        if not self.settings.enable_media_research or self.settings.style_mode == "ilustracion":
             return None
         return ResearchPlanoMedia(
             sources_default=self.stock_image_sources_default,
