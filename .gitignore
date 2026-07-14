@@ -7,7 +7,13 @@ dist/
 
 # Configuracion local y proyectos generados
 .env
-projects/
+projects/*
+# Excepcion: guion.json de Capitulo1 como demo para probar el pipeline
+# (el resto del proyecto -- audio, imagenes, clips, final.mp4 -- sigue
+# ignorado; son outputs regenerables o insumos pesados)
+!projects/Capitulo1/
+projects/Capitulo1/*
+!projects/Capitulo1/guion.json
 tools/stable-diffusion-webui-directml/
 tools/stable-diffusion-webui/
 *.log

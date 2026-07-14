@@ -16,25 +16,9 @@ import subprocess
 from pathlib import Path
 
 from illustrated_narrator.domain.entities.plano import Plano
+from illustrated_narrator.domain.services.sfx_taxonomy import sfx_kind as _sfx_kind
 
 logger = logging.getLogger(__name__)
-
-# palabra clave en audio.sfx del guion -> generador procedural
-_SFX_KEYWORDS = {
-    "ola": "waves", "mar": "waves", "agua": "waves", "puerto": "waves",
-    "fuego": "fire", "llama": "fire", "hoguera": "fire", "crepit": "fire",
-    "terremoto": "rumble", "retumb": "rumble", "derrumb": "rumble", "temblor": "rumble",
-    "viento": "wind", "niebla": "wind", "brisa": "wind",
-    "burbuja": "bubbles", "submarino": "bubbles", "buceo": "bubbles",
-}
-
-
-def _sfx_kind(sfx_text: str) -> str | None:
-    lowered = sfx_text.lower()
-    for keyword, kind in _SFX_KEYWORDS.items():
-        if keyword in lowered:
-            return kind
-    return None
 
 
 class AudioBedBuilder:
@@ -80,9 +64,10 @@ class AudioBedBuilder:
         return dest
 
     def _sfx_source(self, kind: str, duration: float, cache_dir: Path, assets_dir: Path) -> Path:
-        candidate = assets_dir / "sfx" / f"{kind}.wav"
-        if candidate.exists():
-            return candidate
+        for ext in ("wav", "mp3"):
+            candidate = assets_dir / "sfx" / f"{kind}.{ext}"
+            if candidate.exists():
+                return candidate
         dest = cache_dir / f"sfx_{kind}_{int(duration)}.wav"
         if dest.exists():
             return dest

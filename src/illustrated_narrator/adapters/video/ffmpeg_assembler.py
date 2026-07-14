@@ -251,7 +251,7 @@ class FFmpegAssembler(VideoAssemblerPort):
         """Une clips con corte seco (concat demuxer, sin re-encode)."""
         listing = dest.with_name(f"{dest.stem}__concat.txt")
         listing.write_text(
-            "".join(f"file '{c.as_posix()}'\n" for c in clips), encoding="utf-8"
+            "".join(f"file '{c.resolve().as_posix()}'\n" for c in clips), encoding="utf-8"
         )
         try:
             self._run(
@@ -335,13 +335,18 @@ class FFmpegAssembler(VideoAssemblerPort):
         if bed_path is not None and bed_path.exists():
             bed_index = narr_index + 1
             args += ["-i", str(bed_path)]
-            filter_lines.append(f"[{narr_index}:a]apad[narrpad]")
+            # 1. Aplicamos apad y lo mandamos a una etiqueta temporal
+            filter_lines.append(f"[{narr_index}:a]apad[narrpad_raw]")
+            # 2. Duplicamos el flujo en dos copias independientes
+            filter_lines.append("[narrpad_raw]asplit[narrpad1][narrpad2]")
+            # 3. Usamos la primera copia para el sidechain compress
             filter_lines.append(
-                f"[{bed_index}:a][narrpad]"
+                f"[{bed_index}:a][narrpad1]"
                 "sidechaincompress=threshold=0.04:ratio=12:attack=60:release=500[duck]"
             )
+            # 4. Mezclamos la segunda copia con el audio comprimido
             filter_lines.append(
-                f"[narrpad][duck]amix=inputs=2:duration=first:normalize=0,"
+                f"[narrpad2][duck]amix=inputs=2:duration=first:normalize=0,"
                 "loudnorm=I=-14:TP=-1.5:LRA=11[aout]"
             )
             audio_map = "[aout]"
