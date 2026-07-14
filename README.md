@@ -110,7 +110,8 @@ producción para humanos). Referencia: `script_loader.py` y `entities/`.
 | `busqueda_medios` | string \| null | | `null` | Query explícita para investigar medios reales (ver sección de abajo); si falta, se deriva de `prompt_ia` |
 | `nota` | string \| null | | `null` | Informativo |
 | `overlay` | string \| null | | `null` | Animación del plano (ver tabla) |
-| `shake` | bool | | `false` | Sacudida de cámara (terremotos, impactos) |
+| `shake` | bool | | `false` | Sacudida de cámara (equivale a `motion: impact`) |
+| `motion` | enum \| null | | `null` (inferido) | Energía del movimiento de cámara: `calm`, `normal`, `energetic`, `impact`. Si falta se **infiere** del contenido (shake, overlay de fuego, palabras de impacto/acción en la narración) |
 
 **`visual.tipo`** (valores válidos): `imagen_ia`, `video_stock`, `animacion_3d`,
 `mapa_animado`, `grafico_movimiento`, `cartel_texto`, `archivo_historico`.
@@ -149,18 +150,25 @@ Cualquier otro valor se ignora (sin overlay).
 
 Sin palabra clave reconocida, el plano va sin SFX (no falla).
 
-> El movimiento de cámara (Ken Burns) no se configura por plano: se asigna
-> automáticamente y, en planos con varias tomas, alterna entre ellas.
+> El sentido del Ken Burns (pan/zoom) se asigna automáticamente y alterna entre
+> tomas; su **energía** la fija `visual.motion` (o se infiere del contenido).
 
 ## Estándares de retención (automáticos)
 
-La herramienta aplica a CUALQUIER video, sin configurar nada:
+La herramienta aplica a CUALQUIER video, sin configurar nada. La referencia de
+qué son y de dónde salen está en `domain/services/retention_standards.py`:
 
-- **Karaoke** palabra por palabra + **título de gancho** con caja de contraste
-- **Audio a -14 LUFS** (estándar YouTube/Shorts) — un video callado pierde al espectador
-- **Cambio visual cada ~4s**: los planos largos se parten en varias "tomas"
-  (imágenes distintas del mismo tema) con corte seco — `retention_plan.py`
-- **Transiciones cortas** (0.28s) + variadas, grading global
+- **Captions estilo Shorts/CapCut** (no PowerPoint): chunks de 2-3 palabras que
+  entran con un **pop** de escala, fuente gruesa con borde+sombra (sin caja),
+  palabra hablada resaltada en amarillo — `ass_writer.py`
+- **Título de gancho** con pop inmediato en <2.6s (sin caja)
+- **Movimiento por contenido**: el Ken Burns deja de ser uniforme — impacto/
+  terremoto = zoom rápido + sacudida; calma = deriva lenta — `motion_profile.py`
+- **Punch-in** al entrar cada toma (reset de atención)
+- **Cambio visual cada 2-4s**: planos largos partidos en varias tomas con corte
+  seco — `retention_plan.py`
+- **Sin dissolves en los primeros 5s** (cortes secos que "despiertan")
+- **Audio a -14 LUFS** (estándar YouTube/Shorts) — un video callado se pierde
 - **Tarjeta de cierre (CTA)** que invita a seguir — `NARR_CTA_TEXT`
 - **Cama de audio** (música + SFX + whoosh) con ducking bajo la voz
 
