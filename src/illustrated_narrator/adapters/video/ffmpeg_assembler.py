@@ -54,6 +54,33 @@ def _shot_pan_cycle(base: str, n: int) -> list[str]:
 # Acabado global: contraste/saturación leves + viñeta + grano fino
 _GRADING = "eq=saturation=1.08:contrast=1.05,vignette=PI/4.6,noise=alls=6:allf=t"
 
+_HARD_CUT = 0.05  # transición casi-seca para los primeros 5s (sin dissolve)
+_HARD_CUT_WINDOW = 5.0
+
+
+def _xfd_at(offset: float, xfade_duration: float) -> float:
+    """Corte seco dentro de la ventana inicial; xfade normal después."""
+    return _HARD_CUT if offset < _HARD_CUT_WINDOW else xfade_duration
+
+
+def _xfd_sequence(durations: list[float], xfade_duration: float) -> list[float]:
+    """xfd de cada una de las n-1 transiciones (corto dentro de la ventana inicial)."""
+    xfds: list[float] = []
+    running_offset = durations[0] - xfade_duration if durations else 0.0
+    for i in range(1, len(durations)):
+        xfd = _xfd_at(running_offset, xfade_duration)
+        xfds.append(xfd)
+        running_offset += durations[i] - xfd
+    return xfds
+
+
+def chained_duration(durations: list[float], xfade_duration: float) -> float:
+    """Duración del video tras encadenar clips con xfade variable (corto al
+    inicio). Fuente única de verdad para -t del render y para el inicio del CTA."""
+    if not durations:
+        return 0.0
+    return sum(durations) - sum(_xfd_sequence(durations, xfade_duration))
+
 
 def _overlay_chain(kind: str, w: int, h: int, fps: int) -> tuple[str, str] | None:
     """(fuente lavfi, cadena de mezcla) para el overlay animado, o None."""
@@ -147,11 +174,12 @@ class FFmpegAssembler(VideoAssemblerPort):
         pan_direction: str,
         dest: Path,
         overlay: str | None = None,
-        shake: bool = False,
+        motion=None,
     ) -> Path:
         """Clip de un plano. Con varias imágenes, se reparten la duración con
         cortes secos (una imagen fija > ~4s se siente estática y pierde al
-        espectador; cambiar de toma sostiene la atención)."""
+        espectador; cambiar de toma sostiene la atención). `motion` es un
+        MotionProfile (o su nombre) que fija la energía del Ken Burns."""
         dest.parent.mkdir(parents=True, exist_ok=True)
         images = [p for p in image_paths if p and Path(p).exists()]
         if not images:
@@ -159,7 +187,7 @@ class FFmpegAssembler(VideoAssemblerPort):
 
         if len(images) == 1:
             return self._render_shot(
-                images[0], duration_seconds, pan_direction, dest, overlay, shake
+                images[0], duration_seconds, pan_direction, dest, overlay, motion
             )
 
         # Reparte la duración en tomas ~iguales, alterna el sentido del Ken Burns
@@ -169,7 +197,7 @@ class FFmpegAssembler(VideoAssemblerPort):
         temp_clips: list[Path] = []
         for i, img in enumerate(images):
             temp = dest.with_name(f"{dest.stem}__shot{i}.mp4")
-            self._render_shot(img, each, shot_pans[i], temp, overlay, shake)
+            self._render_shot(img, each, shot_pans[i], temp, overlay, motion)
             temp_clips.append(temp)
         try:
             self._concat(temp_clips, dest)
@@ -185,15 +213,30 @@ class FFmpegAssembler(VideoAssemblerPort):
         pan_direction: str,
         dest: Path,
         overlay: str | None,
-        shake: bool,
+        motion,
     ) -> Path:
+        from illustrated_narrator.domain.services.motion_profile import profile_by_name
+
+        profile = motion if hasattr(motion, "zoom_per_frame") else profile_by_name(str(motion))
         dest.parent.mkdir(parents=True, exist_ok=True)
         w, h = self._canvas_w, self._canvas_h
         variant = _PAN_VARIANTS.get(pan_direction, _PAN_VARIANTS["zoom-in-center"])
         frames = max(2, round(duration_seconds * self._fps))
         x_expr = variant["x"].format(total_frames=frames)
         y_expr = variant["y"].format(total_frames=frames)
-        z_expr = variant["z"].format(total_frames=frames)
+
+        # Zoom construido desde el perfil: la velocidad marca la energía. Con
+        # punch-in, los primeros ~0.3s caen desde una escala mayor (golpe de
+        # entrada que "despierta" al scroller) y luego el zoom continúa.
+        pf = max(1, round(0.3 * self._fps))
+        zpf, maxz, punch = profile.zoom_per_frame, profile.max_zoom, profile.punch_in
+        if punch > 0:
+            z_expr = (
+                f"if(lt(on,{pf}),{1 + punch:.3f}-{punch:.3f}*on/{pf},"
+                f"min(zoom+{zpf:.4f},{maxz:.2f}))"
+            )
+        else:
+            z_expr = f"min(zoom+{zpf:.4f},{maxz:.2f})"
 
         parts = [
             "[0:v]split=2[bg][fg]",
@@ -225,10 +268,12 @@ class FFmpegAssembler(VideoAssemblerPort):
                 parts.append(f"{current}[ov]{blend}[mixed]")
                 current = "[mixed]"
 
-        if shake:
+        if profile.shake_px > 0:
+            s = profile.shake_px
+            m = s + 2  # margen de recorte para que la sacudida no muestre bordes
             parts.append(
-                f"{current}crop=w=iw-12:h=ih-12:"
-                "x='6+5*sin(52*t)':y='6+5*cos(41*t)',"
+                f"{current}crop=w=iw-{2 * m}:h=ih-{2 * m}:"
+                f"x='{m}+{s}*sin(52*t)':y='{m}+{s}*cos(41*t)',"
                 f"scale={w}:{h}[shaken]"
             )
             current = "[shaken]"
@@ -296,21 +341,29 @@ class FFmpegAssembler(VideoAssemblerPort):
         for p in clip_paths:
             inputs += ["-i", str(p)]
 
+        # Estándar de retención: nada de dissolves en los primeros 5s — ahí se
+        # decide la permanencia. Las primeras transiciones son cortes casi
+        # secos; después entran los xfade variados. Secuencia calculada por la
+        # función compartida para que el CTA y el -t cuadren.
+        xfds = _xfd_sequence(durations, xfade_duration)
         filter_lines: list[str] = []
         if len(clip_paths) == 1:
             video_label = "0:v"
         else:
-            running_offset = durations[0] - xfade_duration
+            running_offset = durations[0] - xfds[0]
             prev_label = "0:v"
             for i in range(1, len(clip_paths)):
                 out_label = f"v{i}"
-                transition = _TRANSITIONS[(i - 1) % len(_TRANSITIONS)]
+                xfd = xfds[i - 1]
+                # Corte seco = fade brevísimo; xfade variado solo pasados los 5s
+                transition = "fade" if xfd == _HARD_CUT else _TRANSITIONS[(i - 1) % len(_TRANSITIONS)]
                 filter_lines.append(
                     f"[{prev_label}][{i}:v]xfade=transition={transition}:"
-                    f"duration={xfade_duration:.3f}:offset={running_offset:.3f}[{out_label}]"
+                    f"duration={xfd:.3f}:offset={running_offset:.3f}[{out_label}]"
                 )
                 prev_label = out_label
-                running_offset += durations[i] - xfade_duration
+                if i < len(clip_paths):
+                    running_offset += durations[i] - (xfds[i] if i < len(xfds) else 0.0)
             video_label = prev_label
 
         # Grading global antes de subtítulos (el texto no debe granularse)
@@ -325,9 +378,10 @@ class FFmpegAssembler(VideoAssemblerPort):
         narr_index = len(clip_paths)
         args = [*inputs, "-i", str(audio_path)]
 
-        # Duración total del video tras encadenar (cada xfade solapa xfade_duration).
-        # La narración se rellena con silencio hasta cubrir la tarjeta de cierre.
-        video_total = durations[0] + sum(d - xfade_duration for d in durations[1:])
+        # Duración total del video tras encadenar (cada transición solapa su
+        # propio xfd — corto al inicio, xfade normal después). La narración se
+        # rellena con silencio hasta cubrir la tarjeta de cierre.
+        video_total = chained_duration(durations, xfade_duration)
 
         # loudnorm a -14 LUFS: estándar de YouTube/Shorts. Sin esto el audio
         # sale muy bajo (nuestra narración salía a -34 LUFS medios) y el video

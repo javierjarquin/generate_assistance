@@ -16,6 +16,7 @@ from illustrated_narrator.domain.entities.project import NarrationProject
 from illustrated_narrator.domain.services.forced_aligner import AlignmentResult, AlignScriptToAudio
 from illustrated_narrator.domain.services.pan_direction import pan_direction_for
 from illustrated_narrator.domain.services.plano_state import load_planos_state, save_planos_state
+from illustrated_narrator.domain.services.motion_profile import resolve_motion
 from illustrated_narrator.domain.services.render_timeline import compute_render_durations
 from illustrated_narrator.domain.services.retention_plan import plan_shots
 from illustrated_narrator.domain.services.script_loader import load_guion
@@ -151,7 +152,7 @@ class GenerateNarrationVideo:
                 pan_direction_for(plano.id),
                 dest,
                 overlay=plano.visual.overlay,
-                shake=plano.visual.shake,
+                motion=resolve_motion(plano),
             )
             plano.clip_path = str(dest)
             plano.estado = PlanoEstado.CLIP_LISTO
@@ -169,10 +170,14 @@ class GenerateNarrationVideo:
         # conocidas (cada xfade solapa xfade_duration), sin sondear archivos.
         cta_start = None
         if self._cta_text:
+            from illustrated_narrator.adapters.video.ffmpeg_assembler import chained_duration
+
             end_card = project.clips_dir / "zzz_end_card.mp4"
             self._assembler.render_end_card(self._cta_text, self._cta_duration, end_card)
-            plano_total = sum(render_durations[p.id] for p in renderable)
-            cta_start = plano_total - (len(renderable) - 1) * self._xfade_duration
+            # Inicio de la tarjeta = duración del contenido encadenado (misma
+            # función que usa el ensamblador, así el CTA cae justo en el corte)
+            plano_durations = [render_durations[p.id] for p in renderable]
+            cta_start = chained_duration(plano_durations, self._xfade_duration)
             clip_paths.append(end_card)
 
         write_ass(

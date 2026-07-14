@@ -11,10 +11,11 @@ class VideoAssemblerPort(ABC):
         pan_direction: str,
         dest: Path,
         overlay: str | None = None,
-        shake: bool = False,
+        motion=None,
     ) -> Path:
         """Renderiza el clip de un plano. Si image_paths trae varias imágenes,
-        se reparten la duración con cortes secos entre ellas (dinamismo)."""
+        se reparten la duración con cortes secos entre ellas (dinamismo).
+        `motion` es un MotionProfile que fija la energía del movimiento."""
 
     @abstractmethod
     def render_end_card(self, text: str, duration_seconds: float, dest: Path) -> Path:
