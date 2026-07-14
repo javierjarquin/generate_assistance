@@ -35,10 +35,13 @@ class AudioBedBuilder:
     # ------------------------------------------------------- generadores
 
     def _music_source(self, assets_dir: Path, duration: float, cache_dir: Path) -> Path:
-        for name in ("music.mp3", "music.wav", "musica.mp3", "musica.wav"):
-            candidate = assets_dir / name
-            if candidate.exists():
-                return candidate
+        # Cualquier contenedor con audio sirve (ffmpeg extrae la pista): mp3,
+        # wav, m4a, ogg, e incluso un mp4/mkv (p. ej. una descarga de música).
+        for stem in ("music", "musica"):
+            for ext in ("mp3", "wav", "m4a", "ogg", "opus", "flac", "aac", "mp4", "mkv", "webm"):
+                candidate = assets_dir / f"{stem}.{ext}"
+                if candidate.exists():
+                    return candidate
         dest = cache_dir / "music_auto.wav"
         # Pad ambiental: acorde menor con desafinación leve, trémolo lento y
         # eco — tono documental sobrio. Sustituible por assets/music.mp3.

@@ -73,6 +73,7 @@ class Container:
             canvas=self.canvas,
             depth_estimator=self.depth_estimator,
             style_mode=self.settings.style_mode,
+            process_voice=self.settings.process_voice,
         )
 
     @cached_property

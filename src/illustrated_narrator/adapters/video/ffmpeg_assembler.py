@@ -66,6 +66,19 @@ _GRADING_UNIFIED = (
 def _grading_for(style_mode: str) -> str:
     return _GRADING_UNIFIED if style_mode == "unificado" else _GRADING
 
+
+# Procesado de voz para que la narración suene "de radio": corta el retumbe
+# grave, comprime para nivelar, da presencia (~3kHz) y calidez (~180Hz), y baja
+# la sibilancia (~6.5kHz, de-ess). Convierte una toma casera o TTS plano en algo
+# con cuerpo y claridad.
+_VOICE_CHAIN = (
+    "highpass=f=85,"
+    "acompressor=threshold=-18dB:ratio=3:attack=8:release=140:makeup=2,"
+    "equalizer=f=180:width_type=q:width=1.0:g=1.5,"
+    "equalizer=f=3200:width_type=q:width=1.2:g=2.5,"
+    "equalizer=f=6500:width_type=q:width=2.0:g=-4"
+)
+
 _HARD_CUT = 0.05  # transición casi-seca para los primeros 5s (sin dissolve)
 _HARD_CUT_WINDOW = 5.0
 
@@ -134,6 +147,7 @@ class FFmpegAssembler(VideoAssemblerPort):
         canvas: tuple[int, int] = (1920, 1080),
         depth_estimator=None,
         style_mode: str = "auto",
+        process_voice: bool = True,
     ) -> None:
         self._ffmpeg = ffmpeg_path
         self._encoder = encoder
@@ -143,6 +157,7 @@ class FFmpegAssembler(VideoAssemblerPort):
         # Estimador de profundidad para parallax 2.5D; None = solo Ken Burns
         self._depth = depth_estimator
         self._style_mode = style_mode
+        self._process_voice = process_voice
 
     def _run(self, args: list[str]) -> None:
         cmd = [self._ffmpeg, "-hide_banner", "-y", *args]
@@ -448,14 +463,17 @@ class FFmpegAssembler(VideoAssemblerPort):
         # rellena con silencio hasta cubrir la tarjeta de cierre.
         video_total = chained_duration(durations, xfade_duration)
 
+        # Procesado de voz (EQ + compresión + de-ess) para que suene profesional
+        voice_pre = f"{_VOICE_CHAIN}," if self._process_voice else ""
+
         # loudnorm a -14 LUFS: estándar de YouTube/Shorts. Sin esto el audio
         # sale muy bajo (nuestra narración salía a -34 LUFS medios) y el video
         # se siente flojo frente al resto del feed -> el usuario hace scroll.
         if bed_path is not None and bed_path.exists():
             bed_index = narr_index + 1
             args += ["-i", str(bed_path)]
-            # 1. Aplicamos apad y lo mandamos a una etiqueta temporal
-            filter_lines.append(f"[{narr_index}:a]apad[narrpad_raw]")
+            # 1. Voz procesada + apad; a una etiqueta temporal
+            filter_lines.append(f"[{narr_index}:a]{voice_pre}apad[narrpad_raw]")
             # 2. Duplicamos el flujo en dos copias independientes
             filter_lines.append("[narrpad_raw]asplit[narrpad1][narrpad2]")
             # 3. Usamos la primera copia para el sidechain compress
@@ -471,7 +489,7 @@ class FFmpegAssembler(VideoAssemblerPort):
             audio_map = "[aout]"
         else:
             filter_lines.append(
-                f"[{narr_index}:a]apad,loudnorm=I=-14:TP=-1.5:LRA=11[aout]"
+                f"[{narr_index}:a]{voice_pre}apad,loudnorm=I=-14:TP=-1.5:LRA=11[aout]"
             )
             audio_map = "[aout]"
 

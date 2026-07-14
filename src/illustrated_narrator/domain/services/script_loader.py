@@ -43,6 +43,7 @@ def _parse_meta(raw: dict) -> GuionMeta:
         titulo=raw.get("titulo", ""),
         subtitulo=raw.get("subtitulo"),
         idioma=raw.get("idioma", "es-MX"),
+        gancho=raw.get("gancho"),
     )
 
 

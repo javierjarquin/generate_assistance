@@ -60,7 +60,8 @@ def test_title_hook_from_meta(tmp_path: Path) -> None:
         meta=GuionMeta(titulo="El Faro de Alejandría"),
     )
     content = dest.read_text(encoding="utf-8")
-    assert "EL FARO DE ALEJANDRÍA" in content
+    # el título largo se envuelve (\\N entre palabras); comparar sin saltos
+    assert "EL FARO DE ALEJANDRÍA" in content.replace("\\N", " ")
     assert "Titulo" in content
 
 
@@ -101,3 +102,32 @@ def test_no_transcript_no_karaoke_but_valid_file(tmp_path: Path) -> None:
     content = dest.read_text(encoding="utf-8")
     assert "[Events]" in content
     assert "\\kf" not in content
+
+
+def test_gancho_overrides_titulo(tmp_path: Path) -> None:
+    dest = tmp_path / "caps.ass"
+    write_ass(
+        [_plano("p1", 0.5, 2.0)], dest,
+        meta=GuionMeta(titulo="El Faro", gancho="¿Cómo cayó la torre más alta?"),
+    )
+    content = dest.read_text(encoding="utf-8").replace("\\N", " ")
+    assert "¿CÓMO CAYÓ LA TORRE MÁS ALTA?" in content
+    assert "EL FARO" not in content  # el gancho reemplaza al título
+
+
+def test_chunk_does_not_end_on_function_word(tmp_path: Path) -> None:
+    # "pero lo que ningún" -> el chunk no debe terminar en "pero" ni "lo"
+    words = [
+        TranscriptWord("sobrevivió", 0.0, 0.5), TranscriptWord("pero", 0.6, 0.8),
+        TranscriptWord("lo", 0.9, 1.0), TranscriptWord("que", 1.1, 1.2),
+        TranscriptWord("ningún", 1.3, 1.6),
+    ]
+    dest = tmp_path / "caps.ass"
+    write_ass([_plano("p1", 0.0, 2.0)], dest, transcript=Transcript(words=words))
+    content = dest.read_text(encoding="utf-8")
+    caption_lines = [l for l in content.splitlines() if ",Caption," in l]
+    # ninguna línea de caption debe terminar en una palabra función
+    for line in caption_lines:
+        payload = line.split(",,", 1)[1]
+        last = payload.rstrip("\n").split()[-1].strip(".,;:!?")
+        assert last.lower() not in {"pero", "lo", "que"}

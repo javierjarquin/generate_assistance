@@ -83,7 +83,8 @@ producción para humanos). Referencia: `script_loader.py` y `entities/`.
 |-------|------|---------|-----|
 | `serie` | string | `""` | Informativo |
 | `capitulo` | int | `0` | Informativo |
-| `titulo` | string | `""` | **Título de gancho** (0–2.8s, caja de contraste) |
+| `titulo` | string | `""` | Título; se usa como gancho si no hay `gancho` |
+| `gancho` | string \| null | `null` | **Frase de tensión** que aparece en 0-2.6s (una pregunta/promesa que engancha, no solo el tema). Se envuelve sola si es larga |
 | `subtitulo` | string \| null | `null` | Informativo |
 | `idioma` | string | `"es-MX"` | Sus 2 primeras letras fuerzan el idioma de whisper (`es`, `en`…) |
 
