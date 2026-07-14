@@ -175,6 +175,29 @@ qué son y de dónde salen está en `domain/services/retention_standards.py`:
 Palancas de calidad de imagen: `NARR_SD_CHECKPOINT` (usa un modelo afinado en
 vez del base SD 1.5) y `NARR_SD_WIDTH/HEIGHT` (16:9 nativo).
 
+### Parallax 2.5D (movimiento 3D real)
+
+En vez del Ken Burns plano, cada imagen recibe **movimiento con profundidad**:
+se estima un mapa de profundidad (Depth-Anything V2 small, ONNX en CPU, ~0.6s
+por imagen) y se hace un warp por-pixel donde el frente se desplaza más que el
+fondo. Da la sensación de un video generado con IA. Verificado: el frente se
+mueve ~7.5x más que el fondo.
+
+- Se activa con `NARR_PARALLAX=1` (por defecto) y el modelo en
+  `models/depth_anything_v2_vits.onnx`. Sin modelo, cae a Ken Burns.
+- La energía la marca el mismo `visual.motion` (impact = cámara más agresiva).
+- Costo: ~1.5s de render por segundo de clip (CPU). El resto del pipeline es
+  resumible, así que solo se paga al re-renderizar clips.
+
+### Consistencia de estilo
+
+Mezclar fotos reales con ilustraciones IA se ve amateur. `NARR_STYLE_MODE`:
+
+- `ilustracion` — todo con IA (mismo `NARR_STYLE_SUFFIX`), sin fotos reales
+- `realista` — prioriza fotos reales
+- `unificado` — mezcla pero aplica un grade común fuerte para cohesionar
+- `auto` — comportamiento por defecto
+
 ## Medios reales (antes de generar con IA)
 
 Antes de mandar un plano a Stable Diffusion, la herramienta investiga si hay
