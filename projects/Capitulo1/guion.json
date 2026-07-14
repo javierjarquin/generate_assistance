@@ -1,0 +1,157 @@
+{
+    "meta": {
+        "serie": "Historia de Yucatan",
+        "capitulo": 1,
+        "titulo": "El meteorito que creo Yucatan",
+        "idioma": "es-MX",
+        "subtitulo": "El peor dia de la Tierra y la tierra que nacio de el"
+    },
+    "planos": [
+        {
+            "id": "p01",
+            "seccion": "gancho",
+            "narracion": "Es una manana de primavera, hace 66 millones de anos. En un pantano tropical, un Tyrannosaurus rex mastica lo que sera su ultima comida.",
+            "visual": {
+                "tipo": "imagen_ia",
+                "descripcion": "T-rex tranquilo comiendo en un pantano cretacico al amanecer, atmosfera calida.",
+                "prompt_ia": "cinematic wide shot, a Tyrannosaurus rex feeding calmly in a lush Cretaceous swamp at dawn, warm golden mist, ferns and cycads, photorealistic, natural history documentary lighting, 16:9",
+                "overlay": "niebla",
+                "shake": false
+            },
+            "audio": {
+                "sfx": "insectos, viento suave, respiracion del animal",
+                "musica": "ambiente calmado, cuerdas suaves, sensacion de calma antes de la tormenta"
+            }
+        },
+        {
+            "id": "p02",
+            "seccion": "gancho",
+            "narracion": "En el cielo aparece un punto de luz. Crece. En segundos, brilla mas que el sol.",
+            "visual": {
+                "tipo": "imagen_ia",
+                "descripcion": "Cielo diurno con un punto de luz intensa creciendo; el dinosaurio empieza a alzar la vista.",
+                "prompt_ia": "low angle shot looking up at a bright point of light growing in a pale blue prehistoric sky, ominous, lens flare, silhouette of dinosaur head tilting up, photorealistic, 16:9",
+                "overlay": null,
+                "shake": false
+            },
+            "audio": {
+                "sfx": "silbido lejano agudo que crece",
+                "musica": "drone tenso que empieza a subir"
+            }
+        },
+        {
+            "id": "p03",
+            "seccion": "gancho",
+            "narracion": "Es una roca del tamano de una montana, y viene directo hacia la Tierra a veinte kilometros por segundo. Aqui. Justo debajo de lo que hoy es Yucatan.",
+            "visual": {
+                "tipo": "animacion_3d",
+                "descripcion": "Vista desde el espacio: asteroide gigante cayendo hacia el Golfo de Mexico; se resalta la silueta de la peninsula.",
+                "prompt_ia": "view from space of a massive asteroid streaking toward Earth aimed at the Gulf of Mexico, Yucatan peninsula outline glowing, atmospheric entry trail, dramatic, photorealistic space render, 16:9",
+                "overlay": null,
+                "shake": true
+            },
+            "audio": {
+                "sfx": "rugido grave que se acerca",
+                "musica": "impacto orquestal ascendente"
+            }
+        },
+        {
+            "id": "p04",
+            "seccion": "gancho",
+            "narracion": "En ese instante comienza el peor dia en la historia del planeta. Pero aqui esta lo increible: sin ese apocalipsis, tu no existirias. Y Yucatan, tal como lo conoces, sus cenotes, su agua, sus mayas, tampoco. Esta es la historia de como el fin del mundo creo una tierra.",
+            "visual": {
+                "tipo": "grafico_movimiento",
+                "descripcion": "Titulo de serie apareciendo sobre transicion de fuego a agua de cenote. Montaje rapido: explosion -> cenote turquesa -> piramide maya.",
+                "prompt_ia": "title card sequence, quick match-cut morph from a fireball explosion into aerial turquoise cenote water into a Maya pyramid, sepia and teal palette, cinematic transitions, 16:9",
+                "busqueda_medios": "cenote Yucatan",
+                "overlay": "fuego",
+                "shake": true
+            },
+            "audio": {
+                "sfx": "boom + transicion whoosh a agua",
+                "musica": "tema principal de la serie entra con fuerza"
+            }
+        },
+        {
+            "id": "p05",
+            "seccion": "setup",
+            "narracion": "Retrocedamos un segundo antes del impacto. Lo que se acerca es un asteroide de entre diez y quince kilometros de ancho. Imaginalo: una sola roca mas alta que el monte Everest, cayendo del cielo.",
+            "visual": {
+                "tipo": "grafico_movimiento",
+                "descripcion": "Comparacion de escala: el asteroide junto a la silueta del Everest y de una ciudad.",
+                "prompt_ia": "clean infographic comparison on dark background, a 10-15 km asteroid silhouette next to Mount Everest and a city skyline for scale, earth-tone palette, motion graphic style, 16:9",
+                "overlay": null,
+                "shake": false
+            },
+            "audio": {
+                "sfx": "tick sutil de datos apareciendo",
+                "musica": "pulso tenso constante"
+            }
+        },
+        {
+            "id": "p06",
+            "seccion": "setup",
+            "narracion": "Y no cae despacio. Viaja a unos veinte kilometros por segundo: decenas de veces mas rapido que una bala de rifle. Tan rapido que atraviesa toda la atmosfera de la Tierra, quince kilometros de aire, en menos de dos segundos.",
+            "visual": {
+                "tipo": "animacion_3d",
+                "descripcion": "El asteroide perfora las capas de la atmosfera dejando una estela incandescente; contador de velocidad.",
+                "prompt_ia": "asteroid punching through Earth's atmosphere layers leaving a searing plasma trail, seen from the side, layered clouds parting, photorealistic, motion blur, 16:9",
+                "overlay": null,
+                "shake": false
+            },
+            "audio": {
+                "sfx": "silbido supersonico intenso",
+                "musica": "drone que sube de tono"
+            }
+        },
+        {
+            "id": "p07",
+            "seccion": "setup",
+            "narracion": "Cuando golpea, libera una energia dificil de imaginar: el equivalente a miles de millones de bombas atomicas explotando al mismo tiempo. Mas que todas las armas nucleares del planeta juntas, multiplicadas por mil.",
+            "visual": {
+                "tipo": "grafico_movimiento",
+                "descripcion": "Visual de escala de energia: iconos de bombas multiplicandose hasta llenar la pantalla.",
+                "prompt_ia": "energy scale infographic, a single atomic bomb icon multiplying into billions filling the frame, ominous red glow on dark background, motion graphic, 16:9",
+                "overlay": "resplandor_rojo",
+                "shake": false
+            },
+            "audio": {
+                "sfx": "detonacion grave con reverberacion",
+                "musica": "golpe orquestal + silencio dramatico"
+            }
+        },
+        {
+            "id": "p08",
+            "seccion": "impacto",
+            "narracion": "El golpe abre un crater de casi doscientos kilometros de diametro y veinte de profundidad: uno de los mas grandes que existen en la Tierra. Cabria dentro medio estado de Yucatan.",
+            "visual": {
+                "tipo": "animacion_3d",
+                "descripcion": "Momento del impacto visto desde arriba; onda expansiva circular; se dibuja el circulo del crater sobre el mapa de la peninsula.",
+                "prompt_ia": "top-down view of colossal asteroid impact, expanding circular shockwave ring over ocean and coastline, crater forming, map of Yucatan overlaid with 200 km crater circle, cinematic, 16:9",
+                "busqueda_medios": "Chicxulub crater",
+                "overlay": null,
+                "shake": true
+            },
+            "audio": {
+                "sfx": "explosion cavernosa + onda de choque",
+                "musica": "impacto masivo"
+            }
+        },
+        {
+            "id": "p09",
+            "seccion": "impacto",
+            "narracion": "La roca no cayo recta. Entro en un angulo inclinado, cercano a los sesenta grados, y ese detalle lo empeoro todo. Justo debajo del impacto habia rocas cargadas de azufre. El golpe las vaporizo y las lanzo al cielo: cientos de gigatoneladas de azufre convertidas en veneno.",
+            "visual": {
+                "tipo": "animacion_3d",
+                "descripcion": "Trayectoria inclinada del asteroide (~60 grados); columna de roca vaporizada y azufre elevandose.",
+                "prompt_ia": "cross-section diagram of a steeply inclined asteroid impact at 60 degrees, plume of vaporized sulfur-rich rock blasting into the sky, glowing ejecta column, semi-realistic science visualization, dark palette, 16:9",
+                "overlay": "humo",
+                "shake": true
+            },
+            "audio": {
+                "sfx": "rugido de vaporizacion, crepitar",
+                "musica": "tension oscura sostenida"
+            }
+        }
+    ]
+}
