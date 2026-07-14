@@ -334,6 +334,17 @@ class FFmpegAssembler(VideoAssemblerPort):
             from illustrated_narrator.adapters.video.parallax import render_parallax_clip
 
             depth = self._depth.estimate(image_path)
+            # Parallax solo si la imagen TIENE relieve. En una imagen plana
+            # (diagrama, texto, plano frontal) el warp por profundidad distorsiona
+            # sin aportar -> mejor Ken Burns.
+            try:
+                import numpy as np
+
+                if float(np.asarray(depth).std()) < 0.12:
+                    logger.info("Profundidad plana en %s; uso Ken Burns", image_path.name)
+                    return None
+            except Exception:  # noqa: BLE001
+                pass
             base = dest.with_name(f"{dest.stem}__plx.mp4")
             render_parallax_clip(
                 self._ffmpeg, self._encode_args(), image_path, depth,

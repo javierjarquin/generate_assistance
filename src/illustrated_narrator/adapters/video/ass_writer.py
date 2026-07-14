@@ -30,9 +30,9 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Caption,{font},{cap_size},&H00FFFFFF,&H0000E8FF,&H00202020,&H00000000,-1,0,0,0,100,100,0,0,1,{cap_outline},{cap_shadow},2,80,80,{cap_margin},1
+Style: Caption,{font},{cap_size},&H0000E8FF,&H00FFFFFF,&H00202020,&H00000000,-1,0,0,0,100,100,0,0,1,{cap_outline},{cap_shadow},2,80,80,{cap_margin},1
 Style: Rotulo,{font},{rot_size},&H00FFFFFF,&H00FFFFFF,&H00202020,&H00000000,-1,0,0,0,100,100,0,0,1,3,1,8,60,60,70,1
-Style: Titulo,{font},{title_size},&H0000E8FF,&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,0,0,1,{title_outline},4,5,80,80,{title_margin},1
+Style: Titulo,{font},{title_size},&H00FFFFFF,&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,0,0,1,{title_outline},4,5,80,80,{title_margin},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
