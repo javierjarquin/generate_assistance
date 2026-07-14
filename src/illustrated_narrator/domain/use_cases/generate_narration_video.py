@@ -34,6 +34,18 @@ from illustrated_narrator.ports.video_assembler import VideoAssemblerPort
 logger = logging.getLogger(__name__)
 
 
+def _clean_shot(img: Path, images_dir: Path) -> Path:
+    """Devuelve una versión sin marcos de la imagen (cacheada en images/clean/)."""
+    try:
+        from illustrated_narrator.adapters.video.image_cleaner import clean_image
+
+        dest = images_dir / "clean" / img.name
+        return clean_image(img, dest)
+    except Exception as exc:  # noqa: BLE001 — sin limpieza, se usa la original
+        logger.warning("Limpieza de %s falló (%s); uso original", img.name, exc)
+        return img
+
+
 @dataclass
 class GenerateVideoReport:
     alignment: AlignmentResult | None = None
@@ -144,6 +156,9 @@ class GenerateNarrationVideo:
                 shot_image_path(project.images_dir, s) for s in shots_by_plano[plano.id]
             ]
             shot_images = [p for p in shot_images if p.exists()] or [Path(plano.imagen_path)]
+            # Limpieza: recorta marcos/bordes uniformes (escaneos con margen
+            # blanco, texto de libro) que arruinan el plano y confunden al parallax
+            shot_images = [_clean_shot(img, project.images_dir) for img in shot_images]
             # Siempre re-renderizar: la duración depende de los vecinos y los
             # overlays/acabado se iteran; el encode por HW es barato
             self._assembler.render_plano_clip(
