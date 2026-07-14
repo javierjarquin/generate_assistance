@@ -45,6 +45,7 @@ class Settings:
     depth_model_path: Path
     # Consistencia de estilo: "auto" | "ilustracion" | "realista" | "unificado"
     style_mode: str
+    process_voice: bool
 
 
 def load_settings() -> Settings:
@@ -91,4 +92,5 @@ def load_settings() -> Settings:
             os.getenv("NARR_DEPTH_MODEL", _PROJECT_ROOT / "models" / "depth_anything_v2_vits.onnx")
         ),
         style_mode=os.getenv("NARR_STYLE_MODE", "auto").strip().lower(),
+        process_voice=os.getenv("NARR_VOICE_PROCESSING", "1").strip() not in ("0", "false", "no"),
     )

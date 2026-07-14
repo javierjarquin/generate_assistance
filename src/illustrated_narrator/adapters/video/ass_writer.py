@@ -21,6 +21,35 @@ _MAX_CHUNK_CHARS = 20
 
 _FONT = "Arial Black"
 
+# Palabras función: no deben quedar al FINAL de un chunk (dejan la frase colgando,
+# ej. "pero lo" / "bajo el"). Si un chunk terminaría en una de estas, se arrastra
+# a la palabra siguiente.
+_FUNCTION_WORDS = frozenset(
+    "el la los las un una unos unas de del al a y o u que qué se su sus mi tu "
+    "lo le les me te nos con por para en pero sino ni como más muy es son fue "
+    "entre sobre desde hasta hacia".split()
+)
+
+
+def _is_function_word(word: str) -> bool:
+    return word.strip(".,;:!¡¿?").lower() in _FUNCTION_WORDS
+
+
+def _wrap(text: str, max_chars: int = 20) -> str:
+    """Parte una frase larga (gancho) en líneas equilibradas con \\N."""
+    words = text.split()
+    lines: list[str] = []
+    current = ""
+    for w in words:
+        if current and len(current) + 1 + len(w) > max_chars:
+            lines.append(current)
+            current = w
+        else:
+            current = f"{current} {w}".strip()
+    if current:
+        lines.append(current)
+    return "\\N".join(lines)
+
 _HEADER = """[Script Info]
 ScriptType: v4.00+
 PlayResX: {w}
@@ -63,7 +92,10 @@ def _chunk_words(words: list[TranscriptWord]) -> list[list[TranscriptWord]]:
         added = len(word.text) + (1 if current else 0)
         too_long = length + added > _MAX_CHUNK_CHARS
         too_many = len(current) >= _MAX_CHUNK_WORDS
-        if current and (too_long or too_many):
+        # No cortar si el chunk terminaría en palabra función (queda colgando);
+        # se permite un desborde leve para arrastrarla a la siguiente palabra.
+        ends_bad = bool(current) and _is_function_word(current[-1].text)
+        if current and (too_long or too_many) and not ends_bad:
             chunks.append(current)
             current, length = [], 0
             added = len(word.text)
@@ -116,12 +148,17 @@ def write_ass(
         )
     ]
 
-    # Gancho: título grande con POP de entrada (sin caja). Los primeros 2.6s.
-    if meta and meta.titulo:
-        titulo = meta.titulo.upper().replace("\n", " ")
+    # Gancho: la frase de tensión (meta.gancho) si existe; si no, el título.
+    # Los primeros 2.6s con POP de entrada (sin caja).
+    gancho = (meta.gancho or meta.titulo) if meta else None
+    if gancho:
+        # Gancho largo (frase) se envuelve en varias líneas para no desbordar;
+        # título corto queda en una línea.
+        raw = gancho.upper().replace("\n", " ")
+        texto = _wrap(raw, max_chars=18) if len(raw) > 20 else raw
         lines.append(
             f"Dialogue: 1,0:00:00.15,0:00:02.60,Titulo,,0,0,0,,"
-            f"{{\\fad(200,300)\\fscx60\\fscy60\\t(0,220,\\fscx100\\fscy100)}}{titulo}\n"
+            f"{{\\fad(200,300)\\fscx60\\fscy60\\t(0,220,\\fscx100\\fscy100)}}{texto}\n"
         )
 
     # CTA de cierre con el mismo lenguaje (pop, sin caja)

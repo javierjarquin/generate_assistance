@@ -10,6 +10,9 @@ class GuionMeta:
     titulo: str = ""
     subtitulo: str | None = None
     idioma: str = "es-MX"
+    # Gancho de tensión que se muestra en 0-3s (una pregunta/promesa que engancha,
+    # no solo el tema). Si falta, se usa el título.
+    gancho: str | None = None
 
 
 @dataclass(frozen=True)
