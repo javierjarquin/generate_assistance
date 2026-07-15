@@ -1,0 +1,10 @@
+# Balam - sprite: point  (opcional)
+# Guarda AQUI: 00.png
+# Fondo TRANSPARENTE (PNG con alfa). Mismo lienzo 1024x1024 en todas.
+# Consistencia: usa la imagen de referencia (Midjourney --cref --cw 100 / SD img2img denoise 0.5 / IP-Adapter) para que Balam no cambie de diseno.
+
+PROMPT:
+Balam, a chibi baby jaguar mascot cub — golden yellow fur, cream oval belly and muzzle, dark-brown open rosette rings on head and body, huge round dark-brown eyes, peachy pink inner ears, tiny brown nose, jade-green pendant on a brown cord necklace — exact same character and colors as the reference image, chibi proportions (oversized round head, short stubby limbs, curled tail with dark tip), one paw extended pointing forward presenting a fact, mouth open, confident happy, facing camera, flat 2D mascot cartoon, clean thick brown outline, bright flat colors, soft cel shading, full body, centered, feet at the bottom of the frame, isolated on a fully transparent background, no background, no ground shadow, no text, sticker style, 1024x1024
+
+NEGATIVE:
+background, scenery, ground, floor, shadow, text, watermark, signature, frame, border, multiple characters, cropped, cut off limbs, extra limbs, deformed, blurry, low quality, realistic photo, 3d render, different character, inconsistent colors
