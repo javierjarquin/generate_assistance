@@ -159,6 +159,34 @@ class Container:
         )
 
     @cached_property
+    def mascot_config(self) -> dict | None:
+        """Config de mascota si el modo es 'mascota' y hay carpeta válida."""
+        s = self.settings
+        if s.narration_mode != "mascota" or s.mascot_path is None:
+            return None
+        if not s.mascot_path.exists():
+            import logging
+
+            logging.getLogger(__name__).error(
+                "NARR_MASCOTA_PATH no existe: %s — se usa solo voz", s.mascot_path
+            )
+            return None
+        from illustrated_narrator.adapters.video.ffmpeg_assembler import FFmpegAssembler
+
+        asm = self.video_assembler
+        encode = asm._encode_args() if isinstance(asm, FFmpegAssembler) else []
+        return {
+            "path": s.mascot_path,
+            "ffmpeg": self.ffmpeg_path,
+            "encode_args": encode,
+            "fps": s.target_fps,
+            "position": s.mascot_position,
+            "height_frac": s.mascot_height_frac,
+            "mascot_fps": s.mascot_fps,
+            "voice_threshold": s.mascot_voice_threshold,
+        }
+
+    @cached_property
     def generate_narration_video(self) -> GenerateNarrationVideo:
         from illustrated_narrator.domain.services.brand_palette import hex_to_ass_color
 
@@ -177,4 +205,5 @@ class Container:
             brand_intro_duration=self.settings.brand_intro_duration,
             accent_color_ass=hex_to_ass_color(self.settings.brand_accent_color),
             logo_path=self.settings.brand_logo_path,
+            mascot=self.mascot_config,
         )

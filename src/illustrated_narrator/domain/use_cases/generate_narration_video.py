@@ -75,6 +75,7 @@ class GenerateNarrationVideo:
         brand_intro_duration: float = 2.0,
         accent_color_ass: str | None = None,
         logo_path: Path | None = None,
+        mascot: dict | None = None,
     ) -> None:
         self._transcriber = transcriber
         self._generate_images = generate_images
@@ -90,6 +91,7 @@ class GenerateNarrationVideo:
         self._brand_intro_duration = brand_intro_duration
         self._accent_color_ass = accent_color_ass
         self._logo_path = logo_path
+        self._mascot = mascot  # dict con path/ffmpeg/encode_args/pos/... o None
 
     def execute(self, project: NarrationProject) -> GenerateVideoReport:
         report = GenerateVideoReport()
@@ -284,5 +286,44 @@ class GenerateNarrationVideo:
             project.final_video_path, xfade_duration=self._xfade_duration,
             bed_path=bed_path, audio_delay_seconds=intro_offset,
         )
+
+        # Modo mascota: superpone un personaje que presenta el video (lip-sync
+        # + gestos). Si algo falla, el video queda igual (solo voz).
+        if self._mascot is not None:
+            try:
+                self._composite_mascot(project, renderable, intro_offset, cta_start)
+            except Exception as exc:  # noqa: BLE001 — sin mascota, el video sigue
+                logger.error("Mascota falló (%s); el video queda solo con voz", exc)
+
         report.final_video_path = project.final_video_path
         return report
+
+    def _composite_mascot(self, project, renderable, intro_offset, cta_start) -> None:
+        from illustrated_narrator.adapters.video.mascot_compositor import (
+            available_actions,
+            composite_mascot,
+        )
+        from illustrated_narrator.domain.services.mascot_director import PlanoBeat, plan_mascot
+        from illustrated_narrator.domain.services.motion_profile import resolve_motion
+
+        mascot_dir = self._mascot["path"]
+        actions = available_actions(mascot_dir)
+        beats = [
+            PlanoBeat(
+                start=intro_offset + float(p.inicio_real_seg),
+                end=intro_offset + float(p.fin_real_seg),
+                energetic=resolve_motion(p).name in ("impact", "energetic"),
+            )
+            for p in renderable
+        ]
+        segments = plan_mascot(beats, actions, cta_start=cta_start, cta_duration=self._cta_duration)
+        tmp = project.final_video_path.with_name("final_mascota.mp4")
+        composite_mascot(
+            self._mascot["ffmpeg"], self._mascot["encode_args"],
+            project.final_video_path, project.audio_path, mascot_dir, segments, tmp,
+            fps=self._mascot["fps"], canvas=self._canvas,
+            height_frac=self._mascot["height_frac"], position=self._mascot["position"],
+            mascot_fps=self._mascot["mascot_fps"], voice_threshold=self._mascot["voice_threshold"],
+            intro_offset=intro_offset,
+        )
+        tmp.replace(project.final_video_path)

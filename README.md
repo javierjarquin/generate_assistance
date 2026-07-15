@@ -156,6 +156,66 @@ Sin palabra clave reconocida, el plano va sin SFX (no falla).
 > El sentido del Ken Burns (pan/zoom) se asigna automáticamente y alterna entre
 > tomas; su **energía** la fija `visual.motion` (o se infiere del contenido).
 
+## Modo mascota (personaje que presenta)
+
+Con `NARR_NARRACION=mascota` y `NARR_MASCOTA_PATH=ruta/a/tu/mascota`, un
+personaje aparece en una esquina y **presenta** el video: la boca se mueve con
+la voz (lip-sync por volumen) y hace gestos (saluda, señala, camina, salta,
+festeja) según lo que pasa en el video. Da la sensación de que la voz sale de
+la mascota.
+
+> La herramienta **no crea la mascota** — tú la dibujas y armas la carpeta con
+> lo que se describe aquí; la herramienta la anima y la coloca en el video.
+
+### Manual de la carpeta de la mascota
+
+Cada "acción" es una animación. Puedes entregarla de dos formas:
+
+- **Carpeta con PNGs numerados**: `talk/00.png, talk/01.png, …` (en orden), o
+- **Un archivo animado**: `talk.gif`, `talk.png` (APNG), `talk.webp` o
+  `talk.webm`/`talk.mov` (con canal alfa).
+
+Requisitos de los sprites:
+- **Fondo transparente** (PNG/GIF/WebM con alfa). Sin fondo de color.
+- **Mismo lienzo** en todas las acciones (misma resolución) para que no salte.
+- Personaje **de cuerpo entero**, mirando al frente, **centrado horizontal y
+  con los pies abajo** (se ancla al piso de la esquina).
+- Alto recomendado 512–1024px (se escala a `NARR_MASCOTA_HEIGHT_FRAC` del video).
+
+### Acciones (qué necesito y cuándo las uso)
+
+| Acción | ¿Obligatoria? | Cuándo la pone la herramienta |
+|--------|:-------------:|-------------------------------|
+| `talk` | ✅ | Base mientras narra un plano. **La boca debe moverse** en esta animación (es la que se ve al hablar) |
+| `idle` | ✅ | Pausas/silencios y relleno. Boca cerrada, respira/parpadea |
+| `wave` | opcional | Saludo al entrar el primer plano |
+| `walk` | opcional | Entra caminando en las transiciones de plano |
+| `point` | opcional | Señala (énfasis) cada ciertos planos |
+| `jump` | opcional | Salta en los planos de mucha energía (impacto/acción) |
+| `celebrate` | opcional | Festeja durante la tarjeta de cierre (CTA) |
+
+Si falta una acción opcional, se cae a `talk`/`idle` (no se rompe). El lip-sync
+funciona así: durante `talk`, si la voz baja del umbral la boca se cierra
+(`idle`); cuando hay voz vuelve a `talk`. Por eso `talk` debe traer la boca
+abierta/moviéndose en el arte y `idle` la boca cerrada.
+
+Ejemplo de carpeta mínima:
+
+```
+mi_mascota/
+├── talk/     (o talk.gif)     # hablando, boca en movimiento  [OBLIGATORIA]
+├── idle/     (o idle.gif)     # quieta, boca cerrada           [OBLIGATORIA]
+├── wave/     (o wave.gif)     # saluda                          (opcional)
+├── walk/     ...              # camina                          (opcional)
+├── point/    ...              # señala                          (opcional)
+├── jump/     ...              # salta                           (opcional)
+└── celebrate/ ...             # festeja                         (opcional)
+```
+
+Config: `NARR_MASCOTA_POS` (esquina), `NARR_MASCOTA_HEIGHT_FRAC` (tamaño),
+`NARR_MASCOTA_FPS` (velocidad de la animación), `NARR_MASCOTA_VOICE_THRESHOLD`
+(sensibilidad del lip-sync).
+
 ## Estándares de retención (automáticos)
 
 La herramienta aplica a CUALQUIER video, sin configurar nada. La referencia de
