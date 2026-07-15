@@ -21,7 +21,12 @@ from illustrated_narrator.domain.services.media_manifest import (
 )
 from illustrated_narrator.domain.services.media_relevance import derive_query, relevance_score
 from illustrated_narrator.domain.services.retention_plan import Shot
-from illustrated_narrator.domain.use_cases.generate_plano_images import shot_image_path
+from illustrated_narrator.domain.services.shot_assets import (
+    is_video_file,
+    resolve_shot_asset,
+    shot_image_path,
+    shot_video_path,
+)
 from illustrated_narrator.ports.stock_media import MediaCandidate, StockImagePort
 
 logger = logging.getLogger(__name__)
@@ -69,12 +74,16 @@ class ResearchPlanoMedia:
             used_urls: set[str] = set()
 
             for shot in shots:
-                dest = shot_image_path(images_dir, shot)
-                if dest.exists():
-                    continue  # ya tiene imagen (real o IA de una corrida previa)
+                if resolve_shot_asset(images_dir, media_dir, shot) is not None:
+                    continue  # ya tiene asset (real o IA de una corrida previa)
 
                 manual = self._manual_override(plano_media_dir, shot)
                 if manual is not None:
+                    dest = (
+                        shot_video_path(media_dir, shot)
+                        if is_video_file(manual)
+                        else shot_image_path(images_dir, shot)
+                    )
                     dest.parent.mkdir(parents=True, exist_ok=True)
                     dest.write_bytes(manual.read_bytes())
                     report.shots_resolved += 1
@@ -88,6 +97,11 @@ class ResearchPlanoMedia:
                 record_shot_result(manifest, shot.shot_id, query, candidates, chosen)
                 if chosen is not None:
                     used_urls.add(chosen.source_url)
+                    dest = (
+                        shot_video_path(media_dir, shot)
+                        if chosen.media_type == "video"
+                        else shot_image_path(images_dir, shot)
+                    )
                     dest.parent.mkdir(parents=True, exist_ok=True)
                     dest.write_bytes(chosen.path.read_bytes())
                     report.shots_resolved += 1
@@ -102,8 +116,10 @@ class ResearchPlanoMedia:
             return []
         candidates: list[MediaCandidate] = []
         for source in sources:
-            if len(candidates) >= self._candidates_per_shot:
-                break
+            # Se consultan TODAS las fuentes (no solo hasta llenar la cuota):
+            # con fotos + video + archivo como fuentes, cortar en la primera
+            # que responda dejaría al video sin oportunidad de competir por
+            # relevancia contra las fotos.
             try:
                 found = source.search(query, dest_dir, self._candidates_per_shot)
             except Exception as exc:  # noqa: BLE001 — una fuente caída no frena la investigación

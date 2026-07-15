@@ -116,9 +116,11 @@ producción para humanos). Referencia: `script_loader.py` y `entities/`.
 
 **`visual.tipo`** (valores válidos): `imagen_ia`, `video_stock`, `animacion_3d`,
 `mapa_animado`, `grafico_movimiento`, `cartel_texto`, `archivo_historico`.
-Todo plano puede recibir una foto real (ver "Medios reales" abajo); si no se
-encuentra un candidato relevante, se genera con IA desde `prompt_ia`. Un
-`tipo` inválido aborta la carga del guion.
+Todo plano puede recibir una foto o un clip de **video real** (ver "Medios
+reales" abajo); si no se encuentra un candidato relevante, se genera con IA
+desde `prompt_ia`. No hace falta fijar `video_stock` a mano — la elección
+entre foto/video/IA es automática por relevancia. Un `tipo` inválido aborta
+la carga del guion.
 
 **`visual.overlay`** (sinónimos aceptados → efecto):
 
@@ -168,13 +170,18 @@ qué son y de dónde salen está en `domain/services/retention_standards.py`:
 - **Punch-in** al entrar cada toma (reset de atención)
 - **Cambio visual cada 2-4s**: planos largos partidos en varias tomas con corte
   seco — `retention_plan.py`
+- **Escalada de ritmo**: a partir del 75% del video el límite de segundos por
+  toma baja gradualmente (más cortes hacia el clímax) y desde el 85% hay un
+  piso de energía de movimiento — el tramo final no se siente plano —
+  `retention_plan.py` (`max_shot_seconds_for_progress`, `motion_floor_for_progress`)
 - **Sin dissolves en los primeros 5s** (cortes secos que "despiertan")
 - **Audio a -14 LUFS** (estándar YouTube/Shorts) — un video callado se pierde
 - **Tarjeta de cierre (CTA)** que invita a seguir — `NARR_CTA_TEXT`
 - **Cama de audio** (música + SFX + whoosh) con ducking bajo la voz
 
 Palancas de calidad de imagen: `NARR_SD_CHECKPOINT` (usa un modelo afinado en
-vez del base SD 1.5) y `NARR_SD_WIDTH/HEIGHT` (16:9 nativo).
+vez del base SD 1.5 — [DreamShaper 8](https://huggingface.co/digiplay/DreamShaper_8)
+es un buen default gratis y sin login) y `NARR_SD_WIDTH/HEIGHT` (16:9 nativo).
 
 ### Parallax 2.5D (movimiento 3D real)
 
@@ -202,36 +209,57 @@ Mezclar fotos reales con ilustraciones IA se ve amateur. `NARR_STYLE_MODE`:
 ## Medios reales (antes de generar con IA)
 
 Antes de mandar un plano a Stable Diffusion, la herramienta investiga si hay
-una **foto real** que le sirva — para cualquier guion, no solo histórico o
-documental. Un plano de ficción sin equivalente real simplemente no encuentra
-candidatos y se genera con IA, igual que hoy.
+una **foto o un clip de video real** que le sirva — para cualquier guion, no
+solo histórico o documental. Un plano de ficción sin equivalente real
+simplemente no encuentra candidatos y se genera con IA, igual que hoy.
 
-- **Fuentes**: [Pexels](https://www.pexels.com/api/) (stock general, licencia
-  libre) y [Wikimedia Commons](https://commons.wikimedia.org) (archivo
+- **Fuentes**: [Pexels](https://www.pexels.com/api/) fotos y
+  [Pexels Video](https://www.pexels.com/api/) (misma key), y
+  [Wikimedia Commons](https://commons.wikimedia.org) (archivo
   público/histórico, sin API key). `visual.tipo: archivo_historico` prueba
-  Wikimedia primero; el resto prueba Pexels primero.
+  Wikimedia primero; el resto prueba Pexels primero. **Foto y video compiten
+  por relevancia entre sí** — no hay que fijar `video_stock` a mano, el que
+  mejor puntúe gana (video ≤40s, se recorta a la duración de la toma y se
+  repite en loop si hace falta).
 - **Filtro de relevancia**: si el mejor resultado no tiene suficiente
   solapamiento de palabras clave con la búsqueda, se descarta — no se fuerza
-  una foto real irrelevante solo porque el proveedor devolvió "algo"
+  un resultado irrelevante solo porque el proveedor devolvió "algo"
   (`NARR_MEDIA_RELEVANCE_MIN_SCORE`).
 - **Dónde queda todo**: `projects/<slug>/media/<plano_id>/` guarda los
   candidatos descargados y `media/manifest.json` registra elegido +
-  descartados con licencia/autor/url (créditos para la descripción de
-  YouTube). El elegido se copia a `images/<shot_id>.png`, el mismo archivo
-  que usaría la generación IA — cero cambios al ensamblador.
+  descartados con licencia/autor/url/tipo (créditos para la descripción de
+  YouTube). La foto elegida se copia a `images/<shot_id>.png` (mismo archivo
+  que usaría la generación IA); el video elegido va a
+  `media/videos/<shot_id>.mp4` — cero cambios al resto del ensamblador, que
+  resuelve automáticamente cuál usar.
 - **Revisar antes de generar**: `poetry run narrator media <slug>` corre solo
   la investigación (requiere narración ya grabada/transcrita). Para forzar
-  una foto a mano, coloca `media/<plano_id>/elegido.<ext>` — gana sobre
-  cualquier búsqueda.
+  un medio a mano, coloca `media/<plano_id>/elegido.<ext>` (`.mp4` para
+  forzar video) — gana sobre cualquier búsqueda.
 - **Audio real**: si `assets/music.*` no existe, busca en
   [Freesound](https://freesound.org/apiv2/apply) una pista ambiental; igual
   por cada tipo de SFX (`sfx/<kind>.mp3`) que el guion use. El mecanismo de
   "el archivo del usuario gana" de la cama de audio no cambia.
 - **Activar**: `NARR_PEXELS_API_KEY` y `NARR_FREESOUND_API_KEY` (gratis,
   registro simple) en `.env`. Sin keys, Wikimedia sigue funcionando solo;
-  `NARR_ENABLE_MEDIA_RESEARCH=0` apaga toda la capa.
-- **Fuera de alcance por ahora**: clips de video stock reales (solo fotos) y
-  música/SFX por plano (sigue siendo una pista global + SFX por categoría).
+  `NARR_ENABLE_MEDIA_RESEARCH=0` apaga toda la capa,
+  `NARR_MEDIA_ENABLE_VIDEO=0` apaga solo el B-roll de video (deja fotos).
+- **Fuera de alcance por ahora**: música/SFX por plano (sigue siendo una
+  pista global + SFX por categoría).
+
+## Identidad de marca
+
+Tarjeta de apertura configurable y color de acento centralizado (hoy solo
+texto — el logo queda para cuando haya un PNG):
+
+- `NARR_BRAND_NAME` — si se fija, antepone una tarjeta de intro con ese
+  nombre (mismo look que la tarjeta de cierre) y retrasa automáticamente
+  narración, captions y cortes de la cama de audio lo que haga falta para
+  que todo siga sincronizado. Vacío = sin intro (comportamiento de siempre).
+- `NARR_BRAND_ACCENT_COLOR` — color de acento en formato `#RRGGBB` (aplica
+  hoy a la palabra resaltada del karaoke). Default `#FFE800`, el mismo
+  amarillo que ya tenía la herramienta — no cambia nada si no se toca.
+- `NARR_BRAND_INTRO_DURATION` — segundos de la tarjeta de intro (default `2.0`).
 
 ## Sincronía audio-video
 

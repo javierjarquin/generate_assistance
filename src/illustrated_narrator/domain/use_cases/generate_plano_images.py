@@ -13,7 +13,10 @@ from pathlib import Path
 
 from illustrated_narrator.domain.entities.plano import Plano, PlanoEstado
 from illustrated_narrator.domain.services.retention_plan import Shot, variation_suffix
+from illustrated_narrator.domain.services.shot_assets import shot_image_path, shot_video_path
 from illustrated_narrator.ports.image_generator import ImageGenerationRequest, ImageGeneratorPort
+
+__all__ = ["GenerateImagesReport", "GeneratePlanoImages", "shot_image_path"]
 
 
 @dataclass
@@ -27,10 +30,6 @@ def _seed_for(shot_id: str) -> int:
     """Semilla determinista por toma: reproducible entre corridas."""
     digest = hashlib.sha256(shot_id.encode("utf-8")).digest()
     return int.from_bytes(digest[:4], "big") % (2**31)
-
-
-def shot_image_path(images_dir: Path, shot: Shot) -> Path:
-    return images_dir / f"{shot.shot_id}.png"
 
 
 class GeneratePlanoImages:
@@ -59,6 +58,7 @@ class GeneratePlanoImages:
         planos: list[Plano],
         images_dir: Path,
         shots_by_plano: dict[str, list[Shot]] | None = None,
+        media_dir: Path | None = None,
     ) -> GenerateImagesReport:
         report = GenerateImagesReport()
         if not self._images.is_available():
@@ -72,6 +72,12 @@ class GeneratePlanoImages:
             ]
             try:
                 for shot in shots:
+                    if media_dir is not None:
+                        video = shot_video_path(media_dir, shot)
+                        if video.exists():  # B-roll real ya resuelto: no generar con IA
+                            if not shot.is_extra:
+                                plano.imagen_path = str(video)
+                            continue
                     dest = shot_image_path(images_dir, shot)
                     if dest.exists():  # resumible: no re-generar tomas ya hechas
                         if not shot.is_extra:
