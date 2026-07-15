@@ -148,6 +148,23 @@ def test_time_offset_shifts_all_timestamps(tmp_path: Path) -> None:
     assert "Dialogue: 0,0:00:03.00" in content
 
 
+def test_brand_name_drawn_during_intro(tmp_path: Path) -> None:
+    dest = tmp_path / "caps.ass"
+    write_ass([_plano("p1", 0.5, 2.0)], dest, brand_name="Dino Historias", brand_duration=2.0)
+    content = dest.read_text(encoding="utf-8")
+    assert "DINO HISTORIAS" in content
+    assert ",Marca," in content  # estilo de marca en la banda inferior
+    # aparece durante la intro (arranca en 0.20)
+    assert "Dialogue: 1,0:00:00.20" in content
+
+
+def test_no_brand_name_no_marca_line(tmp_path: Path) -> None:
+    dest = tmp_path / "caps.ass"
+    write_ass([_plano("p1", 0.5, 2.0)], dest)
+    content = dest.read_text(encoding="utf-8")
+    assert ",Marca,," not in content
+
+
 def test_chunk_does_not_end_on_function_word(tmp_path: Path) -> None:
     # "pero lo que ningún" -> el chunk no debe terminar en "pero" ni "lo"
     words = [

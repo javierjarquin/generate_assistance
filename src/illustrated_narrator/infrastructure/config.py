@@ -38,6 +38,7 @@ class Settings:
     brand_name: str | None
     brand_accent_color: str
     brand_intro_duration: float
+    brand_logo_path: Path | None
     enable_media_research: bool
     enable_video_broll: bool
     pexels_api_key: str | None
@@ -88,6 +89,11 @@ def load_settings() -> Settings:
         brand_name=os.getenv("NARR_BRAND_NAME", "").strip() or None,
         brand_accent_color=os.getenv("NARR_BRAND_ACCENT_COLOR", "#FFE800").strip() or "#FFE800",
         brand_intro_duration=float(os.getenv("NARR_BRAND_INTRO_DURATION", "2.0")),
+        brand_logo_path=(
+            Path(os.getenv("NARR_BRAND_LOGO_PATH", "").strip())
+            if os.getenv("NARR_BRAND_LOGO_PATH", "").strip()
+            else None
+        ),
         enable_media_research=os.getenv("NARR_ENABLE_MEDIA_RESEARCH", "1").strip()
         not in ("0", "false", "no"),
         enable_video_broll=os.getenv("NARR_MEDIA_ENABLE_VIDEO", "1").strip()

@@ -176,4 +176,5 @@ class Container:
             brand_name=self.settings.brand_name,
             brand_intro_duration=self.settings.brand_intro_duration,
             accent_color_ass=hex_to_ass_color(self.settings.brand_accent_color),
+            logo_path=self.settings.brand_logo_path,
         )
