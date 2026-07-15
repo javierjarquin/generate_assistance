@@ -313,6 +313,7 @@ class GenerateNarrationVideo:
                 start=intro_offset + float(p.inicio_real_seg),
                 end=intro_offset + float(p.fin_real_seg),
                 energetic=resolve_motion(p).name in ("impact", "energetic"),
+                text=p.narracion,
             )
             for p in renderable
         ]

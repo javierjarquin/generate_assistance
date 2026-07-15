@@ -160,9 +160,12 @@ Sin palabra clave reconocida, el plano va sin SFX (no falla).
 
 Con `NARR_NARRACION=mascota` y `NARR_MASCOTA_PATH=ruta/a/tu/mascota`, un
 personaje aparece en una esquina y **presenta** el video: la boca se mueve con
-la voz (lip-sync por volumen) y hace gestos (saluda, señala, camina, salta,
-festeja) según lo que pasa en el video. Da la sensación de que la voz sale de
-la mascota.
+la voz (lip-sync por volumen) y **reacciona al contenido** de cada plano —se
+asusta si hay peligro, se sorprende ante una revelación, piensa cuando el guion
+pregunta, señala los datos, salta con la energía, festeja en el cierre— además
+de **entrar caminando** a cuadro y pasear entre planos. La expresión no es al
+azar: se infiere de las palabras de la narración (igual que el movimiento de
+cámara infiere la energía). Da la sensación de que la voz sale de la mascota.
 
 > La herramienta **no crea la mascota** — tú la dibujas y armas la carpeta con
 > lo que se describe aquí; la herramienta la anima y la coloca en el video.
@@ -184,32 +187,53 @@ Requisitos de los sprites:
 
 ### Acciones (qué necesito y cuándo las uso)
 
-| Acción | ¿Obligatoria? | Cuándo la pone la herramienta |
-|--------|:-------------:|-------------------------------|
-| `talk` | ✅ | Base mientras narra un plano. **La boca debe moverse** en esta animación (es la que se ve al hablar) |
-| `idle` | ✅ | Pausas/silencios y relleno. Boca cerrada, respira/parpadea |
-| `wave` | opcional | Saludo al entrar el primer plano |
-| `walk` | opcional | Entra caminando en las transiciones de plano |
-| `point` | opcional | Señala (énfasis) cada ciertos planos |
-| `jump` | opcional | Salta en los planos de mucha energía (impacto/acción) |
-| `celebrate` | opcional | Festeja durante la tarjeta de cierre (CTA) |
+Solo `talk` e `idle` son **obligatorias**. Las demás son opcionales: cuantas
+más entregues, más rica es la actuación. Cada expresión se dispara **según lo
+que dice el guion** en ese plano.
 
-Si falta una acción opcional, se cae a `talk`/`idle` (no se rompe). El lip-sync
+| Acción | ¿Obligatoria? | Cuándo la dispara la herramienta | Arte sugerido |
+|--------|:-------------:|----------------------------------|---------------|
+| `talk` | ✅ | Base mientras narra un plano (con voz) | **Boca moviéndose** |
+| `idle` | ✅ | Pausas/silencios y relleno | Boca cerrada, respira/parpadea |
+| `wave` | opcional | Saludo al entrar el primer plano | Brazo arriba saludando |
+| `walk` | opcional | **Entra caminando** a cuadro y **pasea** entre planos tranquilos (la herramienta la **desplaza** por la pantalla) | Patas en zancada (perfil o 3/4) |
+| `point` | opcional | Datos/cifras/superlativos ("300 metros", "el más grande", "récord") | Brazo señalando |
+| `jump` | opcional | Planos de mucha energía / emoción | Saltando, brazos afuera |
+| `celebrate` | opcional | Tarjeta de cierre (CTA) | Los dos brazos arriba, festejando |
+| `scared` | opcional | Peligro, amenaza, catástrofe ("terremoto", "monstruo", "huir") | Cejas caídas, ojos grandes, retrocede |
+| `surprised` | opcional | Revelación / giro ("nadie sabía", "de repente", "increíble") | Ojos enormes, cejas arriba, boca abierta |
+| `think` | opcional | Preguntas / misterio ("¿por qué?", "imagina", "¿y si…?") | Mano en el mentón, mirada pensativa |
+| `sad` | opcional | Pérdida / muerte / tragedia ("murió", "desapareció", "adiós") | Cabeza baja, boca hacia abajo, lágrima |
+| `laugh` | opcional | Momento gracioso / ligero ("gracioso", "absurdo", "jaja") | Sonrisa abierta, echada atrás |
+
+Si falta una acción opcional, cae por una cadena hasta una que sí exista (p. ej.
+`scared`→`think`→`idle`, `surprised`→`jump`→`point`→`talk`), así el video nunca
+se rompe por un sprite ausente. El lip-sync
 funciona así: durante `talk`, si la voz baja del umbral la boca se cierra
 (`idle`); cuando hay voz vuelve a `talk`. Por eso `talk` debe traer la boca
 abierta/moviéndose en el arte y `idle` la boca cerrada.
 
-Ejemplo de carpeta mínima:
+> **Sobre `walk`:** el movimiento de patas lo dibujas tú; el **traslado** por la
+> pantalla lo hace la herramienta (entra a cuadro desde un lado y pasea ida y
+> vuelta). Dibuja el personaje de perfil o 3/4 caminando; no hace falta moverlo
+> dentro del lienzo.
+
+Ejemplo de carpeta (mínima = solo talk + idle; completa = las 12):
 
 ```
 mi_mascota/
-├── talk/     (o talk.gif)     # hablando, boca en movimiento  [OBLIGATORIA]
-├── idle/     (o idle.gif)     # quieta, boca cerrada           [OBLIGATORIA]
-├── wave/     (o wave.gif)     # saluda                          (opcional)
-├── walk/     ...              # camina                          (opcional)
-├── point/    ...              # señala                          (opcional)
-├── jump/     ...              # salta                           (opcional)
-└── celebrate/ ...             # festeja                         (opcional)
+├── talk/      (o talk.gif)   # hablando, boca en movimiento   [OBLIGATORIA]
+├── idle/      (o idle.gif)   # quieta, boca cerrada            [OBLIGATORIA]
+├── wave/      ...            # saluda                           (opcional)
+├── walk/      ...            # camina (se desplaza sola)        (opcional)
+├── point/     ...            # señala datos                     (opcional)
+├── jump/      ...            # salta con energía                (opcional)
+├── celebrate/ ...            # festeja (CTA)                    (opcional)
+├── scared/    ...            # asustada (peligro)               (opcional)
+├── surprised/ ...            # sorprendida (revelación)         (opcional)
+├── think/     ...            # pensativa (preguntas)            (opcional)
+├── sad/       ...            # triste (pérdida)                 (opcional)
+└── laugh/     ...            # ríe (momento ligero)             (opcional)
 ```
 
 Config: `NARR_MASCOTA_POS` (esquina), `NARR_MASCOTA_HEIGHT_FRAC` (tamaño),

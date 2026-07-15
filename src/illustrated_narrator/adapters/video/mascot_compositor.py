@@ -18,8 +18,9 @@ from illustrated_narrator.domain.services.mascot_director import (
     IDLE,
     REQUIRED_ACTIONS,
     TALK,
+    WALK,
     MascotSegment,
-    action_at,
+    segment_at,
 )
 
 logger = logging.getLogger(__name__)
@@ -144,15 +145,28 @@ def composite_mascot(
         if src is not None:
             actions[action] = _load_frames(src, target_h, ffmpeg)
 
-    region_w = max(fr.width for frs in actions.values() for fr in frs)
+    sprite_w = max(fr.width for frs in actions.values() for fr in frs)
     region_h = max(fr.height for frs in actions.values() for fr in frs)
+    # La mascota se DESPLAZA al caminar (entra a cuadro, pasea): la region se
+    # ensancha `travel` px para dar cancha al recorrido sin salirse. En reposo
+    # la mascota queda anclada al lado de la esquina (misma posición de siempre).
+    walks = any(s.action == WALK for s in segments)
+    travel = int(w * 0.16) if walks else 0
+    region_w = sprite_w + travel
     margin = int(h * 0.02)
+    oy = h - region_h - margin
     if position == "bottom-right":
-        ox, oy = w - region_w - margin, h - region_h - margin
+        ox = w - region_w - margin
+        rest_cx = region_w - sprite_w / 2.0   # pegada a la derecha del region
+        inner_sign = -1.0                     # el interior del cuadro queda a la izq.
     elif position == "bottom-left":
-        ox, oy = margin, h - region_h - margin
+        ox = margin
+        rest_cx = sprite_w / 2.0
+        inner_sign = 1.0
     else:  # bottom-center
-        ox, oy = (w - region_w) // 2, h - region_h - margin
+        ox = (w - region_w) // 2
+        rest_cx = region_w / 2.0
+        inner_sign = -1.0
 
     # duración total del video
     dur = _probe_duration(ffmpeg, final_video)
@@ -172,10 +186,19 @@ def composite_mascot(
          *encode_args, str(dest)],
         stdin=subprocess.PIPE,
     )
+    # Antes del primer segmento la mascota aún no está en escena: se oculta
+    # (cuadro transparente) para que haga su ENTRADA caminando y no aparezca
+    # pegada en la esquina durante la intro/pre-rollo.
+    first_start = segments[0].start if segments else 0.0
+    blank = np.zeros((region_h, region_w, 4), np.uint8).tobytes()
     try:
         for i in range(n_frames):
             t = i / fps
-            action = action_at(segments, t)
+            if t < first_start:
+                proc.stdin.write(blank)
+                continue
+            seg = segment_at(segments, t)
+            action = seg.action if seg is not None else IDLE
             # lip-sync: durante 'talk', si la voz calla -> idle (boca cerrada)
             ni = int((t - intro_offset) * fps)
             speaking = 0 <= ni < n_frames and env[ni] >= voice_threshold
@@ -183,9 +206,20 @@ def composite_mascot(
                 action = IDLE
             frames = actions.get(action) or actions[IDLE]
             fr = frames[int(t * mascot_fps) % len(frames)]
+            # centro X: reposo salvo al caminar, que traslada a la mascota.
+            cx = rest_cx
+            if seg is not None and action == WALK and travel:
+                span = max(seg.end - seg.start, 1e-6)
+                p = min(max((t - seg.start) / span, 0.0), 1.0)
+                if seg.variant == "pace":     # ida y vuelta: no teletransporta
+                    cx = rest_cx + inner_sign * travel * 0.7 * (1.0 - abs(2.0 * p - 1.0))
+                else:                          # "in": entra desde el interior a su sitio
+                    cx = rest_cx + inner_sign * travel * (1.0 - p)
             canvas_img = Image.new("RGBA", (region_w, region_h), (0, 0, 0, 0))
-            # anclar abajo-centro del region (pies al piso)
-            canvas_img.alpha_composite(fr, ((region_w - fr.width) // 2, region_h - fr.height))
+            # anclar por los pies (abajo), centrado en cx; clamp para que el
+            # sprite nunca se salga del region (alpha_composite exige dest>=0).
+            px = min(max(int(cx - fr.width / 2.0), 0), region_w - fr.width)
+            canvas_img.alpha_composite(fr, (px, region_h - fr.height))
             proc.stdin.write(np.asarray(canvas_img, np.uint8).tobytes())
         proc.stdin.close()
         if proc.wait() != 0:
