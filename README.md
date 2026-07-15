@@ -156,6 +156,91 @@ Sin palabra clave reconocida, el plano va sin SFX (no falla).
 > El sentido del Ken Burns (pan/zoom) se asigna automáticamente y alterna entre
 > tomas; su **energía** la fija `visual.motion` (o se infiere del contenido).
 
+## Modo mascota (personaje que presenta)
+
+Con `NARR_NARRACION=mascota` y `NARR_MASCOTA_PATH=ruta/a/tu/mascota`, un
+personaje aparece en una esquina y **presenta** el video: la boca se mueve con
+la voz (lip-sync por volumen) y **reacciona al contenido** de cada plano —se
+asusta si hay peligro, se sorprende ante una revelación, piensa cuando el guion
+pregunta, señala los datos, salta con la energía, festeja en el cierre— además
+de **entrar caminando** a cuadro y pasear entre planos. La expresión no es al
+azar: se infiere de las palabras de la narración (igual que el movimiento de
+cámara infiere la energía). Da la sensación de que la voz sale de la mascota.
+
+> La herramienta **no crea la mascota** — tú la dibujas y armas la carpeta con
+> lo que se describe aquí; la herramienta la anima y la coloca en el video.
+
+### Manual de la carpeta de la mascota
+
+Cada "acción" es una animación. Puedes entregarla de dos formas:
+
+- **Carpeta con PNGs numerados**: `talk/00.png, talk/01.png, …` (en orden), o
+- **Un archivo animado**: `talk.gif`, `talk.png` (APNG), `talk.webp` o
+  `talk.webm`/`talk.mov` (con canal alfa).
+
+Requisitos de los sprites:
+- **Fondo transparente** (PNG/GIF/WebM con alfa). Sin fondo de color.
+- **Mismo lienzo** en todas las acciones (misma resolución) para que no salte.
+- Personaje **de cuerpo entero**, mirando al frente, **centrado horizontal y
+  con los pies abajo** (se ancla al piso de la esquina).
+- Alto recomendado 512–1024px (se escala a `NARR_MASCOTA_HEIGHT_FRAC` del video).
+
+### Acciones (qué necesito y cuándo las uso)
+
+Solo `talk` e `idle` son **obligatorias**. Las demás son opcionales: cuantas
+más entregues, más rica es la actuación. Cada expresión se dispara **según lo
+que dice el guion** en ese plano.
+
+| Acción | ¿Obligatoria? | Cuándo la dispara la herramienta | Arte sugerido |
+|--------|:-------------:|----------------------------------|---------------|
+| `talk` | ✅ | Base mientras narra un plano (con voz) | **Boca moviéndose** |
+| `idle` | ✅ | Pausas/silencios y relleno | Boca cerrada, respira/parpadea |
+| `wave` | opcional | Saludo al entrar el primer plano | Brazo arriba saludando |
+| `walk` | opcional | **Cruza la pantalla de extremo a extremo** en cada plano (entra caminando y hace ping-pong izquierda↔derecha para sentirse dinámica todo el video); la herramienta la **desplaza** sola | Patas en zancada (perfil o 3/4) |
+| `point` | opcional | Datos/cifras/superlativos ("300 metros", "el más grande", "récord") | Brazo señalando |
+| `jump` | opcional | Planos de mucha energía / emoción | Saltando, brazos afuera |
+| `celebrate` | opcional | Tarjeta de cierre (CTA) | Los dos brazos arriba, festejando |
+| `scared` | opcional | Peligro, amenaza, catástrofe ("terremoto", "monstruo", "huir") | Cejas caídas, ojos grandes, retrocede |
+| `surprised` | opcional | Revelación / giro ("nadie sabía", "de repente", "increíble") | Ojos enormes, cejas arriba, boca abierta |
+| `think` | opcional | Preguntas / misterio ("¿por qué?", "imagina", "¿y si…?") | Mano en el mentón, mirada pensativa |
+| `sad` | opcional | Pérdida / muerte / tragedia ("murió", "desapareció", "adiós") | Cabeza baja, boca hacia abajo, lágrima |
+| `laugh` | opcional | Momento gracioso / ligero ("gracioso", "absurdo", "jaja") | Sonrisa abierta, echada atrás |
+
+Si falta una acción opcional, cae por una cadena hasta una que sí exista (p. ej.
+`scared`→`think`→`idle`, `surprised`→`jump`→`point`→`talk`), así el video nunca
+se rompe por un sprite ausente. El lip-sync
+funciona así: durante `talk`, si la voz baja del umbral la boca se cierra
+(`idle`); cuando hay voz vuelve a `talk`. Por eso `talk` debe traer la boca
+abierta/moviéndose en el arte y `idle` la boca cerrada.
+
+> **Sobre `walk`:** el movimiento de patas lo dibujas tú; el **traslado** por la
+> pantalla lo hace la herramienta (cruza de un extremo al otro en cada plano).
+> Dibuja el personaje de perfil o 3/4 caminando; no hace falta moverlo dentro
+> del lienzo. Si `walk` no está, la mascota se queda fija en la esquina de
+> `NARR_MASCOTA_POS` (sin cruces).
+
+Ejemplo de carpeta (mínima = solo talk + idle; completa = las 12):
+
+```
+mi_mascota/
+├── talk/      (o talk.gif)   # hablando, boca en movimiento   [OBLIGATORIA]
+├── idle/      (o idle.gif)   # quieta, boca cerrada            [OBLIGATORIA]
+├── wave/      ...            # saluda                           (opcional)
+├── walk/      ...            # camina (se desplaza sola)        (opcional)
+├── point/     ...            # señala datos                     (opcional)
+├── jump/      ...            # salta con energía                (opcional)
+├── celebrate/ ...            # festeja (CTA)                    (opcional)
+├── scared/    ...            # asustada (peligro)               (opcional)
+├── surprised/ ...            # sorprendida (revelación)         (opcional)
+├── think/     ...            # pensativa (preguntas)            (opcional)
+├── sad/       ...            # triste (pérdida)                 (opcional)
+└── laugh/     ...            # ríe (momento ligero)             (opcional)
+```
+
+Config: `NARR_MASCOTA_POS` (esquina), `NARR_MASCOTA_HEIGHT_FRAC` (tamaño),
+`NARR_MASCOTA_FPS` (velocidad de la animación), `NARR_MASCOTA_VOICE_THRESHOLD`
+(sensibilidad del lip-sync).
+
 ## Estándares de retención (automáticos)
 
 La herramienta aplica a CUALQUIER video, sin configurar nada. La referencia de

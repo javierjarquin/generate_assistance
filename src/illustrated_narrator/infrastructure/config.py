@@ -51,6 +51,13 @@ class Settings:
     # Consistencia de estilo: "auto" | "ilustracion" | "realista" | "unificado"
     style_mode: str
     process_voice: bool
+    # Narración: "voz" (solo audio) | "mascota" (personaje animado que presenta)
+    narration_mode: str
+    mascot_path: Path | None
+    mascot_position: str  # bottom-right | bottom-left | bottom-center
+    mascot_height_frac: float
+    mascot_fps: int
+    mascot_voice_threshold: float
 
 
 def load_settings() -> Settings:
@@ -108,4 +115,14 @@ def load_settings() -> Settings:
         ),
         style_mode=os.getenv("NARR_STYLE_MODE", "auto").strip().lower(),
         process_voice=os.getenv("NARR_VOICE_PROCESSING", "1").strip() not in ("0", "false", "no"),
+        narration_mode=os.getenv("NARR_NARRACION", "voz").strip().lower(),
+        mascot_path=(
+            Path(os.getenv("NARR_MASCOTA_PATH", "").strip())
+            if os.getenv("NARR_MASCOTA_PATH", "").strip()
+            else None
+        ),
+        mascot_position=os.getenv("NARR_MASCOTA_POS", "bottom-right").strip().lower(),
+        mascot_height_frac=float(os.getenv("NARR_MASCOTA_HEIGHT_FRAC", "0.34")),
+        mascot_fps=int(os.getenv("NARR_MASCOTA_FPS", "12")),
+        mascot_voice_threshold=float(os.getenv("NARR_MASCOTA_VOICE_THRESHOLD", "0.06")),
     )
