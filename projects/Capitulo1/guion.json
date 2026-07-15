@@ -2,15 +2,16 @@
     "meta": {
         "serie": "Historia de Yucatan",
         "capitulo": 1,
-        "titulo": "El meteorito que creo Yucatan",
+        "titulo": "El meteorito que creó Yucatán",
         "idioma": "es-MX",
-        "subtitulo": "El peor dia de la Tierra y la tierra que nacio de el"
+        "subtitulo": "El peor día de la Tierra y la tierra que nació de él",
+        "gancho": "El día que la Tierra casi muere… y nació Yucatán"
     },
     "planos": [
         {
             "id": "p01",
             "seccion": "gancho",
-            "narracion": "Es una manana de primavera, hace 66 millones de anos. En un pantano tropical, un Tyrannosaurus rex mastica lo que sera su ultima comida.",
+            "narracion": "Hace sesenta y seis millones de años, un solo día lo cambió todo. Amanece en un pantano tropical. Un Tyrannosaurus rex mastica tranquilo. No lo sabe, pero está viviendo su última mañana.",
             "visual": {
                 "tipo": "imagen_ia",
                 "descripcion": "T-rex tranquilo comiendo en un pantano cretacico al amanecer, atmosfera calida.",
@@ -26,7 +27,7 @@
         {
             "id": "p02",
             "seccion": "gancho",
-            "narracion": "En el cielo aparece un punto de luz. Crece. En segundos, brilla mas que el sol.",
+            "narracion": "De repente, en el cielo aparece un punto de luz. Crece. En segundos brilla más que el sol. El dinosaurio alza la mirada… y no entiende lo que ve.",
             "visual": {
                 "tipo": "imagen_ia",
                 "descripcion": "Cielo diurno con un punto de luz intensa creciendo; el dinosaurio empieza a alzar la vista.",
@@ -42,7 +43,7 @@
         {
             "id": "p03",
             "seccion": "gancho",
-            "narracion": "Es una roca del tamano de una montana, y viene directo hacia la Tierra a veinte kilometros por segundo. Aqui. Justo debajo de lo que hoy es Yucatan.",
+            "narracion": "Es una roca del tamaño de una montaña. Viene directa hacia la Tierra a veinte kilómetros por segundo. Y apunta justo aquí: debajo de lo que hoy es Yucatán.",
             "visual": {
                 "tipo": "animacion_3d",
                 "descripcion": "Vista desde el espacio: asteroide gigante cayendo hacia el Golfo de Mexico; se resalta la silueta de la peninsula.",
@@ -58,7 +59,7 @@
         {
             "id": "p04",
             "seccion": "gancho",
-            "narracion": "En ese instante comienza el peor dia en la historia del planeta. Pero aqui esta lo increible: sin ese apocalipsis, tu no existirias. Y Yucatan, tal como lo conoces, sus cenotes, su agua, sus mayas, tampoco. Esta es la historia de como el fin del mundo creo una tierra.",
+            "narracion": "En ese instante empieza el peor día en la historia del planeta. Pero aquí está lo increíble: sin ese apocalipsis, tú no existirías. Ni Yucatán, ni sus cenotes, ni su agua, ni los mayas. Nada de eso. Esta es la historia de cómo el fin del mundo creó una tierra.",
             "visual": {
                 "tipo": "grafico_movimiento",
                 "descripcion": "Titulo de serie apareciendo sobre transicion de fuego a agua de cenote. Montaje rapido: explosion -> cenote turquesa -> piramide maya.",
@@ -75,7 +76,7 @@
         {
             "id": "p05",
             "seccion": "setup",
-            "narracion": "Retrocedamos un segundo antes del impacto. Lo que se acerca es un asteroide de entre diez y quince kilometros de ancho. Imaginalo: una sola roca mas alta que el monte Everest, cayendo del cielo.",
+            "narracion": "Rebobinemos al segundo antes del impacto. Lo que se acerca mide entre diez y quince kilómetros de ancho. Imagínalo: una sola roca más alta que el monte Everest, cayendo del cielo.",
             "visual": {
                 "tipo": "grafico_movimiento",
                 "descripcion": "Comparacion de escala: el asteroide junto a la silueta del Everest y de una ciudad.",
@@ -91,7 +92,7 @@
         {
             "id": "p06",
             "seccion": "setup",
-            "narracion": "Y no cae despacio. Viaja a unos veinte kilometros por segundo: decenas de veces mas rapido que una bala de rifle. Tan rapido que atraviesa toda la atmosfera de la Tierra, quince kilometros de aire, en menos de dos segundos.",
+            "narracion": "Y no baja despacio. Viaja a veinte kilómetros por segundo: decenas de veces más rápido que una bala. Tan veloz que cruza toda la atmósfera, quince kilómetros de aire, en menos de dos segundos.",
             "visual": {
                 "tipo": "animacion_3d",
                 "descripcion": "El asteroide perfora las capas de la atmosfera dejando una estela incandescente; contador de velocidad.",
@@ -107,7 +108,7 @@
         {
             "id": "p07",
             "seccion": "setup",
-            "narracion": "Cuando golpea, libera una energia dificil de imaginar: el equivalente a miles de millones de bombas atomicas explotando al mismo tiempo. Mas que todas las armas nucleares del planeta juntas, multiplicadas por mil.",
+            "narracion": "Al golpear, libera una energía difícil de creer: el equivalente a miles de millones de bombas atómicas detonando a la vez. Una sola explosión, mayor que todo el arsenal nuclear del planeta junto, multiplicado por mil.",
             "visual": {
                 "tipo": "grafico_movimiento",
                 "descripcion": "Visual de escala de energia: iconos de bombas multiplicandose hasta llenar la pantalla.",
@@ -123,7 +124,7 @@
         {
             "id": "p08",
             "seccion": "impacto",
-            "narracion": "El golpe abre un crater de casi doscientos kilometros de diametro y veinte de profundidad: uno de los mas grandes que existen en la Tierra. Cabria dentro medio estado de Yucatan.",
+            "narracion": "El impacto abre un cráter de casi doscientos kilómetros de ancho y veinte de profundidad: uno de los más grandes del planeta. Dentro cabría medio estado de Yucatán.",
             "visual": {
                 "tipo": "animacion_3d",
                 "descripcion": "Momento del impacto visto desde arriba; onda expansiva circular; se dibuja el circulo del crater sobre el mapa de la peninsula.",
@@ -140,7 +141,7 @@
         {
             "id": "p09",
             "seccion": "impacto",
-            "narracion": "La roca no cayo recta. Entro en un angulo inclinado, cercano a los sesenta grados, y ese detalle lo empeoro todo. Justo debajo del impacto habia rocas cargadas de azufre. El golpe las vaporizo y las lanzo al cielo: cientos de gigatoneladas de azufre convertidas en veneno.",
+            "narracion": "Pero la roca no cayó recta. Entró inclinada, a unos sesenta grados. Y ese detalle lo empeoró todo. Justo debajo había rocas llenas de azufre. El golpe las vaporizó y lanzó al cielo cientos de gigatoneladas convertidas en veneno. Y esa nube estaba a punto de apagar el sol.",
             "visual": {
                 "tipo": "animacion_3d",
                 "descripcion": "Trayectoria inclinada del asteroide (~60 grados); columna de roca vaporizada y azufre elevandose.",
