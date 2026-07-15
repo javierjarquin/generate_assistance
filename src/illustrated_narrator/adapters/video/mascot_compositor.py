@@ -147,26 +147,26 @@ def composite_mascot(
 
     sprite_w = max(fr.width for frs in actions.values() for fr in frs)
     region_h = max(fr.height for frs in actions.values() for fr in frs)
-    # La mascota se DESPLAZA al caminar (entra a cuadro, pasea): la region se
-    # ensancha `travel` px para dar cancha al recorrido sin salirse. En reposo
-    # la mascota queda anclada al lado de la esquina (misma posición de siempre).
-    walks = any(s.action == WALK for s in segments)
-    travel = int(w * 0.16) if walks else 0
-    region_w = sprite_w + travel
     margin = int(h * 0.02)
     oy = h - region_h - margin
-    if position == "bottom-right":
-        ox = w - region_w - margin
-        rest_cx = region_w - sprite_w / 2.0   # pegada a la derecha del region
-        inner_sign = -1.0                     # el interior del cuadro queda a la izq.
-    elif position == "bottom-left":
-        ox = margin
-        rest_cx = sprite_w / 2.0
-        inner_sign = 1.0
-    else:  # bottom-center
-        ox = (w - region_w) // 2
-        rest_cx = region_w / 2.0
-        inner_sign = -1.0
+    # Si hay `walk`, la mascota cruza la pantalla de EXTREMO A EXTREMO: la region
+    # ocupa todo el ancho y su X se mueve por el `home` normalizado (0..1) que
+    # trae cada segmento. Sin walk, region angosta anclada a la esquina fija.
+    traversal = any(s.action == WALK for s in segments)
+    if traversal:
+        region_w = w
+        ox = 0
+        band_l = margin + sprite_w / 2.0          # centro X mínimo (izquierda)
+        band_r = w - margin - sprite_w / 2.0      # centro X máximo (derecha)
+    else:
+        region_w = sprite_w
+        band_l = band_r = region_w / 2.0
+        if position == "bottom-left":
+            ox = margin
+        elif position == "bottom-center":
+            ox = (w - region_w) // 2
+        else:  # bottom-right (default)
+            ox = w - region_w - margin
 
     # duración total del video
     dur = _probe_duration(ffmpeg, final_video)
@@ -191,6 +191,8 @@ def composite_mascot(
     # pegada en la esquina durante la intro/pre-rollo.
     first_start = segments[0].start if segments else 0.0
     blank = np.zeros((region_h, region_w, 4), np.uint8).tobytes()
+    span_px = band_r - band_l
+    last_xn = 0.5
     try:
         for i in range(n_frames):
             t = i / fps
@@ -206,15 +208,17 @@ def composite_mascot(
                 action = IDLE
             frames = actions.get(action) or actions[IDLE]
             fr = frames[int(t * mascot_fps) % len(frames)]
-            # centro X: reposo salvo al caminar, que traslada a la mascota.
-            cx = rest_cx
-            if seg is not None and action == WALK and travel:
-                span = max(seg.end - seg.start, 1e-6)
-                p = min(max((t - seg.start) / span, 0.0), 1.0)
-                if seg.variant == "pace":     # ida y vuelta: no teletransporta
-                    cx = rest_cx + inner_sign * travel * 0.7 * (1.0 - abs(2.0 * p - 1.0))
-                else:                          # "in": entra desde el interior a su sitio
-                    cx = rest_cx + inner_sign * travel * (1.0 - p)
+            # posición X normalizada (0=izq, 1=der): en walk interpola de x0 a x1
+            # (cruce de extremo a extremo); en el resto se queda en su home (x1).
+            if seg is None:
+                xn = last_xn
+            elif seg.action == WALK:
+                p = min(max((t - seg.start) / max(seg.end - seg.start, 1e-6), 0.0), 1.0)
+                xn = seg.x0 + (seg.x1 - seg.x0) * p
+            else:
+                xn = seg.x1
+            last_xn = xn
+            cx = band_l + xn * span_px
             canvas_img = Image.new("RGBA", (region_w, region_h), (0, 0, 0, 0))
             # anclar por los pies (abajo), centrado en cx; clamp para que el
             # sprite nunca se salga del region (alpha_composite exige dest>=0).

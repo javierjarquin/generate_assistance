@@ -47,7 +47,9 @@ def test_missing_optional_falls_back_to_talk() -> None:
 def test_cta_celebrates() -> None:
     beats = [PlanoBeat(0.0, 5.0, False)]
     segs = plan_mascot(beats, available={TALK, IDLE, CELEBRATE}, cta_start=5.0, cta_duration=3.0)
-    assert segs[-1] == MascotSegment(5.0, 8.0, CELEBRATE)
+    last = segs[-1]
+    assert (last.start, last.end, last.action) == (5.0, 8.0, CELEBRATE)
+    assert last.x0 == last.x1 == 0.5  # festeja al centro
 
 
 def test_action_at_returns_idle_outside_segments() -> None:
@@ -90,17 +92,31 @@ def test_content_drives_plano_expression() -> None:
         PlanoBeat(4.0, 9.0, False, "de repente todo cambió, increíble"),
     ]
     segs = plan_mascot(beats, available=_ALL)
-    assert any(s.action == SURPRISED and s.start == 4.0 for s in segs)
+    # la expresión ocurre tras el cruce (walk) del plano, en su home
+    assert any(s.action == SURPRISED and s.start >= 4.0 for s in segs)
 
 
-def test_calm_even_plano_paces() -> None:
+def test_crosses_extremo_a_extremo_each_plano() -> None:
     beats = [
-        PlanoBeat(0.0, 4.0, False, "hola"),
-        PlanoBeat(4.0, 9.0, False, "seguia el relato"),
-        PlanoBeat(9.0, 14.0, False, "seguia siendo un dia tranquilo"),  # i=2 (par)
+        PlanoBeat(0.0, 5.0, False, "hola"),
+        PlanoBeat(5.0, 10.0, False, "seguia el relato"),
+        PlanoBeat(10.0, 15.0, False, "y continuaba tranquilo"),
     ]
     segs = plan_mascot(beats, available=_ALL)
-    assert any(s.action == WALK and s.variant == "pace" and s.start == 9.0 for s in segs)
+    walks = [s for s in segs if s.action == WALK]
+    # un cruce por plano y de extremo a extremo (|x1-x0| == 1.0)
+    assert len(walks) == 3
+    assert all(abs(w.x1 - w.x0) == 1.0 for w in walks)
+    # homes alternan izquierda/derecha entre planos consecutivos
+    homes = [w.x1 for w in walks]
+    assert homes == [1.0, 0.0, 1.0]
+    assert walks[0].variant == "in" and walks[1].variant == "cross"
+
+
+def test_no_walk_keeps_static_center() -> None:
+    beats = [PlanoBeat(0.0, 5.0, False, "hola"), PlanoBeat(5.0, 9.0, False, "chao")]
+    segs = plan_mascot(beats, available={TALK, IDLE})  # sin walk
+    assert not any(s.action == WALK for s in segs)
 
 
 def test_segment_at() -> None:

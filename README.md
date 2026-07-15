@@ -196,7 +196,7 @@ que dice el guion** en ese plano.
 | `talk` | ✅ | Base mientras narra un plano (con voz) | **Boca moviéndose** |
 | `idle` | ✅ | Pausas/silencios y relleno | Boca cerrada, respira/parpadea |
 | `wave` | opcional | Saludo al entrar el primer plano | Brazo arriba saludando |
-| `walk` | opcional | **Entra caminando** a cuadro y **pasea** entre planos tranquilos (la herramienta la **desplaza** por la pantalla) | Patas en zancada (perfil o 3/4) |
+| `walk` | opcional | **Cruza la pantalla de extremo a extremo** en cada plano (entra caminando y hace ping-pong izquierda↔derecha para sentirse dinámica todo el video); la herramienta la **desplaza** sola | Patas en zancada (perfil o 3/4) |
 | `point` | opcional | Datos/cifras/superlativos ("300 metros", "el más grande", "récord") | Brazo señalando |
 | `jump` | opcional | Planos de mucha energía / emoción | Saltando, brazos afuera |
 | `celebrate` | opcional | Tarjeta de cierre (CTA) | Los dos brazos arriba, festejando |
@@ -214,9 +214,10 @@ funciona así: durante `talk`, si la voz baja del umbral la boca se cierra
 abierta/moviéndose en el arte y `idle` la boca cerrada.
 
 > **Sobre `walk`:** el movimiento de patas lo dibujas tú; el **traslado** por la
-> pantalla lo hace la herramienta (entra a cuadro desde un lado y pasea ida y
-> vuelta). Dibuja el personaje de perfil o 3/4 caminando; no hace falta moverlo
-> dentro del lienzo.
+> pantalla lo hace la herramienta (cruza de un extremo al otro en cada plano).
+> Dibuja el personaje de perfil o 3/4 caminando; no hace falta moverlo dentro
+> del lienzo. Si `walk` no está, la mascota se queda fija en la esquina de
+> `NARR_MASCOTA_POS` (sin cruces).
 
 Ejemplo de carpeta (mínima = solo talk + idle; completa = las 12):
 

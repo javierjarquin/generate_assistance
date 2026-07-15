@@ -49,7 +49,7 @@ OPTIONAL_ACTIONS = (WAVE, WALK, POINT, JUMP, CELEBRATE, SCARED, SURPRISED, THINK
 ALL_ACTIONS = REQUIRED_ACTIONS + OPTIONAL_ACTIONS
 
 _ONESHOT_SECONDS = 0.9   # gesto puntual (point/scared/surprised/...)
-_ENTRANCE_SECONDS = 1.2  # la mascota entra caminando a cuadro
+_HOME_L, _HOME_R, _CENTER = 0.0, 1.0, 0.5  # posiciones home (0=izq, 1=der del ancho útil)
 
 # Cadenas de reemplazo: si la acción ideal no está en la carpeta, se prueba la
 # siguiente, hasta caer en una obligatoria (talk/idle) que siempre existe.
@@ -103,7 +103,9 @@ class MascotSegment:
     start: float
     end: float
     action: str
-    variant: str = ""       # walk: "in" (entra a cuadro) | "pace" (paseo ida-vuelta)
+    variant: str = ""       # walk: "in" (entrada) | "cross" (cruce entre planos)
+    x0: float = 0.5         # posición normal. al inicio del segmento (0=izq, 1=der)
+    x1: float = 0.5         # posición al final (en walk difiere de x0: se desplaza)
 
 
 def _strip(text: str) -> str:
@@ -142,44 +144,58 @@ def plan_mascot(
     cta_duration: float = 3.0,
 ) -> list[MascotSegment]:
     """Segmentos de acción de la mascota, en orden y sin huecos dentro de cada
-    plano (el compositor rellena el resto con idle)."""
+    plano (el compositor rellena el resto con idle).
+
+    Para sentirse dinámica en TODO el video, la mascota **cruza la pantalla de
+    extremo a extremo** en cada plano: tiene un "home" que hace ping-pong
+    izquierda↔derecha y camina hasta él al empezar cada plano; ahí hace su
+    expresión (según el contenido) y narra. Si no hay sprite `walk`, se queda
+    fija en la esquina configurada (el compositor la posiciona)."""
     if not beats:
         return []
     segs: list[MascotSegment] = []
+    walk = WALK in available
 
-    def oneshot(start: float, end: float, action: str | None,
-                seconds: float = _ONESHOT_SECONDS, variant: str = "") -> float:
-        """Coloca un gesto puntual al inicio si `action` existe y cabe.
-        Devuelve el tiempo donde sigue el 'talk'."""
+    def home(i: int) -> float:
+        return _HOME_R if i % 2 == 0 else _HOME_L  # plano 0 cruza hasta la derecha
+
+    def oneshot(start: float, end: float, action: str | None, x: float,
+                seconds: float = _ONESHOT_SECONDS) -> float:
+        """Gesto puntual en el sitio `x`. Devuelve el tiempo donde sigue el resto."""
         if action and action in available:
-            gesture_end = min(start + seconds, end)
-            if gesture_end > start:
-                segs.append(MascotSegment(start, gesture_end, action, variant))
-                return gesture_end
+            gend = min(start + seconds, end)
+            if gend > start:
+                segs.append(MascotSegment(start, gend, action, "", x, x))
+                return gend
         return start
 
-    walk = WALK if WALK in available else None  # sin walk real no hay traslado
+    prev_home = _HOME_L if walk else _CENTER  # entra desde la izquierda
     for i, b in enumerate(beats):
         t = b.start
+        h = home(i) if walk else _CENTER
+        # Transición: camina de extremo a extremo hasta el home del plano.
+        if walk and abs(h - prev_home) > 1e-3 and t < b.end:
+            span = b.end - b.start
+            wdur = min(max(span * 0.45, 1.0), 1.8)
+            wend = min(t + wdur, b.end)
+            if wend > t:
+                segs.append(MascotSegment(t, wend, WALK,
+                                          "in" if i == 0 else "cross", prev_home, h))
+                t = wend
+        prev_home = h
+        # Expresión en el sitio: saludo en el primero, o la inferida del contenido.
         if i == 0:
-            # Entra caminando a cuadro y luego saluda: presentación en toda regla.
-            t = oneshot(t, b.end, walk, _ENTRANCE_SECONDS, "in")
-            t = oneshot(t, b.end, _resolve(WAVE, available))
+            t = oneshot(t, b.end, WAVE if WAVE in available else None, h)
         else:
-            expr = infer_expression(b.text, b.energetic, available)
-            if expr is not None:
-                t = oneshot(t, b.end, expr)
-            elif i % 2 == 0:
-                # plano tranquilo sin emoción clara -> pasea (ida y vuelta) para
-                # no quedarse clavada; si no hay walk, sigue de largo a 'talk'.
-                t = oneshot(t, b.end, walk, variant="pace")
+            t = oneshot(t, b.end, infer_expression(b.text, b.energetic, available), h)
         if t < b.end:
-            segs.append(MascotSegment(t, b.end, TALK))
+            segs.append(MascotSegment(t, b.end, TALK, "", h, h))
 
-    # Cierre / CTA: festeja.
+    # Cierre / CTA: festeja al centro (gran final).
     if cta_start is not None:
         action = _resolve(CELEBRATE, available) or IDLE
-        segs.append(MascotSegment(cta_start, cta_start + cta_duration, action))
+        segs.append(MascotSegment(cta_start, cta_start + cta_duration, action,
+                                  "", _CENTER, _CENTER))
     return segs
 
 
