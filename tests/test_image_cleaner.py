@@ -33,6 +33,28 @@ def test_no_border_left_untouched(tmp_path: Path) -> None:
     assert result.shape[:2] == (200, 200)
 
 
+def test_paints_l_shaped_corner(tmp_path: Path) -> None:
+    # contenido ruidoso en toda la imagen EXCEPTO una esquina superior derecha
+    # blanca — el resto de esa fila/columna sí tiene contenido, así que el
+    # recorte rectangular estándar (row_frac/col_frac de línea completa) no
+    # debe activarse; el recorte fino por esquina sí debe neutralizarla.
+    img = np.random.randint(0, 200, (200, 200, 3), np.uint8)
+    img[:50, 150:] = 255
+    src = tmp_path / "lcorner.png"
+    cv2.imwrite(str(src), img)
+
+    out = clean_image(src, tmp_path / "clean.png")
+    result = cv2.imread(str(out))
+    assert result.shape[:2] == (200, 200)  # no se recorta, se rellena in situ
+    # la esquina ya no es un bloque blanco uniforme (se rellenó por inpainting
+    # extrapolando el contenido vecino en vez de dejarla intacta)
+    corner = result[:50, 150:]
+    assert not (corner == 255).all()
+    # el resto de la imagen, lejos de la esquina, no fue tocado
+    untouched = img[100:150, 0:50]
+    assert (result[100:150, 0:50] == untouched).all()
+
+
 def test_huge_crop_rejected(tmp_path: Path) -> None:
     # casi toda uniforme con un puntito: no debe recortar al punto
     img = np.full((200, 200, 3), 128, np.uint8)

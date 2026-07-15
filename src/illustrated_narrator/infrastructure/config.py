@@ -35,7 +35,11 @@ class Settings:
     enable_audio_bed: bool
     cta_text: str | None
     cta_duration: float
+    brand_name: str | None
+    brand_accent_color: str
+    brand_intro_duration: float
     enable_media_research: bool
+    enable_video_broll: bool
     pexels_api_key: str | None
     freesound_api_key: str | None
     media_candidates_per_shot: int
@@ -81,7 +85,12 @@ def load_settings() -> Settings:
         enable_audio_bed=os.getenv("NARR_AUDIO_BED", "1").strip() not in ("0", "false", "no"),
         cta_text=os.getenv("NARR_CTA_TEXT", "SÍGUEME PARA MÁS HISTORIAS").strip() or None,
         cta_duration=float(os.getenv("NARR_CTA_DURATION", "3.0")),
+        brand_name=os.getenv("NARR_BRAND_NAME", "").strip() or None,
+        brand_accent_color=os.getenv("NARR_BRAND_ACCENT_COLOR", "#FFE800").strip() or "#FFE800",
+        brand_intro_duration=float(os.getenv("NARR_BRAND_INTRO_DURATION", "2.0")),
         enable_media_research=os.getenv("NARR_ENABLE_MEDIA_RESEARCH", "1").strip()
+        not in ("0", "false", "no"),
+        enable_video_broll=os.getenv("NARR_MEDIA_ENABLE_VIDEO", "1").strip()
         not in ("0", "false", "no"),
         pexels_api_key=os.getenv("NARR_PEXELS_API_KEY", "").strip() or None,
         freesound_api_key=os.getenv("NARR_FREESOUND_API_KEY", "").strip() or None,

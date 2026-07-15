@@ -13,7 +13,9 @@ máquina sin perder contexto.
 - **Tarjeta de cierre (CTA)** configurable.
 - **Movimiento por contenido** (`motion_profile.py`): perfiles calm/normal/
   energetic/impact; se infiere del contenido o se fija con `visual.motion`.
-  Punch-in por toma.
+  Punch-in por toma. **Escalada de ritmo**: hacia el 75% del video el límite
+  de segundos por toma baja gradualmente (más cortes) y desde el 85% hay un
+  piso de energía de movimiento — el clímax no se siente plano.
 - **Parallax 2.5D** (`parallax.py` + Depth-Anything V2 ONNX en CPU): el frente
   se mueve más que el fondo. **Selectivo**: si la profundidad es plana cae a
   Ken Burns.
@@ -22,36 +24,31 @@ máquina sin perder contexto.
 - **Audio**: cama de música + SFX por plano + whoosh, con ducking; **loudnorm
   a -14 LUFS**; **voz procesada** (EQ + compresión + de-ess); **música real**
   desde `assets/music.<ext>` (acepta mp3/wav/m4a/ogg/mp4/mkv…).
-- **Calidad de imagen**: recorte de marcos/bordes (`image_cleaner.py`).
+- **Calidad de imagen**: recorte de marcos/bordes (`image_cleaner.py`), incluida
+  la esquina en L aislada (se rellena por inpainting, no se recorta).
 - **Consistencia de estilo** (`NARR_STYLE_MODE`: auto/ilustracion/realista/
   unificado).
-- **Medios reales** (Pexels + Wikimedia) antes de generar con IA.
+- **Medios reales**: fotos (Pexels + Wikimedia) **y video real** (Pexels Video)
+  antes de generar con IA — la investigación automática elige el candidato de
+  mejor relevancia sea foto o video, sin tocar `guion.json`.
+- **Checkpoint SD**: DreamShaper 8 descargado y activo (`NARR_SD_CHECKPOINT`).
+  Mirror sin login que sí funcionó: `https://huggingface.co/digiplay/DreamShaper_8/resolve/main/dreamshaper_8.safetensors`.
+- **Identidad de marca** (solo texto/paleta por ahora): tarjeta de intro
+  configurable (`NARR_BRAND_NAME`), color de acento centralizado
+  (`NARR_BRAND_ACCENT_COLOR`, aplica al karaoke) — el mecanismo ya soporta
+  agregar un logo PNG más adelante sin rehacer nada.
 - Pipeline **resumible** (transcript.json, planos_alineados.json). El demo en
   `projects/demo` conserva imágenes → se re-renderiza **sin GPU** (~90s CPU).
 
-## Pendiente (lista crítica, por impacto)
+## Pendiente
 
-1. **Checkpoint SD mejor** — el mayor salto de calidad de imagen que falta.
-   El base SD 1.5 obedece mal los prompts. El soporte ya existe
-   (`NARR_SD_CHECKPOINT`, vía `override_settings`); falta el modelo:
-   - Descargar un checkpoint afinado (p. ej. **DreamShaper 8**, **Realistic
-     Vision**) de civitai.com (la descarga directa de HuggingFace daba 403).
-   - Ponerlo en `tools/stable-diffusion-webui/models/Stable-diffusion/`.
-   - Poner su nombre en `NARR_SD_CHECKPOINT`.
-
-2. **B-roll de video real** (Pexels Video API) — alternar imágenes fijas
-   animadas con clips de video reales en algunos planos. El salto que más
-   acerca a "profesional". Ya hay puertos de stock media que se pueden extender
-   a video.
-
-3. **Escalada de ritmo** — acelerar los cortes hacia el clímax en vez de un
-   ritmo parejo de principio a fin.
-
-4. **Identidad de marca** — intro/outro reconocible, logo, paleta.
-
-5. Menor: en imágenes que son escaneo de libro con texto impreso queda una
-   esquina blanca (el recorte rectangular no quita regiones en L). Solución
-   real = mejor fuente de imagen (punto 1).
+- **Logo de marca real**: cuando haya un PNG, engancharlo vía `NARR_BRAND_LOGO_PATH`
+  (el parámetro `logo_path` ya existe en `render_intro_card`, falta solo la
+  variable de entorno + wiring en `container.py`).
+- Menor: revisar los umbrales de detección de esquina en L
+  (`_CORNER_CONTENT_FRAC`/`_CORNER_MIN_FRAC`/`_CORNER_MAX_FRAC` en
+  `image_cleaner.py`) contra una imagen real de escaneo — se calibraron con
+  casos sintéticos.
 
 ## Setup en otra PC
 

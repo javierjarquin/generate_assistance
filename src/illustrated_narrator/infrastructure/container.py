@@ -6,6 +6,7 @@ from illustrated_narrator.adapters.audio.audio_bed import AudioBedBuilder
 from illustrated_narrator.adapters.images.automatic1111_adapter import Automatic1111ImageAdapter
 from illustrated_narrator.adapters.media.freesound_adapter import FreesoundAdapter
 from illustrated_narrator.adapters.media.pexels_adapter import PexelsImageAdapter
+from illustrated_narrator.adapters.media.pexels_video_adapter import PexelsVideoAdapter
 from illustrated_narrator.adapters.media.wikimedia_adapter import WikimediaCommonsAdapter
 from illustrated_narrator.adapters.transcription.faster_whisper_adapter import FasterWhisperTranscriber
 from illustrated_narrator.adapters.video.ffmpeg_assembler import FFmpegAssembler
@@ -89,6 +90,12 @@ class Container:
         return PexelsImageAdapter(self.settings.pexels_api_key)
 
     @cached_property
+    def _pexels_video_adapter(self) -> PexelsVideoAdapter | None:
+        if not self.settings.enable_video_broll:
+            return None
+        return PexelsVideoAdapter(self.settings.pexels_api_key, vertical=self.settings.vertical)
+
+    @cached_property
     def _wikimedia_adapter(self) -> WikimediaCommonsAdapter:
         return WikimediaCommonsAdapter()
 
@@ -98,15 +105,17 @@ class Container:
 
     @cached_property
     def stock_image_sources_default(self) -> list[StockImagePort]:
-        """Orden por defecto: stock general primero, archivo como respaldo."""
-        candidates = [self._pexels_adapter, self._wikimedia_adapter]
-        return [c for c in candidates if c.is_available()]
+        """Orden por defecto: stock general (fotos + B-roll de video) primero,
+        archivo como respaldo. El video compite por relevancia igual que las
+        fotos — no hay prioridad fija entre ambos."""
+        candidates = [self._pexels_adapter, self._pexels_video_adapter, self._wikimedia_adapter]
+        return [c for c in candidates if c is not None and c.is_available()]
 
     @cached_property
     def stock_image_sources_historico(self) -> list[StockImagePort]:
         """Planos archivo_historico: archivo público primero, stock de respaldo."""
-        candidates = [self._wikimedia_adapter, self._pexels_adapter]
-        return [c for c in candidates if c.is_available()]
+        candidates = [self._wikimedia_adapter, self._pexels_adapter, self._pexels_video_adapter]
+        return [c for c in candidates if c is not None and c.is_available()]
 
     @cached_property
     def stock_audio_source(self) -> StockAudioPort | None:
@@ -151,6 +160,8 @@ class Container:
 
     @cached_property
     def generate_narration_video(self) -> GenerateNarrationVideo:
+        from illustrated_narrator.domain.services.brand_palette import hex_to_ass_color
+
         return GenerateNarrationVideo(
             self.transcriber,
             self.generate_plano_images,
@@ -162,4 +173,7 @@ class Container:
             cta_duration=self.settings.cta_duration,
             research_plano_media=self.research_plano_media,
             research_audio_assets=self.research_audio_assets,
+            brand_name=self.settings.brand_name,
+            brand_intro_duration=self.settings.brand_intro_duration,
+            accent_color_ass=hex_to_ass_color(self.settings.brand_accent_color),
         )

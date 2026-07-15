@@ -9,6 +9,7 @@ import logging
 import subprocess
 from pathlib import Path
 
+from illustrated_narrator.domain.services.shot_assets import ShotAsset
 from illustrated_narrator.ports.video_assembler import VideoAssemblerPort
 
 logger = logging.getLogger(__name__)
@@ -107,6 +108,17 @@ def chained_duration(durations: list[float], xfade_duration: float) -> float:
     return sum(durations) - sum(_xfd_sequence(durations, xfade_duration))
 
 
+def _shake_amplitude_expr(shake_px: float, decay_seconds: float | None) -> str:
+    """Expresión ffmpeg de la amplitud de sacudida en el instante `t` del clip.
+
+    Con `decay_seconds`, la sacudida arranca en `shake_px` y decae
+    exponencialmente (golpe que se asienta) en vez de vibrar sin parar
+    durante todo el plano, aunque este dure muchos segundos."""
+    if decay_seconds:
+        return f"{shake_px}*exp(-t/{decay_seconds})"
+    return f"{shake_px}"
+
+
 def _overlay_chain(kind: str, w: int, h: int, fps: int) -> tuple[str, str] | None:
     """(fuente lavfi, cadena de mezcla) para el overlay animado, o None."""
     if kind in ("niebla", "fog", "humo"):
@@ -201,35 +213,35 @@ class FFmpegAssembler(VideoAssemblerPort):
 
     def render_plano_clip(
         self,
-        image_paths: list[Path],
+        shots: list[ShotAsset],
         duration_seconds: float,
         pan_direction: str,
         dest: Path,
         overlay: str | None = None,
         motion=None,
     ) -> Path:
-        """Clip de un plano. Con varias imágenes, se reparten la duración con
+        """Clip de un plano. Con varias tomas, se reparten la duración con
         cortes secos (una imagen fija > ~4s se siente estática y pierde al
         espectador; cambiar de toma sostiene la atención). `motion` es un
         MotionProfile (o su nombre) que fija la energía del Ken Burns."""
         dest.parent.mkdir(parents=True, exist_ok=True)
-        images = [p for p in image_paths if p and Path(p).exists()]
-        if not images:
-            raise ValueError("render_plano_clip necesita al menos una imagen")
+        valid = [s for s in shots if s and Path(s.path).exists()]
+        if not valid:
+            raise ValueError("render_plano_clip necesita al menos una toma")
 
-        if len(images) == 1:
-            return self._render_shot(
-                images[0], duration_seconds, pan_direction, dest, overlay, motion
+        if len(valid) == 1:
+            return self._render_asset(
+                valid[0], duration_seconds, pan_direction, dest, overlay, motion
             )
 
         # Reparte la duración en tomas ~iguales, alterna el sentido del Ken Burns
-        n = len(images)
+        n = len(valid)
         each = duration_seconds / n
         shot_pans = _shot_pan_cycle(pan_direction, n)
         temp_clips: list[Path] = []
-        for i, img in enumerate(images):
+        for i, asset in enumerate(valid):
             temp = dest.with_name(f"{dest.stem}__shot{i}.mp4")
-            self._render_shot(img, each, shot_pans[i], temp, overlay, motion)
+            self._render_asset(asset, each, shot_pans[i], temp, overlay, motion)
             temp_clips.append(temp)
         try:
             self._concat(temp_clips, dest)
@@ -237,6 +249,59 @@ class FFmpegAssembler(VideoAssemblerPort):
             for t in temp_clips:
                 t.unlink(missing_ok=True)
         return dest
+
+    def _render_asset(
+        self,
+        asset: ShotAsset,
+        duration_seconds: float,
+        pan_direction: str,
+        dest: Path,
+        overlay: str | None,
+        motion,
+    ) -> Path:
+        if asset.media_type == "video":
+            return self._render_video_shot(asset.path, duration_seconds, dest, overlay, motion)
+        return self._render_shot(asset.path, duration_seconds, pan_direction, dest, overlay, motion)
+
+    def _apply_finishing(
+        self,
+        parts: list[str],
+        inputs: list[str],
+        current: str,
+        overlay: str | None,
+        profile,
+        duration_seconds: float,
+        w: int,
+        h: int,
+    ) -> str:
+        """Overlay animado (fuego/niebla/polvo/lluvia/burbujas) y sacudida del
+        perfil de movimiento — compartido entre imagen y video real."""
+        if overlay in ("fuego", "fire", "llamas"):
+            parts.append(
+                f"{current}eq=brightness='0.02*sin(9*t)+0.014*sin(23*t)':"
+                "saturation=1.06[flick]"
+            )
+            current = "[flick]"
+        else:
+            chain = _overlay_chain(overlay or "", w, h, self._fps) if overlay else None
+            if chain:
+                src, blend = chain
+                inputs += ["-f", "lavfi", "-t", f"{duration_seconds:.3f}", "-i", src]
+                parts.append("[1:v]format=yuv420p[ov]")
+                parts.append(f"{current}[ov]{blend}[mixed]")
+                current = "[mixed]"
+
+        if profile.shake_px > 0:
+            s = profile.shake_px
+            m = s + 2  # margen de recorte para que la sacudida no muestre bordes
+            amp = _shake_amplitude_expr(s, getattr(profile, "shake_decay_seconds", None))
+            parts.append(
+                f"{current}crop=w=iw-{2 * m}:h=ih-{2 * m}:"
+                f"x='{m}+({amp})*sin(52*t)':y='{m}+({amp})*cos(41*t)',"
+                f"scale={w}:{h}[shaken]"
+            )
+            current = "[shaken]"
+        return current
 
     def _render_shot(
         self,
@@ -296,31 +361,9 @@ class FFmpegAssembler(VideoAssemblerPort):
             current = "[kb]"
             inputs = ["-loop", "1", "-i", str(image_path)]
 
-        if overlay in ("fuego", "fire", "llamas"):
-            # Parpadeo cálido: la propia imagen pulsa como iluminada por llamas
-            parts.append(
-                f"{current}eq=brightness='0.02*sin(9*t)+0.014*sin(23*t)':"
-                "saturation=1.06[flick]"
-            )
-            current = "[flick]"
-        else:
-            chain = _overlay_chain(overlay or "", w, h, self._fps) if overlay else None
-            if chain:
-                src, blend = chain
-                inputs += ["-f", "lavfi", "-t", f"{duration_seconds:.3f}", "-i", src]
-                parts.append(f"[1:v]format=yuv420p[ov]")
-                parts.append(f"{current}[ov]{blend}[mixed]")
-                current = "[mixed]"
-
-        if profile.shake_px > 0:
-            s = profile.shake_px
-            m = s + 2  # margen de recorte para que la sacudida no muestre bordes
-            parts.append(
-                f"{current}crop=w=iw-{2 * m}:h=ih-{2 * m}:"
-                f"x='{m}+{s}*sin(52*t)':y='{m}+{s}*cos(41*t)',"
-                f"scale={w}:{h}[shaken]"
-            )
-            current = "[shaken]"
+        current = self._apply_finishing(
+            parts, inputs, current, overlay, profile, duration_seconds, w, h
+        )
 
         parts.append(f"{current}format=yuv420p[vout]")
         try:
@@ -338,6 +381,49 @@ class FFmpegAssembler(VideoAssemblerPort):
         finally:
             if parallax_base is not None and parallax_base.exists():
                 parallax_base.unlink(missing_ok=True)
+        return dest
+
+    def _render_video_shot(
+        self,
+        video_path: Path,
+        duration_seconds: float,
+        dest: Path,
+        overlay: str | None,
+        motion,
+    ) -> Path:
+        """B-roll de video real: se recorta/escala al canvas y se repite en
+        loop si el clip fuente es más corto que la toma. Sin parallax ni
+        zoompan -- el video ya trae su propio movimiento; el perfil de motion
+        solo aporta overlay/sacudida, igual que a una imagen."""
+        from illustrated_narrator.domain.services.motion_profile import profile_by_name
+
+        profile = motion if hasattr(motion, "zoom_per_frame") else profile_by_name(str(motion))
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        w, h = self._canvas_w, self._canvas_h
+
+        inputs = ["-stream_loop", "-1", "-i", str(video_path)]
+        parts = [
+            f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,"
+            f"crop={w}:{h},fps={self._fps},setsar=1[base]"
+        ]
+        current = "[base]"
+
+        current = self._apply_finishing(
+            parts, inputs, current, overlay, profile, duration_seconds, w, h
+        )
+
+        parts.append(f"{current}format=yuv420p[vout]")
+        self._run(
+            [
+                *inputs,
+                "-t", f"{duration_seconds:.3f}",
+                "-filter_complex", ";".join(parts),
+                "-map", "[vout]",
+                "-t", f"{duration_seconds:.3f}",
+                *self._encode_args(),
+                str(dest),
+            ]
+        )
         return dest
 
     def _try_parallax(self, image_path: Path, duration_seconds: float, profile, dest: Path):
@@ -400,6 +486,47 @@ class FFmpegAssembler(VideoAssemblerPort):
         )
         return dest
 
+    def render_intro_card(
+        self,
+        brand_name: str,
+        duration_seconds: float,
+        dest: Path,
+        logo_path: Path | None = None,
+    ) -> Path:
+        """Tarjeta de apertura: mismo look que el CTA de cierre (fondo oscuro
+        + fade-in); el nombre de marca lo pinta write_ass aparte, igual que
+        el CTA. `logo_path` overlay centrado si se pasa uno (hoy nunca)."""
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        w, h = self._canvas_w, self._canvas_h
+        if logo_path is not None and Path(logo_path).exists():
+            logo_h = round(h * 0.3)
+            self._run(
+                [
+                    "-f", "lavfi",
+                    "-i", f"color=c=0x0d0d12:s={w}x{h}:d={duration_seconds:.3f}:r={self._fps}",
+                    "-i", str(logo_path),
+                    "-filter_complex",
+                    f"[1:v]scale=-1:{logo_h}[logo];"
+                    "[0:v][logo]overlay=(W-w)/2:(H-h)/2,format=yuv420p,fade=t=in:d=0.3[vout]",
+                    "-map", "[vout]",
+                    "-t", f"{duration_seconds:.3f}",
+                    *self._encode_args(),
+                    str(dest),
+                ]
+            )
+        else:
+            self._run(
+                [
+                    "-f", "lavfi",
+                    "-i", f"color=c=0x0d0d12:s={w}x{h}:d={duration_seconds:.3f}:r={self._fps}",
+                    "-vf", "format=yuv420p,fade=t=in:d=0.3",
+                    "-t", f"{duration_seconds:.3f}",
+                    *self._encode_args(),
+                    str(dest),
+                ]
+            )
+        return dest
+
     # --------------------------------------------------------- ensamble
 
     def assemble(
@@ -410,6 +537,7 @@ class FFmpegAssembler(VideoAssemblerPort):
         dest: Path,
         xfade_duration: float = 0.5,
         bed_path: Path | None = None,
+        audio_delay_seconds: float = 0.0,
     ) -> Path:
         if not clip_paths:
             raise ValueError("assemble() necesita al menos un clip")
@@ -466,14 +594,24 @@ class FFmpegAssembler(VideoAssemblerPort):
         # Procesado de voz (EQ + compresión + de-ess) para que suene profesional
         voice_pre = f"{_VOICE_CHAIN}," if self._process_voice else ""
 
+        # Con tarjeta de intro, la narración arranca `audio_delay_seconds`
+        # más tarde en el timeline de video; la cama de música/SFX NO se
+        # retrasa (suena limpia desde t=0 bajo la intro) — solo se desplazan
+        # sus momentos de transición, ya en manos del llamador.
+        delay_pre = (
+            f"adelay={round(audio_delay_seconds * 1000)}:all=1,"
+            if audio_delay_seconds > 0
+            else ""
+        )
+
         # loudnorm a -14 LUFS: estándar de YouTube/Shorts. Sin esto el audio
         # sale muy bajo (nuestra narración salía a -34 LUFS medios) y el video
         # se siente flojo frente al resto del feed -> el usuario hace scroll.
         if bed_path is not None and bed_path.exists():
             bed_index = narr_index + 1
             args += ["-i", str(bed_path)]
-            # 1. Voz procesada + apad; a una etiqueta temporal
-            filter_lines.append(f"[{narr_index}:a]{voice_pre}apad[narrpad_raw]")
+            # 1. Retraso (si hay intro) + voz procesada + apad; a una etiqueta temporal
+            filter_lines.append(f"[{narr_index}:a]{delay_pre}{voice_pre}apad[narrpad_raw]")
             # 2. Duplicamos el flujo en dos copias independientes
             filter_lines.append("[narrpad_raw]asplit[narrpad1][narrpad2]")
             # 3. Usamos la primera copia para el sidechain compress
@@ -489,7 +627,7 @@ class FFmpegAssembler(VideoAssemblerPort):
             audio_map = "[aout]"
         else:
             filter_lines.append(
-                f"[{narr_index}:a]{voice_pre}apad,loudnorm=I=-14:TP=-1.5:LRA=11[aout]"
+                f"[{narr_index}:a]{delay_pre}{voice_pre}apad,loudnorm=I=-14:TP=-1.5:LRA=11[aout]"
             )
             audio_map = "[aout]"
 

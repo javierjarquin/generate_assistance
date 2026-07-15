@@ -115,6 +115,39 @@ def test_gancho_overrides_titulo(tmp_path: Path) -> None:
     assert "EL FARO" not in content  # el gancho reemplaza al título
 
 
+def test_custom_accent_color_reflected_in_caption_style(tmp_path: Path) -> None:
+    dest = tmp_path / "caps.ass"
+    write_ass([_plano("p1", 0.9, 2.7)], dest, transcript=_transcript(), accent_color_ass="&H00FF00FF")
+    content = dest.read_text(encoding="utf-8")
+    caption_line = next(l for l in content.splitlines() if l.startswith("Style: Caption"))
+    assert "&H00FF00FF" in caption_line
+    assert "&H0000E8FF" not in caption_line
+
+
+def test_default_accent_color_unchanged(tmp_path: Path) -> None:
+    dest = tmp_path / "caps.ass"
+    write_ass([_plano("p1", 0.9, 2.7)], dest, transcript=_transcript())
+    content = dest.read_text(encoding="utf-8")
+    caption_line = next(l for l in content.splitlines() if l.startswith("Style: Caption"))
+    assert "&H0000E8FF" in caption_line
+
+
+def test_time_offset_shifts_all_timestamps(tmp_path: Path) -> None:
+    dest = tmp_path / "caps.ass"
+    write_ass(
+        [_plano("p1", 1.0, 3.0, texto="100 METROS")], dest,
+        transcript=_transcript(), meta=GuionMeta(titulo="Prueba"),
+        time_offset_seconds=2.0,
+    )
+    content = dest.read_text(encoding="utf-8")
+    # gancho/título arranca en 0.15+2.0=2.15 en vez de 0.15
+    assert "Dialogue: 1,0:00:02.15,0:00:04.60,Titulo" in content
+    # rótulo (texto_en_pantalla) usa inicio_real_seg + offset: 1.0+2.0=3.0
+    assert "Dialogue: 0,0:00:03.00,0:00:05.00,Rotulo" in content
+    # karaoke: primera palabra "hola" empieza en 1.0+2.0=3.0
+    assert "Dialogue: 0,0:00:03.00" in content
+
+
 def test_chunk_does_not_end_on_function_word(tmp_path: Path) -> None:
     # "pero lo que ningún" -> el chunk no debe terminar en "pero" ni "lo"
     words = [

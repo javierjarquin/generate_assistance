@@ -17,6 +17,7 @@ def _candidate_to_dict(candidate: MediaCandidate) -> dict:
         "source_url": candidate.source_url,
         "license": candidate.license,
         "author": candidate.author,
+        "media_type": candidate.media_type,
     }
 
 

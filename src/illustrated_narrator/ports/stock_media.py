@@ -9,10 +9,11 @@ class MediaCandidate:
 
     path: Path
     title: str
-    source: str  # "pexels" | "wikimedia"
+    source: str  # "pexels" | "pexels_video" | "wikimedia"
     source_url: str
     license: str
     author: str | None = None
+    media_type: str = "image"  # "image" | "video"
 
 
 class StockImagePort(ABC):
