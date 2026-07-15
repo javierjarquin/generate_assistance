@@ -499,7 +499,10 @@ class FFmpegAssembler(VideoAssemblerPort):
         dest.parent.mkdir(parents=True, exist_ok=True)
         w, h = self._canvas_w, self._canvas_h
         if logo_path is not None and Path(logo_path).exists():
-            logo_h = round(h * 0.3)
+            logo_h = round(h * 0.28)
+            # Logo por encima del centro para dejar sitio al nombre (que write_ass
+            # pinta en la banda inferior durante la intro).
+            y_off = round(h * 0.12)
             self._run(
                 [
                     "-f", "lavfi",
@@ -507,7 +510,8 @@ class FFmpegAssembler(VideoAssemblerPort):
                     "-i", str(logo_path),
                     "-filter_complex",
                     f"[1:v]scale=-1:{logo_h}[logo];"
-                    "[0:v][logo]overlay=(W-w)/2:(H-h)/2,format=yuv420p,fade=t=in:d=0.3[vout]",
+                    f"[0:v][logo]overlay=(W-w)/2:(H-h)/2-{y_off},"
+                    "format=yuv420p,fade=t=in:d=0.3[vout]",
                     "-map", "[vout]",
                     "-t", f"{duration_seconds:.3f}",
                     *self._encode_args(),

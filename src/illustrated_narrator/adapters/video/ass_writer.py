@@ -67,6 +67,7 @@ Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour,
 Style: Caption,{font},{cap_size},{accent},&H00FFFFFF,&H00202020,&H00000000,-1,0,0,0,100,100,0,0,1,{cap_outline},{cap_shadow},2,80,80,{cap_margin},1
 Style: Rotulo,{font},{rot_size},&H00FFFFFF,&H00FFFFFF,&H00202020,&H00000000,-1,0,0,0,100,100,0,0,1,3,1,8,60,60,70,1
 Style: Titulo,{font},{title_size},&H00FFFFFF,&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,0,0,1,{title_outline},4,5,80,80,{title_margin},1
+Style: Marca,{font},{marca_size},{accent},&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,2,0,1,{title_outline},3,2,80,80,{marca_margin},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -136,6 +137,8 @@ def write_ass(
     cta_duration: float = 3.0,
     accent_color_ass: str | None = None,
     time_offset_seconds: float = 0.0,
+    brand_name: str | None = None,
+    brand_duration: float = 2.0,
 ) -> Path:
     w, h = play_res
     vertical = h > w
@@ -153,8 +156,20 @@ def write_ass(
             title_size=int(h * 0.095) if not vertical else int(h * 0.055),
             title_outline=max(4, int(h * 0.005)),
             title_margin=int(h * 0.40),
+            marca_size=int(h * 0.070) if not vertical else int(h * 0.045),
+            marca_margin=int(h * 0.22),
         )
     ]
+
+    # Nombre de marca en la tarjeta de intro (durante brand_duration): en la
+    # banda inferior, debajo del logo, con pop de entrada.
+    if brand_name:
+        end = _format_ts(max(brand_duration - 0.1, 0.3))
+        nombre = brand_name.upper().replace("\n", " ")
+        lines.append(
+            f"Dialogue: 1,0:00:00.20,{end},Marca,,0,0,0,,"
+            f"{{\\fad(250,250)\\fscx70\\fscy70\\t(0,260,\\fscx100\\fscy100)}}{nombre}\n"
+        )
 
     # Gancho: la frase de tensión (meta.gancho) si existe; si no, el título.
     # Los primeros 2.6s con POP de entrada (sin caja).

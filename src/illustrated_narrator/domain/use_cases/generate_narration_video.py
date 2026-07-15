@@ -249,6 +249,8 @@ class GenerateNarrationVideo:
             cta_duration=self._cta_duration,
             accent_color_ass=self._accent_color_ass,
             time_offset_seconds=intro_offset,
+            brand_name=self._brand_name,
+            brand_duration=self._brand_intro_duration,
         )
 
         if self._research_audio_assets is not None:
