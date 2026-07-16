@@ -1,0 +1,6 @@
+# Los .bat de Windows necesitan CRLF real: cmd.exe puede parsear mal un
+# bloque if/else con parentesis multilinea si el archivo tiene solo LF
+# (bug real encontrado en tools/run_a1111.bat -- "webui-user.bat no se
+# reconoce" con el cd dentro del if sin efecto). Sin esto, core.autocrlf=input
+# reconvierte CRLF a LF en cada commit y reintroduce el bug.
+*.bat text eol=crlf
