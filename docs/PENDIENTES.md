@@ -33,22 +33,64 @@ máquina sin perder contexto.
   mejor relevancia sea foto o video, sin tocar `guion.json`.
 - **Checkpoint SD**: DreamShaper 8 descargado y activo (`NARR_SD_CHECKPOINT`).
   Mirror sin login que sí funcionó: `https://huggingface.co/digiplay/DreamShaper_8/resolve/main/dreamshaper_8.safetensors`.
-- **Identidad de marca** (solo texto/paleta por ahora): tarjeta de intro
-  configurable (`NARR_BRAND_NAME`), color de acento centralizado
-  (`NARR_BRAND_ACCENT_COLOR`, aplica al karaoke) — el mecanismo ya soporta
-  agregar un logo PNG más adelante sin rehacer nada.
+- **Identidad de marca**: tarjeta de intro configurable (`NARR_BRAND_NAME`),
+  color de acento centralizado (`NARR_BRAND_ACCENT_COLOR`, aplica al karaoke),
+  y logo real vía `NARR_BRAND_LOGO_PATH` (`assets/logo_dino_white.png`).
+- **Modo mascota** (`NARR_NARRACION=mascota`): personaje animado con lip-sync
+  que presenta el video (`mascot_director.py` + `mascot_compositor.py`), 12
+  expresiones inferidas del contenido, caminata que cruza la pantalla.
+- **Sprites de la mascota Balam** (`projects/Capitulo1/mascota/*/00.png`,
+  1024x1024, fondo transparente) generados con AUTOMATIC1111 + DreamShaper 8
+  vía `tools/generate_mascot_sprites.py` (nuevo). Aprendizajes de esa corrida,
+  por si se regeneran o se hace para otro capítulo:
+  - **Denoise para img2img de consistencia**: 0.5 (lo que sugería originalmente
+    cada `PROMPT.txt`) deja el resultado CASI IDÉNTICO a la referencia — ninguna
+    pose distinta se nota (ni "caminando" ni "saltando"). Hace falta **0.85**
+    para que la pose realmente cambie conservando el personaje. Aun así, las
+    poses de acción (correr, saltar) salen como variaciones de expresión/postura
+    (mejillas, brazos), no la acción literal — para eso haría falta ControlNet
+    (pose/openpose), no instalado aquí.
+  - **Quitado de fondo**: un flood-fill por color (como `image_cleaner.py`)
+    es demasiado frágil cuando el fondo tiene bajo contraste con partes claras
+    del personaje (pelaje crema) — en una corrida se comió el personaje
+    entero. **GrabCut** (`cv2.grabCut` con un rectángulo centrado como prior)
+    es mucho más robusto para "sujeto centrado sobre fondo liso".
+  - DreamShaper mete ocasionalmente un logo/marca de agua garabateado o
+    duplica el personaje; hace falta reforzar el negative/positive de cada
+    `PROMPT.txt` con términos anti-watermark y "solo/single character"
+    (ver `_EXTRA_POSITIVE`/`_EXTRA_NEGATIVE` en el script).
+  - AUTOMATIC1111 (`tools/run_a1111.bat`) se caía solo un par de veces durante
+    una corrida larga (~2h de generación); lanzarlo con `Start-Process`
+    verdaderamente desacoplado (no como hijo de una terminal) ayuda a que
+    sobreviva más.
+- **Fix**: `tools/run_a1111.bat` fallaba con "webui-user.bat no se reconoce"
+  porque el archivo tenía saltos de línea LF y `core.autocrlf=input` los
+  reconvertía en cada commit — cmd.exe parsea mal un bloque `if/else` con
+  paréntesis multilínea sin CRLF real (el `cd` dentro del `if` no surtía
+  efecto para el `call` siguiente). Arreglado con `.gitattributes`
+  (`*.bat text eol=crlf`), permanente para cualquier checkout futuro.
 - Pipeline **resumible** (transcript.json, planos_alineados.json). El demo en
   `projects/demo` conserva imágenes → se re-renderiza **sin GPU** (~90s CPU).
 
 ## Pendiente
 
-- **Logo de marca real**: cuando haya un PNG, engancharlo vía `NARR_BRAND_LOGO_PATH`
-  (el parámetro `logo_path` ya existe en `render_intro_card`, falta solo la
-  variable de entorno + wiring en `container.py`).
+- **Bloqueante para generar el video de Capítulo1 con mascota**:
+  `projects/Capitulo1/narracion.wav` es del 13 de julio, **anterior** al
+  guion reescrito del 15 de julio (PR "Capitulo1: guion reescrito para
+  retención"). El texto grabado no coincide con el guion actual — hay que
+  **volver a grabar la narración** completa leyendo el guion nuevo antes de
+  correr `poetry run narrator generate Capitulo1` (la alineación forzada
+  fallaría/desincronizaría con el audio viejo). `transcript.json` y
+  `planos_alineados.json` también quedaron desactualizados y deberían
+  borrarse (o dejar que el pipeline los regenere) una vez haya audio nuevo.
 - Menor: revisar los umbrales de detección de esquina en L
   (`_CORNER_CONTENT_FRAC`/`_CORNER_MIN_FRAC`/`_CORNER_MAX_FRAC` en
   `image_cleaner.py`) contra una imagen real de escaneo — se calibraron con
   casos sintéticos.
+- Menor: revisar visualmente los 15 sprites de Balam antes de un render final
+  — algunas expresiones (wave, point, think) muestran cambios sutiles de
+  postura más que el gesto literal del prompt; puede valer la pena regenerar
+  puntualmente alguna con una seed distinta si no convence.
 
 ## Setup en otra PC
 
