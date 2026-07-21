@@ -159,23 +159,18 @@ class Container:
         )
 
     @cached_property
-    def mascot_config(self) -> dict | None:
-        """Config de mascota si el modo es 'mascota' y hay carpeta válida."""
-        s = self.settings
-        if s.narration_mode != "mascota" or s.mascot_path is None:
-            return None
-        if not s.mascot_path.exists():
-            import logging
+    def mascot_config(self) -> dict:
+        """Runtime de la mascota + defaults del entorno (NARR_MASCOTA_*).
 
-            logging.getLogger(__name__).error(
-                "NARR_MASCOTA_PATH no existe: %s — se usa solo voz", s.mascot_path
-            )
-            return None
+        La decisión final (activarla o no, y con qué ruta/posición) la toma el
+        caso de uso: el guion (meta.mascota) manda sobre estos defaults."""
+        s = self.settings
         from illustrated_narrator.adapters.video.ffmpeg_assembler import FFmpegAssembler
 
         asm = self.video_assembler
         encode = asm._encode_args() if isinstance(asm, FFmpegAssembler) else []
         return {
+            "enabled": s.narration_mode == "mascota",
             "path": s.mascot_path,
             "ffmpeg": self.ffmpeg_path,
             "encode_args": encode,

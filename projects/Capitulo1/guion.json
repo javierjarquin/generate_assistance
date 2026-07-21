@@ -1,158 +1,908 @@
 {
-    "meta": {
-        "serie": "Historia de Yucatan",
-        "capitulo": 1,
-        "titulo": "El meteorito que creó Yucatán",
-        "idioma": "es-MX",
-        "subtitulo": "El peor día de la Tierra y la tierra que nació de él",
-        "gancho": "El día que la Tierra casi muere… y nació Yucatán"
-    },
-    "planos": [
-        {
-            "id": "p01",
-            "seccion": "gancho",
-            "narracion": "Hace sesenta y seis millones de años, un solo día lo cambió todo. Amanece en un pantano tropical. Un Tyrannosaurus rex mastica tranquilo. No lo sabe, pero está viviendo su última mañana.",
-            "visual": {
-                "tipo": "imagen_ia",
-                "descripcion": "T-rex tranquilo comiendo en un pantano cretacico al amanecer, atmosfera calida.",
-                "prompt_ia": "cinematic wide shot, a Tyrannosaurus rex feeding calmly in a lush Cretaceous swamp at dawn, warm golden mist, ferns and cycads, photorealistic, natural history documentary lighting, 16:9",
-                "overlay": "niebla",
-                "shake": false
-            },
-            "audio": {
-                "sfx": "insectos, viento suave, respiracion del animal",
-                "musica": "ambiente calmado, cuerdas suaves, sensacion de calma antes de la tormenta"
-            }
-        },
-        {
-            "id": "p02",
-            "seccion": "gancho",
-            "narracion": "De repente, en el cielo aparece un punto de luz. Crece. En segundos brilla más que el sol. El dinosaurio alza la mirada… y no entiende lo que ve.",
-            "visual": {
-                "tipo": "imagen_ia",
-                "descripcion": "Cielo diurno con un punto de luz intensa creciendo; el dinosaurio empieza a alzar la vista.",
-                "prompt_ia": "low angle shot looking up at a bright point of light growing in a pale blue prehistoric sky, ominous, lens flare, silhouette of dinosaur head tilting up, photorealistic, 16:9",
-                "overlay": null,
-                "shake": false
-            },
-            "audio": {
-                "sfx": "silbido lejano agudo que crece",
-                "musica": "drone tenso que empieza a subir"
-            }
-        },
-        {
-            "id": "p03",
-            "seccion": "gancho",
-            "narracion": "Es una roca del tamaño de una montaña. Viene directa hacia la Tierra a veinte kilómetros por segundo. Y apunta justo aquí: debajo de lo que hoy es Yucatán.",
-            "visual": {
-                "tipo": "animacion_3d",
-                "descripcion": "Vista desde el espacio: asteroide gigante cayendo hacia el Golfo de Mexico; se resalta la silueta de la peninsula.",
-                "prompt_ia": "view from space of a massive asteroid streaking toward Earth aimed at the Gulf of Mexico, Yucatan peninsula outline glowing, atmospheric entry trail, dramatic, photorealistic space render, 16:9",
-                "overlay": null,
-                "shake": true
-            },
-            "audio": {
-                "sfx": "rugido grave que se acerca",
-                "musica": "impacto orquestal ascendente"
-            }
-        },
-        {
-            "id": "p04",
-            "seccion": "gancho",
-            "narracion": "En ese instante empieza el peor día en la historia del planeta. Pero aquí está lo increíble: sin ese apocalipsis, tú no existirías. Ni Yucatán, ni sus cenotes, ni su agua, ni los mayas. Nada de eso. Esta es la historia de cómo el fin del mundo creó una tierra.",
-            "visual": {
-                "tipo": "grafico_movimiento",
-                "descripcion": "Titulo de serie apareciendo sobre transicion de fuego a agua de cenote. Montaje rapido: explosion -> cenote turquesa -> piramide maya.",
-                "prompt_ia": "title card sequence, quick match-cut morph from a fireball explosion into aerial turquoise cenote water into a Maya pyramid, sepia and teal palette, cinematic transitions, 16:9",
-                "busqueda_medios": "cenote Yucatan",
-                "overlay": "fuego",
-                "shake": true
-            },
-            "audio": {
-                "sfx": "boom + transicion whoosh a agua",
-                "musica": "tema principal de la serie entra con fuerza"
-            }
-        },
-        {
-            "id": "p05",
-            "seccion": "setup",
-            "narracion": "Rebobinemos al segundo antes del impacto. Lo que se acerca mide entre diez y quince kilómetros de ancho. Imagínalo: una sola roca más alta que el monte Everest, cayendo del cielo.",
-            "visual": {
-                "tipo": "grafico_movimiento",
-                "descripcion": "Comparacion de escala: el asteroide junto a la silueta del Everest y de una ciudad.",
-                "prompt_ia": "clean infographic comparison on dark background, a 10-15 km asteroid silhouette next to Mount Everest and a city skyline for scale, earth-tone palette, motion graphic style, 16:9",
-                "overlay": null,
-                "shake": false
-            },
-            "audio": {
-                "sfx": "tick sutil de datos apareciendo",
-                "musica": "pulso tenso constante"
-            }
-        },
-        {
-            "id": "p06",
-            "seccion": "setup",
-            "narracion": "Y no baja despacio. Viaja a veinte kilómetros por segundo: decenas de veces más rápido que una bala. Tan veloz que cruza toda la atmósfera, quince kilómetros de aire, en menos de dos segundos.",
-            "visual": {
-                "tipo": "animacion_3d",
-                "descripcion": "El asteroide perfora las capas de la atmosfera dejando una estela incandescente; contador de velocidad.",
-                "prompt_ia": "asteroid punching through Earth's atmosphere layers leaving a searing plasma trail, seen from the side, layered clouds parting, photorealistic, motion blur, 16:9",
-                "overlay": null,
-                "shake": false
-            },
-            "audio": {
-                "sfx": "silbido supersonico intenso",
-                "musica": "drone que sube de tono"
-            }
-        },
-        {
-            "id": "p07",
-            "seccion": "setup",
-            "narracion": "Al golpear, libera una energía difícil de creer: el equivalente a miles de millones de bombas atómicas detonando a la vez. Una sola explosión, mayor que todo el arsenal nuclear del planeta junto, multiplicado por mil.",
-            "visual": {
-                "tipo": "grafico_movimiento",
-                "descripcion": "Visual de escala de energia: iconos de bombas multiplicandose hasta llenar la pantalla.",
-                "prompt_ia": "energy scale infographic, a single atomic bomb icon multiplying into billions filling the frame, ominous red glow on dark background, motion graphic, 16:9",
-                "overlay": "resplandor_rojo",
-                "shake": false
-            },
-            "audio": {
-                "sfx": "detonacion grave con reverberacion",
-                "musica": "golpe orquestal + silencio dramatico"
-            }
-        },
-        {
-            "id": "p08",
-            "seccion": "impacto",
-            "narracion": "El impacto abre un cráter de casi doscientos kilómetros de ancho y veinte de profundidad: uno de los más grandes del planeta. Dentro cabría medio estado de Yucatán.",
-            "visual": {
-                "tipo": "animacion_3d",
-                "descripcion": "Momento del impacto visto desde arriba; onda expansiva circular; se dibuja el circulo del crater sobre el mapa de la peninsula.",
-                "prompt_ia": "top-down view of colossal asteroid impact, expanding circular shockwave ring over ocean and coastline, crater forming, map of Yucatan overlaid with 200 km crater circle, cinematic, 16:9",
-                "busqueda_medios": "Chicxulub crater",
-                "overlay": null,
-                "shake": true
-            },
-            "audio": {
-                "sfx": "explosion cavernosa + onda de choque",
-                "musica": "impacto masivo"
-            }
-        },
-        {
-            "id": "p09",
-            "seccion": "impacto",
-            "narracion": "Pero la roca no cayó recta. Entró inclinada, a unos sesenta grados. Y ese detalle lo empeoró todo. Justo debajo había rocas llenas de azufre. El golpe las vaporizó y lanzó al cielo cientos de gigatoneladas convertidas en veneno. Y esa nube estaba a punto de apagar el sol.",
-            "visual": {
-                "tipo": "animacion_3d",
-                "descripcion": "Trayectoria inclinada del asteroide (~60 grados); columna de roca vaporizada y azufre elevandose.",
-                "prompt_ia": "cross-section diagram of a steeply inclined asteroid impact at 60 degrees, plume of vaporized sulfur-rich rock blasting into the sky, glowing ejecta column, semi-realistic science visualization, dark palette, 16:9",
-                "overlay": "humo",
-                "shake": true
-            },
-            "audio": {
-                "sfx": "rugido de vaporizacion, crepitar",
-                "musica": "tension oscura sostenida"
-            }
-        }
-    ]
+	"meta": {
+		"serie": "Historia de Yucatán",
+		"capitulo": 1,
+		"titulo": "El meteorito que creó Yucatán",
+		"subtitulo": "El peor día de la Tierra y la tierra que nació de él",
+		"gancho": "Esta historia no empieza con los mayas ni con los cenotes. Empieza 66 millones de años antes.",
+		"idioma": "es-MX",
+		"narrador": "Balam (mascota del canal). Registro maduro: cálido y cercano, habla al espectador de tú, pero como narrador inteligente, no como conductor infantil. Sin diminutivos, sin frases de hype ('agárrate', '¿te das cuenta?', 'me voló la cabeza'). Sugiere en lugar de explicar y deja que los hechos golpeen solos.",
+		"_notas_formato": "Campos añadidos fuera de tu esquema base: 'direccion_voz' (por plano) es dirección de actuación y NO debe entrar al TTS como texto hablado; '_verificacion' (nivel raíz) es la auditoría de fuentes. Tu pipeline puede ignorar ambos al renderizar; solo lee meta y planos."
+	},
+	"planos": [
+		{
+			"id": "p01",
+			"seccion": "gancho",
+			"narracion": "Soy Balam. Y esta historia no empieza con los mayas, ni con los cenotes. Empieza mucho antes. Hace 66 millones de años, donde hoy está Yucatán solo hay selva y dinosaurios. Y aquel Tyrannosaurus come tranquilo, sin saber que este es su último día.",
+			"direccion_voz": "sereno y directo, sin prisa; el tono de quien va a contar algo importante",
+			"texto_en_pantalla": "Hace 66 millones de años",
+			"visual": {
+				"tipo": "imagen_ia",
+				"descripcion": "T-rex tranquilo comiendo en un pantano cretácico al amanecer, atmósfera cálida.",
+				"prompt_ia": "cinematic wide shot, a Tyrannosaurus rex feeding calmly in a lush Cretaceous swamp at dawn, warm golden mist, ferns and cycads, photorealistic, natural history documentary lighting, 16:9",
+				"nota": null,
+				"overlay": "niebla",
+				"shake": false,
+				"motion": "calm",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "ambiente calmado, cuerdas suaves, calma antes de la tormenta",
+				"sfx": "viento suave y brisa"
+			},
+			"inicio_aprox": "0:00",
+			"duracion_seg": 18
+		},
+		{
+			"id": "p02",
+			"seccion": "gancho",
+			"narracion": "En el cielo aparece un punto de luz. No es una estrella. Es una roca del tamaño de una montaña, y viene directo hacia la Tierra.",
+			"direccion_voz": "bajando el tono, con calma tensa",
+			"texto_en_pantalla": null,
+			"visual": {
+				"tipo": "imagen_ia",
+				"descripcion": "Cielo diurno con un punto de luz intensa creciendo; el dinosaurio empieza a alzar la vista.",
+				"prompt_ia": "low angle shot looking up at a bright point of light growing in a pale blue prehistoric sky, ominous, lens flare, silhouette of dinosaur head tilting up, photorealistic, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "drone tenso que empieza a subir",
+				"sfx": null
+			},
+			"inicio_aprox": "0:18",
+			"duracion_seg": 11
+		},
+		{
+			"id": "p03",
+			"seccion": "gancho",
+			"narracion": "Cae a veinte kilómetros por segundo. Y el lugar exacto donde golpea es aquí: debajo de lo que hoy llamamos Yucatán.",
+			"direccion_voz": "con peso, marcando el 'aquí'",
+			"texto_en_pantalla": "20 km / segundo",
+			"visual": {
+				"tipo": "animacion_3d",
+				"descripcion": "Vista desde el espacio: asteroide gigante cayendo hacia el Golfo de México; se resalta la silueta de la península.",
+				"prompt_ia": "view from space of a massive asteroid streaking toward Earth aimed at the Gulf of Mexico, Yucatan peninsula outline glowing, atmospheric entry trail, dramatic, photorealistic space render, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "energetic",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "impacto orquestal ascendente",
+				"sfx": null
+			},
+			"inicio_aprox": "0:29",
+			"duracion_seg": 10
+		},
+		{
+			"id": "p04",
+			"seccion": "gancho",
+			"narracion": "Aquí empieza el peor día en la historia. Pero sin ese día no habría cenotes, ni agua, ni mayas. Ni tú, ni yo. Esta es la historia de cómo el fin de un mundo vio nacer a otro.",
+			"direccion_voz": "íntimo, dejando espacio entre las ideas",
+			"texto_en_pantalla": "HISTORIA DE YUCATÁN  |  Cap. 1: El meteorito que creó Yucatán",
+			"visual": {
+				"tipo": "grafico_movimiento",
+				"descripcion": "Título de serie sobre transición de fuego a agua de cenote. Montaje: explosión, cenote turquesa, pirámide maya.",
+				"prompt_ia": "title card sequence, quick match-cut morph from a fireball explosion into aerial turquoise cenote water into a Maya pyramid, sepia and teal palette, cinematic transitions, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "tema principal de la serie entra con fuerza",
+				"sfx": "transición a agua"
+			},
+			"inicio_aprox": "0:39",
+			"duracion_seg": 17
+		},
+		{
+			"id": "p05",
+			"seccion": "setup",
+			"narracion": "Esa roca mide entre diez y quince kilómetros de ancho. Del ancho de una ciudad entera.",
+			"direccion_voz": "informativo, contenido",
+			"texto_en_pantalla": "10-15 km de ancho",
+			"visual": {
+				"tipo": "grafico_movimiento",
+				"descripcion": "Comparación de escala: el asteroide junto a la silueta del Everest y de una ciudad.",
+				"prompt_ia": "clean infographic comparison on dark background, a 10-15 km asteroid silhouette next to Mount Everest and a city skyline for scale, earth-tone palette, motion graphic style, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": null,
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "pulso tenso constante",
+				"sfx": null
+			},
+			"inicio_aprox": "0:56",
+			"duracion_seg": 8
+		},
+		{
+			"id": "p06",
+			"seccion": "setup",
+			"narracion": "Cruza toda la atmósfera, quince kilómetros de aire, en menos de dos segundos. Para cuando podría verse en el cielo, ya ha impactado.",
+			"direccion_voz": "seco, con un ritmo que acelera",
+			"texto_en_pantalla": "Cruza la atmósfera en < 2 segundos",
+			"visual": {
+				"tipo": "animacion_3d",
+				"descripcion": "El asteroide perfora las capas de la atmósfera dejando una estela incandescente.",
+				"prompt_ia": "asteroid punching through Earth's atmosphere layers leaving a searing plasma trail, seen from the side, layered clouds parting, photorealistic, motion blur, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "energetic",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "drone que sube de tono",
+				"sfx": "viento supersónico al cruzar el aire"
+			},
+			"inicio_aprox": "1:04",
+			"duracion_seg": 10
+		},
+		{
+			"id": "p07",
+			"seccion": "setup",
+			"narracion": "La energía que libera es tan potente que equivale a miles de millones de bombas atómicas.",
+			"direccion_voz": "grave, dejando caer la cifra",
+			"texto_en_pantalla": "= miles de millones de bombas atómicas",
+			"visual": {
+				"tipo": "grafico_movimiento",
+				"descripcion": "Escala de energía: iconos de bombas multiplicándose hasta llenar la pantalla.",
+				"prompt_ia": "energy scale infographic, a single atomic bomb icon multiplying into billions filling the frame, ominous red glow on dark background, motion graphic, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": true,
+				"motion": "impact",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "golpe orquestal + silencio dramático",
+				"sfx": "retumbo grave y profundo"
+			},
+			"inicio_aprox": "1:14",
+			"duracion_seg": 11
+		},
+		{
+			"id": "p08",
+			"seccion": "impacto",
+			"narracion": "Abre un cráter de casi doscientos kilómetros de ancho y veinte de profundidad. Uno de los más grandes que existen en la Tierra.",
+			"direccion_voz": "sobrio, con asombro contenido",
+			"texto_en_pantalla": "Cráter: ~200 km de diámetro",
+			"visual": {
+				"tipo": "animacion_3d",
+				"descripcion": "Impacto visto desde arriba; onda expansiva circular; se dibuja el círculo del cráter sobre el mapa de la península.",
+				"prompt_ia": "top-down view of colossal asteroid impact, expanding circular shockwave ring over ocean and coastline, crater forming, map of Yucatan overlaid with 200 km crater circle, cinematic, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": true,
+				"motion": "impact",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "impacto masivo",
+				"sfx": "retumbo y derrumbe cavernoso"
+			},
+			"inicio_aprox": "1:25",
+			"duracion_seg": 10
+		},
+		{
+			"id": "p09",
+			"seccion": "impacto",
+			"narracion": "Y hubo un detalle que lo empeoró todo. La roca no cayó en vertical: entró en un ángulo muy inclinado, cercano a los sesenta grados. Y justo bajo el impacto había piedra cargada de azufre. El golpe la vaporizó y la lanzó a la atmósfera.",
+			"direccion_voz": "serio, explicando la causa",
+			"texto_en_pantalla": "Ángulo ~60° = el peor escenario",
+			"visual": {
+				"tipo": "animacion_3d",
+				"descripcion": "Trayectoria inclinada del asteroide (~60 grados); columna de roca vaporizada y azufre elevándose.",
+				"prompt_ia": "cross-section diagram of a steeply inclined asteroid impact at 60 degrees, plume of vaporized sulfur-rich rock blasting into the sky, glowing ejecta column, semi-realistic science visualization, dark palette, 16:9",
+				"nota": null,
+				"overlay": "polvo",
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "tensión oscura sostenida",
+				"sfx": "crepitar de roca vaporizada"
+			},
+			"inicio_aprox": "1:35",
+			"duracion_seg": 18
+		},
+		{
+			"id": "p10",
+			"seccion": "impacto",
+			"narracion": "En el primer instante, todo lo que respira cerca del impacto deja de existir. Y el fuego apenas empieza a saltar de un continente a otro.",
+			"direccion_voz": "contenido pero grave",
+			"texto_en_pantalla": null,
+			"visual": {
+				"tipo": "imagen_ia",
+				"descripcion": "Bola de fuego arrasando un bosque; siluetas de árboles ardiendo.",
+				"prompt_ia": "massive fireball incinerating a prehistoric forest, trees silhouetted and bursting into flame, apocalyptic orange sky, embers, photorealistic, 16:9",
+				"nota": null,
+				"overlay": "fuego",
+				"shake": false,
+				"motion": "energetic",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "caos en crescendo",
+				"sfx": "fuego y llamas rugiendo"
+			},
+			"inicio_aprox": "1:53",
+			"duracion_seg": 11
+		},
+		{
+			"id": "p11",
+			"seccion": "impacto",
+			"narracion": "El mar se hunde en el cráter y regresa convertido en olas de decenas de metros que barren las costas del mundo. Pero lo que condenó a los dinosaurios no fue el fuego, ni el agua. Fue lo que quedó en el aire.",
+			"direccion_voz": "de la acción a la intriga, bajando al final",
+			"texto_en_pantalla": "Lo que los condenó estaba en el aire",
+			"visual": {
+				"tipo": "animacion_3d",
+				"descripcion": "Megatsunami colosal avanzando; luego corte a la atmósfera oscureciéndose por el polvo.",
+				"prompt_ia": "colossal mega-tsunami wall of dark water rushing over a coastline, then transition to Earth from space dimming under a spreading dust veil, cinematic, dramatic, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": true,
+				"motion": "impact",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "la música se apaga hacia un vacío ominoso",
+				"sfx": "mar y olas rugiendo"
+			},
+			"inicio_aprox": "2:04",
+			"duracion_seg": 18
+		},
+		{
+			"id": "p12",
+			"seccion": "impacto",
+			"narracion": "El polvo y el azufre bloquean el sol. La luz no basta para que las plantas vivan. Y cuando mueren las plantas, empieza a caerse todo lo demás.",
+			"direccion_voz": "lento, con gravedad; deja respirar",
+			"texto_en_pantalla": "El sol se bloquea",
+			"visual": {
+				"tipo": "imagen_ia",
+				"descripcion": "Paisaje gris y oscuro bajo un cielo cargado; sol tenue apenas visible; sin vegetación viva.",
+				"prompt_ia": "bleak grey darkened landscape under a heavy ash sky, faint dim sun barely visible, dead trees, cold desolate world, muted desaturated palette, photorealistic, 16:9",
+				"nota": null,
+				"overlay": "polvo",
+				"shake": false,
+				"motion": "calm",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "drone frío y vacío",
+				"sfx": "viento tenue y frío"
+			},
+			"inicio_aprox": "2:22",
+			"duracion_seg": 12
+		},
+		{
+			"id": "p13",
+			"seccion": "tanis",
+			"narracion": "De ese primer minuto quedó un registro. No una reconstrucción, no una teoría: el instante real, atrapado en la roca.",
+			"direccion_voz": "baja la voz, íntimo",
+			"texto_en_pantalla": "El primer minuto, atrapado en piedra",
+			"visual": {
+				"tipo": "imagen_ia",
+				"descripcion": "Primer plano de una pared de roca estratificada; una capa oscura marca el momento exacto.",
+				"prompt_ia": "extreme close-up of layered sedimentary rock wall, one distinct dark boundary layer highlighted, geologist's brush revealing it, documentary macro photography, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "calm",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "cambio a tono de misterio y curiosidad",
+				"sfx": null
+			},
+			"inicio_aprox": "2:34",
+			"duracion_seg": 9
+		},
+		{
+			"id": "p14",
+			"seccion": "tanis",
+			"narracion": "A más de tres mil kilómetros del impacto, en lo que hoy es Dakota del Norte, hay un yacimiento llamado Tanis. Lo que se encontró ahí reconstruye la escena minuto a minuto.",
+			"direccion_voz": "sobrio, preparando",
+			"texto_en_pantalla": "Sitio Tanis  ·  a 3,000 km",
+			"visual": {
+				"tipo": "mapa_animado",
+				"descripcion": "Mapa de Norteamérica: línea de Yucatán a Dakota del Norte marcando ~3000 km hasta Tanis.",
+				"prompt_ia": "animated map of North America, glowing arc line from Yucatan impact site to a pin in North Dakota labeled Tanis, distance 3000 km, clean cartographic style, earth tones, 16:9",
+				"nota": "NO generar retrato IA de Robert DePalma (persona real). Usar foto de archivo con licencia o mostrar solo manos/excavación genérica.",
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "curiosidad en aumento",
+				"sfx": null
+			},
+			"inicio_aprox": "2:43",
+			"duracion_seg": 13
+		},
+		{
+			"id": "p15",
+			"seccion": "tanis",
+			"narracion": "Un río, una tarde cualquiera, peces nadando. Y entonces el cielo empieza a caer: gotas de vidrio fundido que se incrustan en sus branquias.",
+			"direccion_voz": "narrando la escena, calma que se quiebra",
+			"texto_en_pantalla": "Cae vidrio fundido del cielo",
+			"visual": {
+				"tipo": "imagen_ia",
+				"descripcion": "Fósiles de peces apilados en la roca; inserto macro de una esferula de vidrio.",
+				"prompt_ia": "fossilized fish piled together in rock strata, inset macro of a tiny glass spherule (tektite) embedded in a fish gill, museum lighting, photorealistic, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "misterio con un toque inquietante",
+				"sfx": null
+			},
+			"inicio_aprox": "2:56",
+			"duracion_seg": 11
+		},
+		{
+			"id": "p16",
+			"seccion": "tanis",
+			"narracion": "La tierra se sacude. El agua se levanta y los estrella contra la orilla. No fue una ola del mar: fue el temblor del propio impacto. Enterrados vivos, en minutos. El tsunami habría tardado horas; esto llegó con las ondas sísmicas, justo cuando caía el vidrio.",
+			"direccion_voz": "intenso, cae a susurro en 'enterrados vivos'",
+			"texto_en_pantalla": "Enterrados vivos en minutos",
+			"visual": {
+				"tipo": "animacion_3d",
+				"descripcion": "Ondas sísmicas expandiéndose desde el cráter; agua de un río interno sacudiéndose (seiche); reloj marcando <1 hora.",
+				"prompt_ia": "seismic waves radiating from impact crater across the continent, an inland river sloshing violently (seiche), glass droplets raining, a clock showing under one hour, science visualization, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": true,
+				"motion": "impact",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "tensión rítmica que marca urgencia",
+				"sfx": "retumbo del temblor y agua agitándose"
+			},
+			"inicio_aprox": "3:07",
+			"duracion_seg": 19
+		},
+		{
+			"id": "p17",
+			"seccion": "tanis",
+			"narracion": "Y en los huesos de esos peces, los científicos leyeron algo que nadie esperaba encontrar: la estación del año. El fin de los dinosaurios ocurrió en primavera.",
+			"direccion_voz": "reposado, dejando pesar el dato",
+			"texto_en_pantalla": "Ocurrió en primavera",
+			"visual": {
+				"tipo": "grafico_movimiento",
+				"descripcion": "Corte histológico de hueso con anillos de crecimiento; flecha señalando la marca de primavera.",
+				"prompt_ia": "microscopic cross-section of fish bone showing seasonal growth rings, annotation pointing to the spring growth mark, clean scientific infographic, warm palette, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "calm",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "momento de asombro, cuerdas se abren",
+				"sfx": null
+			},
+			"inicio_aprox": "3:26",
+			"duracion_seg": 11
+		},
+		{
+			"id": "p18",
+			"seccion": "extincion",
+			"narracion": "Cuando el polvo por fin bajó, tres de cada cuatro especies de la Tierra habían desaparecido.",
+			"direccion_voz": "grave, pausa antes de la cifra",
+			"texto_en_pantalla": "~75% de la vida: extinta",
+			"visual": {
+				"tipo": "grafico_movimiento",
+				"descripcion": "Cuadrícula de iconos de especies; 3 de cada 4 se apagan.",
+				"prompt_ia": "grid of animal and plant species icons where three out of every four fade to grey, stark data visualization, dark background, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "solemne, peso emocional",
+				"sfx": null
+			},
+			"inicio_aprox": "3:37",
+			"duracion_seg": 11
+		},
+		{
+			"id": "p19",
+			"seccion": "extincion",
+			"narracion": "Los dinosaurios que no volaban. Los grandes reptiles del mar y del aire. Linajes que habían dominado el planeta durante más de ciento cincuenta millones de años, terminados en un instante geológico.",
+			"direccion_voz": "elegíaco, contenido",
+			"texto_en_pantalla": null,
+			"visual": {
+				"tipo": "imagen_ia",
+				"descripcion": "Siluetas de dinosaurios, mosasaurio y pterosaurio desvaneciéndose en ceniza.",
+				"prompt_ia": "silhouettes of a T-rex, a giant marine mosasaur, and a pterosaur dissolving into ash and dust against a dark ashen sky, elegiac mood, photorealistic, 16:9",
+				"nota": null,
+				"overlay": "polvo",
+				"shake": false,
+				"motion": "calm",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "réquiem contenido",
+				"sfx": "viento arrastrando ceniza"
+			},
+			"inicio_aprox": "3:48",
+			"duracion_seg": 13
+		},
+		{
+			"id": "p20",
+			"seccion": "extincion",
+			"narracion": "Pero algo sobrevivió. Un pequeño mamífero, escondido bajo tierra. El principio de un linaje que llega. Y hay un detalle que los científicos han calculado: si esa roca hubiera llegado unos minutos antes o después, la Tierra habría girado lo suficiente para que el golpe cayera en mar profundo. Menos azufre, menos oscuridad. Y los dinosaurios quizá habrían sobrevivido. En ese caso, los mamíferos nunca habrían tenido su oportunidad. Y tú no estarías aquí.",
+			"direccion_voz": "cálido y sobrio; termina íntimo, sin subrayar; respeta cada punto como pausa real",
+			"texto_en_pantalla": "El fin de un mundo, el principio del tuyo",
+			"visual": {
+				"tipo": "imagen_ia",
+				"descripcion": "Pequeño mamífero peludo asomando de una madriguera en el paisaje gris; un rayo de luz empieza a colarse.",
+				"prompt_ia": "a small furry nocturnal mammal peeking from a burrow in a grey post-apocalyptic landscape, a single beam of light breaking through the ash clouds, hopeful, photorealistic, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "calm",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "de la tristeza a una esperanza tenue, se abre",
+				"sfx": "brisa suave"
+			},
+			"inicio_aprox": "4:01",
+			"duracion_seg": 31
+		},
+		{
+			"id": "p21",
+			"seccion": "descubrimiento",
+			"narracion": "Pero falta la pregunta más importante: ¿cómo sabemos que todo esto ocurrió justo aquí, bajo Yucatán? La respuesta tardó treinta años en aparecer. Y empieza con una petrolera.",
+			"direccion_voz": "cambia de registro, más terrenal y curioso",
+			"texto_en_pantalla": "Un misterio de 30 años",
+			"visual": {
+				"tipo": "grafico_movimiento",
+				"descripcion": "Estética de expediente/tablero de detective con hilos rojos conectando pistas y un mapa de Yucatán.",
+				"prompt_ia": "detective corkboard aesthetic, red string connecting old photos, maps of Yucatan, and geological charts, mystery investigation vibe, sepia tones, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "cambio a intriga tipo investigación",
+				"sfx": null
+			},
+			"inicio_aprox": "4:32",
+			"duracion_seg": 11
+		},
+		{
+			"id": "p22",
+			"seccion": "descubrimiento",
+			"narracion": "En los años cincuenta, Pemex perforaba la península buscando petróleo. Encontró una capa de roca extraña y la clasificó como resto de un volcán. La explicación equivocada se quedó archivada durante décadas.",
+			"direccion_voz": "narrando con intriga sobria",
+			"texto_en_pantalla": "1950s: la clasifican como 'volcán'",
+			"visual": {
+				"tipo": "archivo_historico",
+				"descripcion": "Plataforma de perforación de los años 50; muestras de roca en cajas de archivo.",
+				"prompt_ia": "1950s oil drilling rig in Mexico, vintage documentary look, rock core samples stored in labeled wooden boxes, faded film grain, 16:9",
+				"nota": "Preferir material de archivo real con licencia si está disponible.",
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": "1950s Pemex oil drilling rig Mexico archival footage; petroleum exploration Yucatan 1950s"
+			},
+			"audio": {
+				"musica": "intriga sobria",
+				"sfx": null
+			},
+			"inicio_aprox": "4:43",
+			"duracion_seg": 13
+		},
+		{
+			"id": "p23",
+			"seccion": "descubrimiento",
+			"narracion": "En 1978, dos geofísicos, Glen Penfield y Antonio Camargo, revisaban mapas de la zona y encontraron una figura imposible: un círculo casi perfecto de unos ciento ochenta kilómetros, enterrado bajo la superficie. Penfield estaba convencido de que no era un volcán, sino la cicatriz de un impacto.",
+			"direccion_voz": "creciendo con el hallazgo",
+			"texto_en_pantalla": "1978: un círculo de 180 km enterrado",
+			"visual": {
+				"tipo": "grafico_movimiento",
+				"descripcion": "Mapa de anomalía gravimétrica/magnética revelando el 'bullseye' circular bajo Yucatán; se resalta el arco.",
+				"prompt_ia": "gravity and magnetic anomaly map slowly revealing a perfect circular bullseye buried under the Yucatan, concentric arcs highlighted in glowing lines, scientific data visualization, 16:9",
+				"nota": "NO generar retratos IA de Penfield ni Camargo (personas reales). Usar manos sobre mapas, o archivo con licencia.",
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "momento 'ah-ha', tensión que se resuelve un poco",
+				"sfx": null
+			},
+			"inicio_aprox": "4:56",
+			"duracion_seg": 18
+		},
+		{
+			"id": "p24",
+			"seccion": "descubrimiento",
+			"narracion": "Mientras tanto, en Estados Unidos, Luis y Walter Alvarez proponían una idea entonces polémica: que a los dinosaurios los había extinguido un asteroide. Su prueba era una fina capa de iridio —un metal escaso en la Tierra y abundante en los asteroides— presente en el mismo estrato en todo el mundo.",
+			"direccion_voz": "sobrio, con intriga que suma",
+			"texto_en_pantalla": "1980: la capa de iridio (Alvarez)",
+			"visual": {
+				"tipo": "grafico_movimiento",
+				"descripcion": "Mapa mundial con puntos marcando la capa de iridio en el límite K-Pg; muestra de la fina línea en la roca.",
+				"prompt_ia": "world map dotted with markers showing a thin global iridium layer at the K-Pg boundary, plus a close-up of the thin dark clay line in a rock outcrop, scientific infographic, 16:9",
+				"nota": "NO generar retratos IA de Luis/Walter Alvarez (personas reales). Usar archivo con licencia o representación genérica.",
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "intriga que suma capas",
+				"sfx": null
+			},
+			"inicio_aprox": "5:14",
+			"duracion_seg": 20
+		},
+		{
+			"id": "p25",
+			"seccion": "descubrimiento",
+			"narracion": "Tenían la teoría, pero les faltaba el cráter. Y el hombre que ya lo había hallado no conseguía que lo escucharan. Penfield escribió a Alvarez y no recibió respuesta. Presentó sus datos en un congreso ante una sala casi vacía. Y un incendio en una bodega estuvo a punto de destruir las últimas muestras de roca.",
+			"direccion_voz": "tensión, casi frustración",
+			"texto_en_pantalla": "Casi se pierde para siempre",
+			"visual": {
+				"tipo": "imagen_ia",
+				"descripcion": "Sala de conferencias casi vacía con un ponente; después, cajas de muestras rodeadas de humo/fuego.",
+				"prompt_ia": "an almost empty conference hall with a lone speaker at a podium, then cut to warehouse storage boxes surrounded by smoke and fire, tense dramatic lighting, cinematic, 16:9",
+				"nota": "Ponente genérico, sin parecido a persona real.",
+				"overlay": "fuego",
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "tensión frustrante, casi trágica",
+				"sfx": "crepitar de fuego en la bodega"
+			},
+			"inicio_aprox": "5:34",
+			"duracion_seg": 22
+		},
+		{
+			"id": "p26",
+			"seccion": "descubrimiento",
+			"narracion": "Hasta que en 1990 un periodista unió las dos historias. Se recuperaron muestras del subsuelo y se analizaron. Ahí estaba la prueba: cuarzo deformado por una presión imposible en un volcán, la firma de un impacto. La petrolera había hallado al responsable de la extinción por accidente, y lo había guardado en un cajón durante décadas.",
+			"direccion_voz": "resolución; la ironía sin sarcasmo forzado",
+			"texto_en_pantalla": "1990: confirmado",
+			"visual": {
+				"tipo": "imagen_ia",
+				"descripcion": "Vista al microscopio de cuarzo con líneas de choque (shocked quartz); revelación final.",
+				"prompt_ia": "microscope view of shocked quartz grain with distinct crisscrossing shock lamellae, glowing under polarized light, moment of scientific revelation, macro, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "resolución triunfal del arco de misterio",
+				"sfx": null
+			},
+			"inicio_aprox": "5:56",
+			"duracion_seg": 22
+		},
+		{
+			"id": "p27",
+			"seccion": "cenotes",
+			"narracion": "Y aquí esta historia deja de ser sobre dinosaurios y empieza a ser sobre Yucatán.",
+			"direccion_voz": "se abre, cálido pero firme",
+			"texto_en_pantalla": "¿Qué tiene que ver con el Yucatán de hoy?",
+			"visual": {
+				"tipo": "video_stock",
+				"descripcion": "Toma aérea con dron acercándose a un cenote turquesa en la selva.",
+				"prompt_ia": "aerial drone shot descending toward a stunning turquoise cenote in the Yucatan jungle, sunlight beams into clear water, cinematic, 16:9",
+				"nota": "Ideal metraje real de dron con licencia (cenote de Yucatán).",
+				"overlay": null,
+				"shake": false,
+				"motion": "calm",
+				"busqueda_medios": "aerial drone turquoise cenote Yucatan jungle sunlight; cenote sagrado dron 4k"
+			},
+			"audio": {
+				"musica": "el tema se abre, asombro y pertenencia",
+				"sfx": "agua y eco de cenote"
+			},
+			"inicio_aprox": "6:18",
+			"duracion_seg": 12
+		},
+		{
+			"id": "p28",
+			"seccion": "cenotes",
+			"narracion": "En toda la península no existe un solo río en la superficie. Ni uno. El suelo es roca caliza porosa, y el agua de lluvia se filtra hacia abajo, formando ríos subterráneos.",
+			"direccion_voz": "revelando un hecho poco conocido",
+			"texto_en_pantalla": "Yucatán no tiene ni un río en la superficie",
+			"visual": {
+				"tipo": "animacion_3d",
+				"descripcion": "Corte transversal del subsuelo: lluvia filtrándose por la caliza porosa hacia ríos subterráneos; superficie sin ríos.",
+				"prompt_ia": "cutaway cross-section of the Yucatan limestone platform, rainwater seeping down through porous rock into underground rivers, dry surface with no rivers, clean science visualization, teal water, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "curiosidad ligera",
+				"sfx": null
+			},
+			"inicio_aprox": "6:30",
+			"duracion_seg": 13
+		},
+		{
+			"id": "p29",
+			"seccion": "cenotes",
+			"narracion": "El impacto dejó una marca escondida. Al reventar, la roca se fracturó en un patrón circular. Por esas grietas fluye más agua, que disuelve más piedra y abre más pozos. El resultado es el Anillo de Cenotes: un arco que sigue, casi exacto, el borde del cráter enterrado.",
+			"direccion_voz": "asombro contenido, deja que el dato hable",
+			"texto_en_pantalla": "El Anillo de Cenotes traza el cráter",
+			"visual": {
+				"tipo": "mapa_animado",
+				"descripcion": "Mapa del noroeste de Yucatán: puntos de cenotes que se van uniendo hasta formar un arco que calca el borde del cráter.",
+				"prompt_ia": "animated map of northwest Yucatan, cenote dots lighting up one by one and connecting into a semicircular arc that traces the buried Chicxulub crater rim, satellite-style basemap, glowing teal points, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "revelación, el gancho local aterriza",
+				"sfx": null
+			},
+			"inicio_aprox": "6:43",
+			"duracion_seg": 22
+		},
+		{
+			"id": "p30",
+			"seccion": "cenotes",
+			"narracion": "La palabra cenote viene del maya ts'ono'ot. En una tierra sin ríos, eran la única fuente de agua, y quien controlaba el agua controlaba el poder. Los mayas los consideraban entradas al inframundo. De esos pozos dependió por completo su civilización.",
+			"direccion_voz": "respetuoso, tono más solemne",
+			"texto_en_pantalla": "ts'ono'ot: el pozo sagrado maya",
+			"visual": {
+				"tipo": "imagen_ia",
+				"descripcion": "Cenote como caverna mística; siluetas mayas en el borde; ambiente sagrado con rayo de luz.",
+				"prompt_ia": "mystical cavern cenote with a shaft of sunlight hitting the water, ancient Maya figures standing reverently at the rim, sacred atmosphere, cinematic, painterly, 16:9",
+				"nota": "Representación respetuosa y genérica; sin símbolos religiosos específicos mal usados.",
+				"overlay": null,
+				"shake": false,
+				"motion": "calm",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "tono ancestral, tambores suaves, flauta",
+				"sfx": "agua y eco de cueva"
+			},
+			"inicio_aprox": "7:05",
+			"duracion_seg": 17
+		},
+		{
+			"id": "p31",
+			"seccion": "cenotes",
+			"narracion": "Bajo la superficie se extiende el sistema de cuevas inundadas más largo del planeta. Hoy esos cenotes reciben a millones de visitantes al año. Pero están todos conectados: lo que se contamina en un punto puede reaparecer, tarde o temprano, kilómetros más allá.",
+			"direccion_voz": "asombro con advertencia sobria al final",
+			"texto_en_pantalla": "Las cuevas inundadas más largas del mundo",
+			"visual": {
+				"tipo": "video_stock",
+				"descripcion": "Buzo explorando un túnel inundado con haces de luz; corte a turistas nadando en un cenote.",
+				"prompt_ia": "cave diver exploring a vast flooded underwater tunnel with light beams and stalactites, then cut to tourists swimming in an open cenote, cinematic underwater footage, 16:9",
+				"nota": "Preferir metraje real de buceo en cenote con licencia.",
+				"overlay": "burbujas",
+				"shake": false,
+				"motion": "calm",
+				"busqueda_medios": "cave diving cenote underwater tunnel Mexico stalactites; buceo cenote Sac Actun 4k"
+			},
+			"audio": {
+				"musica": "asombro con una nota de advertencia al final",
+				"sfx": "burbujas de buceo bajo el agua"
+			},
+			"inicio_aprox": "7:22",
+			"duracion_seg": 18
+		},
+		{
+			"id": "p32",
+			"seccion": "cierre",
+			"narracion": "El peor día en la historia de la Tierra, el que borró a los dinosaurios, es la misma razón por la que existen los cenotes, por la que hubo agua, y por la que pudo florecer una de las grandes civilizaciones del mundo. El cráter que ayudó a acabar con los dinosaurios sigue dando forma a esta tierra.",
+			"direccion_voz": "reflexivo, con peso; orgullo sereno",
+			"texto_en_pantalla": "El peor día de la Tierra creó esta tierra",
+			"visual": {
+				"tipo": "grafico_movimiento",
+				"descripcion": "Montaje que enlaza en cadena: meteorito, cráter, anillo de cenotes, agua, pirámide maya, Yucatán actual.",
+				"prompt_ia": "seamless montage chaining meteor to crater to ring of cenotes to flowing water to a Maya pyramid to modern Yucatan, connected by a single glowing thread, epic, cinematic, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "tema principal reprisa, emotivo y amplio",
+				"sfx": null
+			},
+			"inicio_aprox": "7:40",
+			"duracion_seg": 22
+		},
+		{
+			"id": "p33",
+			"seccion": "cierre",
+			"narracion": "Porque sobre el borde de ese cráter, miles de años después, se levantó un pueblo que estudió las estrellas con una precisión asombrosa, alineó sus pirámides con el cielo y desarrolló el concepto del cero siglos antes de que llegara a Europa. Y cuando llegaron los conquistadores, muchas de aquellas grandes ciudades ya llevaban siglos abandonadas, tragadas por la selva.",
+			"direccion_voz": "grandeza y misterio",
+			"texto_en_pantalla": "Estudiaron las estrellas. Usaron el cero.",
+			"visual": {
+				"tipo": "imagen_ia",
+				"descripcion": "Pirámide maya majestuosa (estilo Chichén Itzá/Uxmal) bajo un cielo estrellado; sensación de grandeza y misterio.",
+				"prompt_ia": "majestic ancient Maya step-pyramid under a vast starry night sky aligned with constellations, sense of astronomical mastery, epic wide shot, photorealistic, 16:9",
+				"nota": "Pirámide genérica de estilo maya; no reproducir marcas ni logos.",
+				"overlay": null,
+				"shake": false,
+				"motion": "calm",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "misterio grandioso que abre el siguiente capítulo",
+				"sfx": "viento nocturno"
+			},
+			"inicio_aprox": "8:02",
+			"duracion_seg": 22
+		},
+		{
+			"id": "p34",
+			"seccion": "cierre",
+			"narracion": "¿Qué fue de los mayas? Esa es la siguiente historia. Soy Balam. Nos vemos en el próximo video.",
+			"direccion_voz": "cálido, sobrio, cierra",
+			"texto_en_pantalla": "PRÓXIMO CAPÍTULO  |  Los mayas: el imperio que no fue imperio",
+			"visual": {
+				"tipo": "cartel_texto",
+				"descripcion": "Placa de próximo episodio sobre la pirámide en penumbra.",
+				"prompt_ia": "next episode title card over a dimly lit Maya pyramid silhouette, text overlay, cinematic, sepia and teal, 16:9",
+				"nota": null,
+				"overlay": null,
+				"shake": false,
+				"motion": "normal",
+				"busqueda_medios": null
+			},
+			"audio": {
+				"musica": "cierre del tema con gancho suspendido",
+				"sfx": null
+			},
+			"inicio_aprox": "8:24",
+			"duracion_seg": 8
+		}
+	],
+	"_verificacion": {
+		"nota": "Auditoría de cada afirmación del guion contra fuentes. Encuadres deliberadamente conservadores donde el dato es hipótesis (marcados como tal).",
+		"hechos": [
+			{
+				"planos": "p01-p04",
+				"afirmacion": "El impacto ocurrió hace ~66 millones de años (66.04 Ma) en lo que hoy es la península de Yucatán.",
+				"fuente": "Britannica; Nature (PMC11739411); Wikipedia (Chicxulub crater)"
+			},
+			{
+				"planos": "p03,p05,p06",
+				"afirmacion": "Asteroide de 10-15 km de diámetro impactando a ~20 km/s; cruza la atmósfera en ~1-2 s.",
+				"fuente": "Britannica; BBC Sky at Night Magazine"
+			},
+			{
+				"planos": "p07",
+				"afirmacion": "Energía equivalente a miles de millones de bombas atómicas; supera con creces el arsenal nuclear actual.",
+				"fuente": "National Geographic; Grokipedia (síntesis de estimaciones)"
+			},
+			{
+				"planos": "p08",
+				"afirmacion": "Cráter de ~180-200 km de diámetro y ~20 km de profundidad; de los más grandes de la Tierra; único con anillo de picos intacto.",
+				"fuente": "Wikipedia; NOAA Science On a Sphere; Science.org; NCBI PMC9256630"
+			},
+			{
+				"planos": "p09",
+				"afirmacion": "Trayectoria muy inclinada (~60°) que maximizó la liberación de gases; el objetivo era roca rica en azufre (evaporitas) que se vaporizó.",
+				"fuente": "Nature 'A steeply-inclined trajectory for the Chicxulub impact' (PMC7251121); National Geographic"
+			},
+			{
+				"planos": "p10,p11",
+				"afirmacion": "Bola de fuego e incendios en varios continentes; megatsunamis en las costas del mundo.",
+				"fuente": "UC Berkeley (DePalma et al.); NOAA; NSF"
+			},
+			{
+				"planos": "p12",
+				"afirmacion": "El polvo y los aerosoles de azufre bloquearon el sol, frenaron la fotosíntesis y colapsaron las cadenas alimenticias (invierno de impacto). Estimaciones de azufre: ~67-325 Gt según el estudio.",
+				"fuente": "EarthSky; Smithsonian (IODP Exp. 364, Sean Gulick); National Geographic (325 Gt); Nature PMC11739411 (~67 Gt)"
+			},
+			{
+				"planos": "p18,p19",
+				"afirmacion": "Se extinguió ~75-76% de las especies, incluidos todos los dinosaurios no aviares y los grandes reptiles marinos/voladores.",
+				"fuente": "BBC Sky at Night (75%); Nature PMC8891016 (76%). Nota: Britannica cita 80%."
+			},
+			{
+				"planos": "p13-p16",
+				"afirmacion": "Sitio Tanis (Dakota del Norte, ~3000 km): peces con esférulas de vidrio en las branquias; muerte en <1 h por ondas sísmicas + seiche (no por el tsunami, que habría tardado 8-16 h).",
+				"fuente": "UC Berkeley (DePalma et al., PNAS 2019); National Geographic; NCBI PMC6486721"
+			},
+			{
+				"planos": "p17",
+				"afirmacion": "El impacto ocurrió en primavera boreal, determinado por la histología de los huesos de peces de Tanis.",
+				"fuente": "Nature 'The Mesozoic terminated in boreal spring' (PMC8891016)"
+			},
+			{
+				"planos": "p20",
+				"afirmacion": "HIPÓTESIS (marcada como cálculo científico, con 'quizá'): si el impacto hubiera ocurrido minutos antes/después, la Tierra habría girado y el golpe habría caído en mar profundo, liberando menos azufre; los dinosaurios podrían haber sobrevivido. Solo ~13% de la superficie terrestre tenía la roca volátil adecuada.",
+				"fuente": "BBC 'The Day the Dinosaurs Died' (vía Fox News, PopSci); National Geographic (estudio Kaiho & Oshima)"
+			},
+			{
+				"planos": "p20",
+				"afirmacion": "Los mamíferos sobrevivieron y de ellos descienden los humanos.",
+				"fuente": "EarthDate (UT Austin); consenso paleontológico"
+			},
+			{
+				"planos": "p22-p26",
+				"afirmacion": "Descubrimiento: Pemex perfora en los 50s (roca clasificada como volcánica); Penfield y Camargo detectan el círculo de ~180 km en 1978; Pemex retiene los datos; Alvarez publican el iridio en 1980; Penfield escribe a Alvarez sin respuesta; la presentación de 1981 (SEG) estuvo casi vacía; un incendio de bodega casi destruye las muestras; en 1990 el periodista Carlos Byars conecta a Hildebrand con Penfield; se confirma por cuarzo de choque.",
+				"fuente": "Wikipedia (Chicxulub crater; Glen Penfield); Texas Monthly ('audience of twenty'); Harford County Astro Soc.; ScienceDirect S0025322725001860"
+			},
+			{
+				"planos": "p24",
+				"afirmacion": "El iridio es escaso en la corteza terrestre y abundante en los asteroides; aparece en el mismo estrato (límite K-Pg) en todo el mundo.",
+				"fuente": "Britannica; múltiples"
+			},
+			{
+				"planos": "p26",
+				"afirmacion": "El cuarzo de choque (shocked quartz) es una firma de impacto, no de vulcanismo.",
+				"fuente": "Britannica; múltiples"
+			},
+			{
+				"planos": "p28",
+				"afirmacion": "La península de Yucatán no tiene ríos superficiales; es una plataforma de caliza porosa donde el agua se infiltra al subsuelo.",
+				"fuente": "Yucatan Magazine; UNESCO; YucatanTickets Underground"
+			},
+			{
+				"planos": "p29",
+				"afirmacion": "El Anillo de Cenotes traza el borde del cráter enterrado: la fracturación circular del impacto aumentó la permeabilidad y la disolución de la caliza.",
+				"fuente": "Perry et al., Geology (1995); Northwestern (Monroy-Ríos); Mayan.org; Mexicanist"
+			},
+			{
+				"planos": "p30",
+				"afirmacion": "'Cenote' viene del maya ts'ono'ot; en una tierra sin ríos fueron la única fuente de agua y se consideraban entradas al inframundo; sostuvieron a la civilización maya.",
+				"fuente": "Northwestern (Monroy-Ríos); Mayan.org; múltiples"
+			},
+			{
+				"planos": "p31",
+				"afirmacion": "Bajo Yucatán está el sistema de cuevas inundadas más largo del planeta; el acuífero está interconectado y es vulnerable a la contaminación.",
+				"fuente": "YucatanTickets Underground; Mexicanist; UNESCO"
+			},
+			{
+				"planos": "p33",
+				"afirmacion": "Los mayas desarrollaron astronomía de alta precisión y alineaciones astronómicas, y el concepto del cero siglos antes de que llegara a Europa; las grandes ciudades del período Clásico ya estaban abandonadas siglos antes de la llegada española (Colapso Clásico ~800-900 d.C.). El pueblo maya NO había desaparecido.",
+				"fuente": "Consenso histórico establecido; se detallará y fuenteará a fondo en el Capítulo 2."
+			}
+		]
+	}
 }
+
+
+
+
+
+
+ 

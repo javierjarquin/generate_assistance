@@ -96,6 +96,8 @@ class PlanoBeat:
     end: float
     energetic: bool         # motion impact/energetic -> candidato a saltar
     text: str = ""          # narración del plano (para inferir la expresión)
+    expresion: str | None = None  # override del guion (mascota.expresion); manda
+                                  # sobre la inferencia por palabras
 
 
 @dataclass(frozen=True)
@@ -183,11 +185,15 @@ def plan_mascot(
                                           "in" if i == 0 else "cross", prev_home, h))
                 t = wend
         prev_home = h
-        # Expresión en el sitio: saludo en el primero, o la inferida del contenido.
-        if i == 0:
-            t = oneshot(t, b.end, WAVE if WAVE in available else None, h)
+        # Expresión en el sitio. Prioridad: override del guion > saludo (primer
+        # plano) > inferida del contenido.
+        if b.expresion:
+            expr = _resolve(b.expresion, available)
+        elif i == 0:
+            expr = WAVE if WAVE in available else None
         else:
-            t = oneshot(t, b.end, infer_expression(b.text, b.energetic, available), h)
+            expr = infer_expression(b.text, b.energetic, available)
+        t = oneshot(t, b.end, expr, h)
         if t < b.end:
             segs.append(MascotSegment(t, b.end, TALK, "", h, h))
 

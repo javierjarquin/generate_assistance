@@ -9,8 +9,12 @@ produccion para humanos, no entrada del pipeline.
 import json
 from pathlib import Path
 
-from illustrated_narrator.domain.entities.guion import Guion, GuionMeta
+from illustrated_narrator.domain.entities.guion import Guion, GuionMeta, MascotaConfig
 from illustrated_narrator.domain.entities.plano import AudioSpec, Plano, VisualSpec, VisualTipo
+from illustrated_narrator.domain.services.mascot_director import ALL_ACTIONS
+
+_MASCOTA_MODOS = ("voz", "mascota")
+_MASCOTA_POS = ("bottom-right", "bottom-left", "bottom-center")
 
 
 class GuionValidationError(Exception):
@@ -44,6 +48,33 @@ def _parse_meta(raw: dict) -> GuionMeta:
         subtitulo=raw.get("subtitulo"),
         idioma=raw.get("idioma", "es-MX"),
         gancho=raw.get("gancho"),
+        mascota=_parse_mascota(raw.get("mascota")),
+    )
+
+
+def _parse_mascota(raw) -> MascotaConfig | None:
+    """meta.mascota: config de la mascota para todo el video (todo opcional)."""
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise GuionValidationError("meta.mascota debe ser un objeto")
+    modo = raw.get("modo")
+    if modo is not None and modo not in _MASCOTA_MODOS:
+        raise GuionValidationError(
+            f"meta.mascota.modo '{modo}' invalido (opciones: {', '.join(_MASCOTA_MODOS)})"
+        )
+    pos = raw.get("pos")
+    if pos is not None and pos not in _MASCOTA_POS:
+        raise GuionValidationError(
+            f"meta.mascota.pos '{pos}' invalido (opciones: {', '.join(_MASCOTA_POS)})"
+        )
+    return MascotaConfig(
+        modo=modo,
+        ruta=raw.get("ruta"),
+        pos=pos,
+        alto=raw.get("alto"),
+        fps=raw.get("fps"),
+        umbral_voz=raw.get("umbral_voz"),
     )
 
 
@@ -77,12 +108,24 @@ def _parse_plano(raw: dict, index: int) -> Plano:
     audio_raw = raw.get("audio", {})
     audio = AudioSpec(musica=audio_raw.get("musica"), sfx=audio_raw.get("sfx"))
 
+    # mascota.expresion: fuerza la expresión de este plano (si no, se infiere)
+    mascota_raw = raw.get("mascota") or {}
+    if not isinstance(mascota_raw, dict):
+        raise GuionValidationError(f"plano {raw['id']}: 'mascota' debe ser un objeto")
+    expresion = mascota_raw.get("expresion")
+    if expresion is not None and expresion not in ALL_ACTIONS:
+        raise GuionValidationError(
+            f"plano {raw['id']}: mascota.expresion '{expresion}' invalida "
+            f"(opciones: {', '.join(ALL_ACTIONS)})"
+        )
+
     return Plano(
         id=raw["id"],
         seccion=raw.get("seccion", ""),
         narracion=raw["narracion"],
         visual=visual,
         texto_en_pantalla=raw.get("texto_en_pantalla"),
+        mascota_expresion=expresion,
         audio=audio,
         inicio_aprox=raw.get("inicio_aprox"),
         duracion_seg_estimada=raw.get("duracion_seg"),

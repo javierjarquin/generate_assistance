@@ -59,6 +59,9 @@ class Plano:
     narracion: str
     visual: VisualSpec
     texto_en_pantalla: str | None = None
+    # Fuerza la expresión de la mascota en este plano (mascota.expresion del
+    # guion). None = se infiere de la narración (ver mascot_director).
+    mascota_expresion: str | None = None
     audio: AudioSpec = field(default_factory=AudioSpec)
     inicio_aprox: str | None = None
     duracion_seg_estimada: float | None = None

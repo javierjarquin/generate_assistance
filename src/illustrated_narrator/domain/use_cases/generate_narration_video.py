@@ -289,16 +289,52 @@ class GenerateNarrationVideo:
 
         # Modo mascota: superpone un personaje que presenta el video (lip-sync
         # + gestos). Si algo falla, el video queda igual (solo voz).
-        if self._mascot is not None:
+        mascot = self._resolve_mascot(guion.meta.mascota, project)
+        if mascot is not None:
             try:
-                self._composite_mascot(project, renderable, intro_offset, cta_start)
+                self._composite_mascot(project, renderable, intro_offset, cta_start, mascot)
             except Exception as exc:  # noqa: BLE001 — sin mascota, el video sigue
                 logger.error("Mascota falló (%s); el video queda solo con voz", exc)
 
         report.final_video_path = project.final_video_path
         return report
 
-    def _composite_mascot(self, project, renderable, intro_offset, cta_start) -> None:
+    def _resolve_mascot(self, spec, project) -> dict | None:
+        """Config efectiva de la mascota: el guion (meta.mascota) manda sobre los
+        defaults del entorno. Devuelve None si no se activa o no hay carpeta."""
+        cfg = dict(self._mascot or {})
+        if not cfg:
+            return None
+        enabled = bool(cfg.get("enabled"))
+        path = cfg.get("path")  # del entorno: relativa al cwd, como siempre
+        if spec is not None:
+            if spec.modo is not None:
+                enabled = spec.modo == "mascota"
+            if spec.ruta:
+                # ruta del guion: relativa al proyecto (portable entre PCs)
+                p = Path(spec.ruta)
+                path = p if p.is_absolute() else project.root_dir / p
+            if spec.pos:
+                cfg["position"] = spec.pos
+            if spec.alto:
+                cfg["height_frac"] = float(spec.alto)
+            if spec.fps:
+                cfg["mascot_fps"] = int(spec.fps)
+            if spec.umbral_voz is not None:
+                cfg["voice_threshold"] = float(spec.umbral_voz)
+        if not enabled:
+            return None
+        if path is None:
+            logger.error("Modo mascota sin carpeta (meta.mascota.ruta o NARR_MASCOTA_PATH); solo voz")
+            return None
+        path = Path(path)
+        if not path.exists():
+            logger.error("La carpeta de la mascota no existe: %s — el video queda solo con voz", path)
+            return None
+        cfg["path"] = path
+        return cfg
+
+    def _composite_mascot(self, project, renderable, intro_offset, cta_start, mascot) -> None:
         from illustrated_narrator.adapters.video.mascot_compositor import (
             available_actions,
             composite_mascot,
@@ -306,7 +342,7 @@ class GenerateNarrationVideo:
         from illustrated_narrator.domain.services.mascot_director import PlanoBeat, plan_mascot
         from illustrated_narrator.domain.services.motion_profile import resolve_motion
 
-        mascot_dir = self._mascot["path"]
+        mascot_dir = mascot["path"]
         actions = available_actions(mascot_dir)
         beats = [
             PlanoBeat(
@@ -314,17 +350,18 @@ class GenerateNarrationVideo:
                 end=intro_offset + float(p.fin_real_seg),
                 energetic=resolve_motion(p).name in ("impact", "energetic"),
                 text=p.narracion,
+                expresion=p.mascota_expresion,
             )
             for p in renderable
         ]
         segments = plan_mascot(beats, actions, cta_start=cta_start, cta_duration=self._cta_duration)
         tmp = project.final_video_path.with_name("final_mascota.mp4")
         composite_mascot(
-            self._mascot["ffmpeg"], self._mascot["encode_args"],
+            mascot["ffmpeg"], mascot["encode_args"],
             project.final_video_path, project.audio_path, mascot_dir, segments, tmp,
-            fps=self._mascot["fps"], canvas=self._canvas,
-            height_frac=self._mascot["height_frac"], position=self._mascot["position"],
-            mascot_fps=self._mascot["mascot_fps"], voice_threshold=self._mascot["voice_threshold"],
+            fps=mascot["fps"], canvas=self._canvas,
+            height_frac=mascot["height_frac"], position=mascot["position"],
+            mascot_fps=mascot["mascot_fps"], voice_threshold=mascot["voice_threshold"],
             intro_offset=intro_offset,
         )
         tmp.replace(project.final_video_path)

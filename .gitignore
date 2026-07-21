@@ -16,6 +16,8 @@ projects/Capitulo1/*
 !projects/Capitulo1/guion.json
 !projects/Capitulo1/mascota/
 !projects/Capitulo1/mascota/**
+# Excepcion: la narracion grabada SI se versiona (para moverla entre PCs)
+!projects/Capitulo1/narracion.wav
 tools/stable-diffusion-webui-directml/
 tools/stable-diffusion-webui/
 *.log
