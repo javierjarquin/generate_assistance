@@ -58,6 +58,8 @@ class Settings:
     mascot_height_frac: float
     mascot_fps: int
     mascot_voice_threshold: float
+    facebook_page_id: str | None
+    facebook_page_access_token: str | None
 
 
 def load_settings() -> Settings:
@@ -125,4 +127,6 @@ def load_settings() -> Settings:
         mascot_height_frac=float(os.getenv("NARR_MASCOTA_HEIGHT_FRAC", "0.34")),
         mascot_fps=int(os.getenv("NARR_MASCOTA_FPS", "12")),
         mascot_voice_threshold=float(os.getenv("NARR_MASCOTA_VOICE_THRESHOLD", "0.06")),
+        facebook_page_id=os.getenv("NARR_FACEBOOK_PAGE_ID", "").strip() or None,
+        facebook_page_access_token=os.getenv("NARR_FACEBOOK_PAGE_ACCESS_TOKEN", "").strip() or None,
     )

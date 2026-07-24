@@ -6,6 +6,7 @@ nada de embeddings. Suficiente para descartar resultados obviamente
 irrelevantes sin bloquear la investigación de medios para "cualquier video".
 """
 
+import difflib
 import re
 
 # Palabras de estilo/cámara que sobran en una búsqueda de stock real: describen
@@ -16,6 +17,12 @@ _STYLE_STOPWORDS = {
     "atmospheric", "render", "3d", "view", "digital", "painting",
     "illustration", "warm", "muted", "earthy", "palette", "painterly",
     "documentary", "natural", "history", "detail", "different", "composition",
+    # Instrucciones de encuadre/formato, no contenido -- colarse en la query
+    # sólo diluye la búsqueda y nunca describe qué hay en la imagen (visto en
+    # una corrida real: "vertical" quedó como palabra de la query de un plano
+    # de Yucatan y no aportó nada a la relevancia, solo bajó el umbral).
+    "vertical", "horizontal", "portrait", "landscape", "format", "frame",
+    "framing", "aspect", "ratio",
 }
 
 # Conectores genéricos en inglés: no describen contenido, solo diluyen la
@@ -26,10 +33,15 @@ _CONNECTOR_STOPWORDS = {
     "aimed", "over", "near", "that", "this", "these", "those", "for",
 }
 
-# Wikimedia Commons (CirrusSearch) trata varios términos como AND implícito:
-# más de ~3-4 palabras de contenido casi siempre da 0 resultados aunque cada
-# palabra por separado exista. Confirmado empíricamente contra la API real.
-_MAX_QUERY_WORDS = 4
+# Subido de 4 a 6: el tope de 4 era en realidad una limitación de Wikimedia
+# Commons (CirrusSearch trata varios términos como AND implícito), pero
+# wikimedia_adapter.py YA tiene su propio acortador progresivo interno
+# (prueba con la query completa y recorta de a una palabra si no hay
+# resultados) -- el tope acá de nada servía para Wikimedia y solo le quitaba
+# especificidad a Pexels, que sí maneja bien queries más largas y ricas (su
+# búsqueda es semántica, no AND literal). Más palabras = más contexto de la
+# ESCENA puntual, no solo el tema general.
+_MAX_QUERY_WORDS = 6
 _WORD_RE = re.compile(r"[a-záéíóúñ]+", re.IGNORECASE)
 
 
@@ -59,12 +71,36 @@ def derive_query(prompt_ia: str, descripcion: str, override: str | None = None) 
     return (descripcion or prompt_ia or "").strip()
 
 
+# Similitud mínima (difflib, 0..1) para contar dos palabras como "la misma"
+# aunque no sean idénticas letra por letra. Wikimedia Commons tiene muchos
+# títulos en portugués/alemán/latín científico frente a una query en inglés
+# (derivada del prompt IA) -- ej. "tyrannosaurus" vs "tiranossauro" da 0.72,
+# "meteorito" vs "meteor" da 0.80. Un match exacto exigía coincidencia
+# literal y descartaba resultados claramente relevantes (confirmado contra
+# una corrida real: 53/101 shots tenían candidatos descargados pero solo 8
+# pasaban el umbral).
+_FUZZY_MIN_RATIO = 0.70
+
+
 def relevance_score(query: str, candidate_text: str) -> float:
-    """Solapamiento de palabras clave (0..1): cuántas palabras de la query
-    aparecen en el título/tags del candidato."""
+    """Fracción (0..1) de palabras de la query que aparecen -exacta o
+    aproximadamente (variantes de idioma/ortografía)- en el título/tags del
+    candidato."""
     query_words = _words(query) - _STYLE_STOPWORDS
     if not query_words:
         return 0.0
     candidate_words = _words(candidate_text)
-    overlap = query_words & candidate_words
-    return len(overlap) / len(query_words)
+    if not candidate_words:
+        return 0.0
+    hits = 0
+    for q in query_words:
+        if q in candidate_words:
+            hits += 1
+            continue
+        best = max(
+            (difflib.SequenceMatcher(None, q, c).ratio() for c in candidate_words),
+            default=0.0,
+        )
+        if best >= _FUZZY_MIN_RATIO:
+            hits += 1
+    return hits / len(query_words)

@@ -135,6 +135,7 @@ def write_ass(
     cta_text: str | None = None,
     cta_start_seconds: float | None = None,
     cta_duration: float = 3.0,
+    video_total_seconds: float | None = None,
     accent_color_ass: str | None = None,
     time_offset_seconds: float = 0.0,
     brand_name: str | None = None,
@@ -189,8 +190,20 @@ def write_ass(
     # CTA de cierre con el mismo lenguaje (pop, sin caja)
     if cta_text and cta_start_seconds is not None:
         start = _format_ts(cta_start_seconds + 0.2)
-        end = _format_ts(cta_start_seconds + cta_duration)
-        cta = cta_text.upper().replace("\n", "\\N")
+        # cta_start_seconds + cta_duration asume que la tarjeta se suma
+        # entera al video -- pero la tarjeta TAMBIÉN se encadena con xfade
+        # (un clip más en la secuencia), así que su aporte real es menor.
+        # video_total_seconds (si se pasa) es la duración real ya calculada
+        # con ese solape -- usarla evita un evento de texto que termina
+        # después del final real del archivo (fundido de salida cortado).
+        raw_end = cta_start_seconds + cta_duration
+        end_seconds = min(raw_end, video_total_seconds) if video_total_seconds else raw_end
+        end = _format_ts(end_seconds)
+        raw_cta = cta_text.upper().replace("\n", " ")
+        # Sin wrap, un CTA largo ("SÍGUEME PARA MÁS HISTORIAS", 27 caracteres)
+        # se sale del ancho del lienzo vertical a este tamaño de fuente --
+        # mismo tratamiento que el gancho de apertura, que sí lo tenía.
+        cta = _wrap(raw_cta, max_chars=18) if len(raw_cta) > 20 else raw_cta
         lines.append(
             f"Dialogue: 1,{start},{end},Titulo,,0,0,0,,"
             f"{{\\fad(250,300)\\fscx60\\fscy60\\t(0,220,\\fscx100\\fscy100)}}{cta}\n"

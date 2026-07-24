@@ -120,6 +120,48 @@ def media(slug: str = typer.Argument(help="Nombre de la carpeta en projects/<slu
 
 
 @app.command()
+def publish(
+    slug: str = typer.Argument(help="Nombre de la carpeta en projects/<slug>/"),
+    title: str = typer.Option("", "--title", help="Título del video (opcional)"),
+    description: str = typer.Option(
+        "", "--description", "--caption", help="Texto del post (opcional; si falta, usa meta.titulo)"
+    ),
+) -> None:
+    """Sube projects/<slug>/final.mp4 a la Página de Facebook configurada
+    (NARR_FACEBOOK_PAGE_ID + NARR_FACEBOOK_PAGE_ACCESS_TOKEN en .env)."""
+    from illustrated_narrator.domain.services.script_loader import load_guion
+
+    container = _container()
+    project = _project(slug)
+    if not project.final_video_path.exists():
+        typer.echo(f"Falta {project.final_video_path} — corre `generate {slug}` primero.")
+        raise typer.Exit(code=1)
+    if not container.video_publisher.is_available():
+        typer.echo(
+            "Falta configurar NARR_FACEBOOK_PAGE_ID / NARR_FACEBOOK_PAGE_ACCESS_TOKEN en .env."
+        )
+        raise typer.Exit(code=1)
+
+    final_description = description
+    if not final_description and project.script_path.exists():
+        guion = load_guion(project.script_path)
+        final_description = guion.meta.titulo
+
+    typer.echo(f"Publicando {project.final_video_path} en Facebook…")
+    try:
+        result = container.video_publisher.publish(
+            project.final_video_path, title=title, description=final_description
+        )
+    except RuntimeError as exc:
+        typer.echo(f"FALLÓ: {exc}")
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Publicado. ID: {result.post_id}")
+    if result.url:
+        typer.echo(f"URL: {result.url}")
+
+
+@app.command()
 def status(slug: str = typer.Argument(help="Nombre de la carpeta en projects/<slug>/")) -> None:
     """Muestra cuántos planos hay, cuántos están alineados/con imagen/con clip."""
     from illustrated_narrator.domain.services.plano_state import load_planos_state

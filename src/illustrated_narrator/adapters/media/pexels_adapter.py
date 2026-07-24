@@ -17,8 +17,11 @@ _TIMEOUT = 15
 
 
 class PexelsImageAdapter(StockImagePort):
-    def __init__(self, api_key: str | None, session: requests.Session | None = None) -> None:
+    def __init__(
+        self, api_key: str | None, vertical: bool = False, session: requests.Session | None = None
+    ) -> None:
         self._api_key = api_key or ""
+        self._vertical = vertical
         self._http = session or requests.Session()
 
     def is_available(self) -> bool:
@@ -31,7 +34,11 @@ class PexelsImageAdapter(StockImagePort):
             resp = self._http.get(
                 "https://api.pexels.com/v1/search",
                 headers={"Authorization": self._api_key},
-                params={"query": query, "per_page": count, "orientation": "landscape"},
+                params={
+                    "query": query,
+                    "per_page": count,
+                    "orientation": "portrait" if self._vertical else "landscape",
+                },
                 timeout=_TIMEOUT,
             )
             resp.raise_for_status()
