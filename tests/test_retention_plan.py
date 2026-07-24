@@ -28,8 +28,8 @@ def test_long_plano_splits() -> None:
     assert shots_for_duration(9.0) == 3   # >8s -> 3 tomas
 
 
-def test_shots_capped_at_three() -> None:
-    assert shots_for_duration(60.0) == 3
+def test_shots_capped_at_five() -> None:
+    assert shots_for_duration(60.0) == 5
 
 
 def test_plan_shots_ids_and_flags() -> None:

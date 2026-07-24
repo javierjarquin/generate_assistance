@@ -138,9 +138,23 @@ class ResearchPlanoMedia:
             available, key=lambda c: relevance_score(query, c.title), reverse=True
         )
         best = scored[0]
-        if relevance_score(query, best.title) < self._min_score:
+        if relevance_score(query, best.title) < self._effective_min_score(best):
             return None
         return best
+
+    def _effective_min_score(self, candidate: MediaCandidate) -> float:
+        # Pexels ya hace su propio matching semantico contra la query en el
+        # servidor (devuelve resultados ordenados por relevancia real, no por
+        # coincidencia de texto) -- nuestro relevance_score es un parche
+        # pensado para el buscador de texto plano de Wikimedia (titulos
+        # ruidosos, a veces en otro idioma). Aplicarle el MISMO umbral literal
+        # a Pexels rechazaba resultados genuinamente buenos solo porque el
+        # titulo no repetia las palabras de la query (visto en una corrida
+        # real: "shooting star" / "lunar surface" para una query de
+        # "asteroid" -- contenido correcto, vocabulario distinto).
+        if candidate.source in ("pexels", "pexels_video"):
+            return min(self._min_score, 0.22)
+        return self._min_score
 
     @staticmethod
     def _manual_override(plano_media_dir: Path, shot: Shot) -> Path | None:

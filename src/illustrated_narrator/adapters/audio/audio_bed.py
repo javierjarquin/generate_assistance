@@ -43,8 +43,14 @@ class AudioBedBuilder:
                 if candidate.exists():
                     return candidate
         dest = cache_dir / "music_auto.wav"
-        # Pad ambiental: acorde menor con desafinación leve, trémolo lento y
-        # eco — tono documental sobrio. Sustituible por assets/music.mp3.
+        # Pad ambiental (acorde menor + trémolo lento + eco) + pulso grave
+        # suave (55Hz, sensación de latido más que sonido). Hubo un "hat"
+        # (ruido blanco filtrado en agudos) para que el ritmo se notara en
+        # parlantes chicos, pero el trémolo (fundido suave) en vez de un
+        # golpe seco lo hacía sonar como un "shhh shhh" sostenido, molesto en
+        # un video real -- se sacó. Mejor una cama tenue y pareja que un
+        # intento de "ritmo" que termina sonando a ruido. Sustituible por
+        # assets/music.mp3 (gana si existe).
         self._run(
             [
                 "-f", "lavfi",
@@ -55,10 +61,15 @@ class AudioBedBuilder:
                 "-i", f"sine=frequency=164.4:duration={duration:.2f}",
                 "-f", "lavfi",
                 "-i", f"anoisesrc=colour=brown:amplitude=0.03:duration={duration:.2f}",
+                "-f", "lavfi",
+                "-i", f"sine=frequency=55:duration={duration:.2f}",
                 "-filter_complex",
+                "[4:a]tremolo=f=1.87:d=0.6,lowpass=f=150[pulse];"
                 "[0:a][1:a][2:a][3:a]amix=inputs=4:normalize=1,"
                 "tremolo=f=0.13:d=0.35,aecho=0.7:0.5:520:0.28,"
-                "lowpass=f=900,afade=t=in:d=2.5,"
+                "lowpass=f=900[pad];"
+                "[pad][pulse]amix=inputs=2:normalize=0,"
+                "afade=t=in:d=2.5,"
                 f"afade=t=out:st={max(duration - 3.0, 0):.2f}:d=3.0[out]",
                 "-map", "[out]",
                 str(dest),
@@ -149,7 +160,7 @@ class AudioBedBuilder:
             delay_ms = int(plano.inicio_real_seg * 1000)
             inputs += ["-i", str(src)]
             filters.append(
-                f"[{idx}:a]volume=0.30,afade=t=in:d=0.4,adelay={delay_ms}|{delay_ms},"
+                f"[{idx}:a]volume=0.9,afade=t=in:d=0.4,adelay={delay_ms}|{delay_ms},"
                 f"apad=whole_dur={duration:.2f}[s{idx}]"
             )
             labels.append(f"[s{idx}]")
@@ -160,7 +171,7 @@ class AudioBedBuilder:
             delay_ms = max(0, int((t - 0.15) * 1000))
             inputs += ["-i", str(whoosh)]
             filters.append(
-                f"[{idx}:a]volume=0.18,adelay={delay_ms}|{delay_ms},"
+                f"[{idx}:a]volume=0.6,adelay={delay_ms}|{delay_ms},"
                 f"apad=whole_dur={duration:.2f}[w{idx}]"
             )
             labels.append(f"[w{idx}]")
