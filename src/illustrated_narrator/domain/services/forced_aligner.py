@@ -13,7 +13,7 @@ import re
 from dataclasses import dataclass, field
 
 from illustrated_narrator.domain.entities.guion import Guion
-from illustrated_narrator.domain.entities.transcript import Transcript
+from illustrated_narrator.domain.entities.transcript import Transcript, TranscriptWord
 
 _PUNCT_RE = re.compile(r"[^\wáéíóúñü]", re.UNICODE)
 
@@ -75,3 +75,72 @@ class AlignScriptToAudio:
             total_planos=len(guion.planos),
             unaligned_planos=unaligned,
         )
+
+
+def captioned_transcript(guion: Guion, transcript: Transcript) -> Transcript:
+    """Devuelve un transcript con el TEXTO del guion (siempre correcto) pero
+    los TIEMPOS reales de Whisper -- para quemar subtítulos.
+
+    Sin esto, los subtítulos salen del reconocimiento crudo de Whisper, que
+    puede errar nombres propios/técnicos (visto en un video real: "Chicxulub"
+    transcrito como "Shisholup" y quemado así en pantalla). El guion ya sabe
+    qué se dijo; solo hace falta CUÁNDO, que es lo único que Whisper aporta
+    de forma confiable.
+    """
+    expected_words: list[str] = []
+    for plano in guion.planos:
+        expected_words.extend(plano.narracion.split())
+    expected_norm = [_normalize(w) for w in expected_words]
+    transcribed_norm = [_normalize(w.text) for w in transcript.words]
+
+    matcher = difflib.SequenceMatcher(a=expected_norm, b=transcribed_norm, autojunk=False)
+    opcodes = matcher.get_opcodes()
+
+    def _next_known_start(op_idx: int) -> float | None:
+        for tag, _i1, _i2, j1, j2 in opcodes[op_idx:]:
+            if tag != "delete" and j2 > j1:
+                return transcript.words[j1].start_seconds
+        return None
+
+    result: list[TranscriptWord] = []
+    last_end = 0.0
+    for op_idx, (tag, i1, i2, j1, j2) in enumerate(opcodes):
+        script_slice = expected_words[i1:i2]
+        n_script = i2 - i1
+        n_trans = j2 - j1
+        if tag == "insert" or n_script == 0:
+            continue  # Whisper "escuchó" palabras que no están en el guion -- se descartan
+        if tag == "equal" or (tag == "replace" and n_script == n_trans):
+            for offset in range(n_script):
+                w = transcript.words[j1 + offset]
+                result.append(TranscriptWord(script_slice[offset], w.start_seconds, w.end_seconds))
+                last_end = w.end_seconds
+        elif n_trans > 0:
+            # Cantidad distinta de palabras en guion vs. lo transcrito: se
+            # reparte el tramo de tiempo real (inicio de la primera palabra
+            # transcrita a fin de la última) en partes iguales entre las
+            # palabras del guion -- aproximado, pero mejor que perderlas.
+            span_start = transcript.words[j1].start_seconds
+            span_end = transcript.words[j2 - 1].end_seconds
+            step = max((span_end - span_start) / n_script, 0.01)
+            for offset in range(n_script):
+                s = span_start + offset * step
+                e = span_start + (offset + 1) * step
+                result.append(TranscriptWord(script_slice[offset], s, e))
+            last_end = span_end
+        else:
+            # Whisper no reconoció NADA en este tramo (palabra completa
+            # perdida/inaudible) -- se aprieta en el hueco entre lo último
+            # conocido y lo próximo conocido, o justo después de lo último
+            # si no hay nada más adelante.
+            next_start = _next_known_start(op_idx + 1)
+            span_start = last_end
+            span_end = next_start if next_start is not None else last_end + 0.05 * n_script
+            step = max((span_end - span_start) / n_script, 0.01)
+            for offset in range(n_script):
+                s = span_start + offset * step
+                e = span_start + (offset + 1) * step
+                result.append(TranscriptWord(script_slice[offset], s, e))
+            last_end = span_end
+
+    return Transcript(words=result, language=transcript.language)

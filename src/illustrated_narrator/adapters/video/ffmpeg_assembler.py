@@ -207,6 +207,18 @@ class FFmpegAssembler(VideoAssemblerPort):
             args += ["-preset", "veryfast", "-crf", "23"]
         else:
             args += ["-b:v", "8M"]
+        # Tag de color explícito e IGUAL en todo encode: sin esto, una toma
+        # nacida de una imagen IA (PNG sin metadata de color -> el stream sale
+        # "unknown") y una toma de video real de Pexels (hereda el bt709 del
+        # archivo original) quedan con metadata distinta. Al concatenar esas
+        # tomas dentro de un mismo plano (concat demuxer, -c copy, conserva la
+        # metadata de cada una tal cual), esa mezcla dispara un
+        # "Reconfiguring filter graph" en cualquier filtro corriente abajo --
+        # y en esa reconfiguración ffmpeg DESCARTA frames (medido en una
+        # corrida real: 213 frames perdidos, el video quedaba con imagen fija
+        # a los ~22s mientras el audio seguía completo). Forzar el mismo tag
+        # en TODO encode (tomas, planos, video final) elimina la mezcla de raíz.
+        args += ["-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709", "-color_range", "tv"]
         return args
 
     # ------------------------------------------------------------ clips
@@ -558,18 +570,30 @@ class FFmpegAssembler(VideoAssemblerPort):
         # función compartida para que el CTA y el -t cuadren.
         xfds = _xfd_sequence(durations, xfade_duration)
         filter_lines: list[str] = []
+        # Normaliza CADA clip (formato/espacio de color/SAR) antes de entrar a
+        # la cadena de xfade. Sin esto, mezclar clips de origen distinto
+        # (imagen IA generada localmente vs. video/foto real de Pexels) deja
+        # metadata de color inconsistente entre inputs -- ffmpeg lo detecta a
+        # mitad de la cadena ("Reconfiguring filter graph because video
+        # parameters changed") y en esa reconfiguración DESCARTA frames (visto
+        # en una corrida real: 213 frames perdidos, el video quedaba "trabado"
+        # con solo ~22s de imagen real sobre 75s de audio). format= fuerza el
+        # mismo pix_fmt/color en todos los inputs, así el filtro nunca necesita
+        # reconfigurarse entre uno y otro.
         if len(clip_paths) == 1:
             video_label = "0:v"
         else:
             running_offset = durations[0] - xfds[0]
-            prev_label = "0:v"
+            filter_lines.append("[0:v]format=yuv420p,setsar=1[v0n]")
+            prev_label = "v0n"
             for i in range(1, len(clip_paths)):
                 out_label = f"v{i}"
                 xfd = xfds[i - 1]
                 # Corte seco = fade brevísimo; xfade variado solo pasados los 5s
                 transition = "fade" if xfd == _HARD_CUT else _TRANSITIONS[(i - 1) % len(_TRANSITIONS)]
+                filter_lines.append(f"[{i}:v]format=yuv420p,setsar=1[v{i}n]")
                 filter_lines.append(
-                    f"[{prev_label}][{i}:v]xfade=transition={transition}:"
+                    f"[{prev_label}][v{i}n]xfade=transition={transition}:"
                     f"duration={xfd:.3f}:offset={running_offset:.3f}[{out_label}]"
                 )
                 prev_label = out_label
@@ -619,9 +643,17 @@ class FFmpegAssembler(VideoAssemblerPort):
             # 2. Duplicamos el flujo en dos copias independientes
             filter_lines.append("[narrpad_raw]asplit[narrpad1][narrpad2]")
             # 3. Usamos la primera copia para el sidechain compress
+            # threshold/ratio relajados de nuevo: con 0.1/5 la cama solo se
+            # recuperaba en pausas/gaps, quedando practicamente agachada
+            # durante el 90%+ de un short de narracion casi continua --
+            # medido en una corrida real: la ganancia promedio en las
+            # ventanas de habla apenas cambiaba. Con threshold mas alto, solo
+            # los picos mas fuertes de voz agachan la cama; el resto del
+            # tiempo (incluida la mayor parte del habla normal) la cama queda
+            # audible de fondo, no solo en los huecos.
             filter_lines.append(
                 f"[{bed_index}:a][narrpad1]"
-                "sidechaincompress=threshold=0.04:ratio=12:attack=60:release=500[duck]"
+                "sidechaincompress=threshold=0.3:ratio=2.5:attack=60:release=150[duck]"
             )
             # 4. Mezclamos la segunda copia con el audio comprimido
             filter_lines.append(

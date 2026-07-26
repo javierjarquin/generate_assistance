@@ -13,7 +13,11 @@ from pathlib import Path
 
 from illustrated_narrator.domain.entities.plano import Plano, PlanoEstado
 from illustrated_narrator.domain.entities.project import NarrationProject
-from illustrated_narrator.domain.services.forced_aligner import AlignmentResult, AlignScriptToAudio
+from illustrated_narrator.domain.services.forced_aligner import (
+    AlignmentResult,
+    AlignScriptToAudio,
+    captioned_transcript,
+)
 from illustrated_narrator.domain.services.pan_direction import pan_direction_for
 from illustrated_narrator.domain.services.plano_state import load_planos_state, save_planos_state
 from illustrated_narrator.domain.services.motion_profile import resolve_motion
@@ -202,8 +206,6 @@ class GenerateNarrationVideo:
         if not clip_paths:
             raise RuntimeError("Sin clips para ensamblar — revisa la alineación y la generación de imágenes.")
 
-        narration_end = max((p.fin_real_seg or 0) for p in renderable) + 1.2
-
         from illustrated_narrator.adapters.video.ffmpeg_assembler import chained_duration
 
         # Tarjeta de apertura con el nombre de marca: antepone un clip fijo
@@ -228,27 +230,40 @@ class GenerateNarrationVideo:
         # Tarjeta de cierre (CTA): retiene ofreciendo el siguiente paso.
         # El inicio en la línea de tiempo se deriva de las duraciones ya
         # conocidas (cada xfade solapa xfade_duration), sin sondear archivos.
+        plano_durations = [render_durations[p.id] for p in renderable]
+        if self._brand_name:
+            plano_durations = [self._brand_intro_duration, *plano_durations]
         cta_start = None
+        video_total = chained_duration(plano_durations, self._xfade_duration)
         if self._cta_text:
             end_card = project.clips_dir / "zzz_end_card.mp4"
             self._assembler.render_end_card(self._cta_text, self._cta_duration, end_card)
             # Inicio de la tarjeta = duración del contenido encadenado (misma
             # función que usa el ensamblador, así el CTA cae justo en el corte)
-            plano_durations = [render_durations[p.id] for p in renderable]
-            if self._brand_name:
-                plano_durations = [self._brand_intro_duration, *plano_durations]
-            cta_start = chained_duration(plano_durations, self._xfade_duration)
+            cta_start = video_total
+            # La tarjeta de cierre TAMBIÉN se encadena con xfade (es un clip
+            # más en clip_paths) -- su aporte real al video final es
+            # cta_duration MENOS ese solape, no cta_duration completo. Sin
+            # esto, el evento de texto del CTA en el .ass terminaba después
+            # del final real del archivo: el fundido de salida (y a veces
+            # hasta parte del texto) quedaba cortado -- reportado como "se ve
+            # incompleto" en un video real.
+            video_total = chained_duration([*plano_durations, self._cta_duration], self._xfade_duration)
             clip_paths.append(end_card)
 
         write_ass(
             renderable,
             project.captions_path,
-            transcript=transcript,
+            # Texto del guion (siempre correcto) con los tiempos reales de
+            # Whisper -- evita quemar en pantalla errores de reconocimiento
+            # (nombres propios/técnicos mal oídos).
+            transcript=captioned_transcript(guion, transcript),
             meta=guion.meta,
             play_res=self._canvas,
             cta_text=self._cta_text,
             cta_start_seconds=cta_start,
             cta_duration=self._cta_duration,
+            video_total_seconds=video_total,
             accent_color_ass=self._accent_color_ass,
             time_offset_seconds=intro_offset,
             brand_name=self._brand_name,
@@ -263,7 +278,7 @@ class GenerateNarrationVideo:
 
         bed_path = None
         if self._bed_builder is not None:
-            total = intro_offset + narration_end + (self._cta_duration if self._cta_text else 0)
+            total = video_total
             # La cama de música/SFX NO se retrasa (suena limpia desde t=0 bajo
             # la intro); solo se desplazan los MOMENTOS de corte para que
             # sigan cayendo justo donde el video ya alargado los tiene.

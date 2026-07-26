@@ -19,7 +19,14 @@ from dataclasses import dataclass
 from illustrated_narrator.domain.entities.plano import Plano
 
 MAX_SHOT_SECONDS = 4.0  # ninguna imagen fija más de esto en pantalla
-MAX_SHOTS_PER_PLANO = 3  # techo: generar más imágenes cuesta GPU
+# Techo subido de 3 a 5: con 3, un plano de más de 12s (bastante común en un
+# "desarrollo" de Short) terminaba con tomas de 5-7s en pantalla -- MAS que el
+# propio MAX_SHOT_SECONDS que este archivo dice respetar, y por encima del
+# estándar de la industria para retención en vertical corto (cambio visual
+# cada 1.5-4s; fuente: guía de pacing de Aibrify 2026 y benchmarks de hook/
+# retención de TikTok, ver conversación). Sigue siendo un techo (no todo plano
+# llega a 5), asi que el costo real de GPU sube menos de lo que parece.
+MAX_SHOTS_PER_PLANO = 5
 
 # Escalada de ritmo: un video con cortes parejos de principio a fin se siente
 # plano hacia el clímax. A partir de _RAMP_START_FRACTION del tiempo total, el

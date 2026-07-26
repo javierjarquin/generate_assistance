@@ -8,6 +8,7 @@ from illustrated_narrator.adapters.media.freesound_adapter import FreesoundAdapt
 from illustrated_narrator.adapters.media.pexels_adapter import PexelsImageAdapter
 from illustrated_narrator.adapters.media.pexels_video_adapter import PexelsVideoAdapter
 from illustrated_narrator.adapters.media.wikimedia_adapter import WikimediaCommonsAdapter
+from illustrated_narrator.adapters.publish.facebook_adapter import FacebookPagePublisher
 from illustrated_narrator.adapters.transcription.faster_whisper_adapter import FasterWhisperTranscriber
 from illustrated_narrator.adapters.video.ffmpeg_assembler import FFmpegAssembler
 from illustrated_narrator.domain.use_cases.generate_narration_video import GenerateNarrationVideo
@@ -86,8 +87,14 @@ class Container:
         )
 
     @cached_property
+    def video_publisher(self) -> FacebookPagePublisher:
+        return FacebookPagePublisher(
+            self.settings.facebook_page_id, self.settings.facebook_page_access_token
+        )
+
+    @cached_property
     def _pexels_adapter(self) -> PexelsImageAdapter:
-        return PexelsImageAdapter(self.settings.pexels_api_key)
+        return PexelsImageAdapter(self.settings.pexels_api_key, vertical=self.settings.vertical)
 
     @cached_property
     def _pexels_video_adapter(self) -> PexelsVideoAdapter | None:
