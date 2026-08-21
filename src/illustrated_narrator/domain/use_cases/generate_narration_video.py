@@ -80,6 +80,7 @@ class GenerateNarrationVideo:
         accent_color_ass: str | None = None,
         logo_path: Path | None = None,
         mascot: dict | None = None,
+        require_real_media: bool = False,
     ) -> None:
         self._transcriber = transcriber
         self._generate_images = generate_images
@@ -96,6 +97,7 @@ class GenerateNarrationVideo:
         self._accent_color_ass = accent_color_ass
         self._logo_path = logo_path
         self._mascot = mascot  # dict con path/ffmpeg/encode_args/pos/... o None
+        self._require_real_media = require_real_media
 
     def execute(self, project: NarrationProject) -> GenerateVideoReport:
         report = GenerateVideoReport()
@@ -164,6 +166,18 @@ class GenerateNarrationVideo:
             report.images_generated = len(images_report.generated)
             report.images_failed = images_report.failed
             save_planos_state(guion.planos, project.planos_alineados_path)
+            # Modo "sin IA" (NARR_IMAGE_BACKEND=none): un plano sin medio real
+            # NO debe traducirse en un video más corto que simplemente omite
+            # esa escena (comportamiento normal de `renderable` más abajo) --
+            # el lote desatendido necesita que el capítulo entero falle de
+            # forma explícita para poder reintentarlo, no un video incompleto
+            # publicado sin que nadie lo note.
+            if self._require_real_media and images_report.failed:
+                detalles = "; ".join(f"{p.id}: {err}" for p, err in images_report.failed)
+                raise RuntimeError(
+                    f"{len(images_report.failed)} plano(s) sin medio real "
+                    f"(NARR_IMAGE_BACKEND=none): {detalles}"
+                )
 
         renderable = [p for p in alignable if p.imagen_path and Path(p.imagen_path).exists()]
         clip_paths: list[Path] = []

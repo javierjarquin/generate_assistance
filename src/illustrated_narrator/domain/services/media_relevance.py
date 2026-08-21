@@ -8,6 +8,20 @@ irrelevantes sin bloquear la investigación de medios para "cualquier video".
 
 import difflib
 import re
+import unicodedata
+
+
+def _fold_accents(word: str) -> str:
+    """'chí' -> 'chi', 'méxico' -> 'mexico'. Sin esto, un nombre propio con
+    acento en el título (comun en Wikimedia/español) fallaba el match EXACTO
+    y caia al fuzzy, donde una sola letra de diferencia ("chi" vs "chí") da
+    ratio 0.667 -- por debajo de _FUZZY_MIN_RATIO (0.70). Confirmado que esto
+    rompia silenciosamente el caso "Cecilio Chi" que la fallback de nombre
+    propio usa como referencia (ver _PROPER_NOUN_MIN_SCORE en
+    research_plano_media.py): daba 0.5, no 1.0, por esta razon."""
+    return "".join(
+        c for c in unicodedata.normalize("NFKD", word) if not unicodedata.combining(c)
+    )
 
 # Palabras de estilo/cámara que sobran en una búsqueda de stock real: describen
 # cómo se renderiza la imagen IA, no qué contiene.
@@ -46,7 +60,7 @@ _WORD_RE = re.compile(r"[a-záéíóúñ]+", re.IGNORECASE)
 
 
 def _words(text: str) -> set[str]:
-    return {w.lower() for w in _WORD_RE.findall(text) if len(w) > 2}
+    return {_fold_accents(w.lower()) for w in _WORD_RE.findall(text) if len(w) > 2}
 
 
 def _content_words(text: str) -> list[str]:
@@ -82,6 +96,61 @@ def derive_query(prompt_ia: str, descripcion: str, override: str | None = None) 
 _FUZZY_MIN_RATIO = 0.70
 
 
+# Secuencias de 2+ palabras con mayúscula inicial seguidas -- en español,
+# eso casi siempre es un nombre propio (persona o lugar: "Cecilio Chi",
+# "Andrés Quintana Roo", "Porfirio Díaz"), a diferencia de una sola palabra
+# capitalizada (que puede ser solo el inicio de oración). Confirmado en un
+# video real: la query genérica derivada del prompt_ia (en inglés, para el
+# render IA) no encontraba nada relevante para "Cecilio Chi" -- pero
+# buscando su NOMBRE directo en Wikimedia aparecían fotos reales de sus
+# estatuas/monumentos. El prompt_ia se arma para dirigir un modelo de
+# imagen, no para buscar stock; el nombre propio real vive en narracion/
+# descripcion (español), no ahí.
+_PROPER_NOUN_RE = re.compile(
+    r"[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+"
+)
+# Nombres propios genéricos que no aportan como query de archivo/persona
+# (aparecen en casi cualquier oración en mayúscula por ser el tema del video),
+# más nombres ambiguos entre países -- "Distrito Federal" es el nombre
+# oficial viejo de CDMX pero TAMBIÉN el de la capital de Brasil, y Wikimedia
+# devuelve mapas/fotos de Brasilia con ese termino literal (confirmado en una
+# corrida real: un plano sobre peritajes en Mexico termino con un mapa de
+# "Distrito Federal" brasileño con score 1.0 -- coincidencia de pais, no de
+# tema).
+_GENERIC_PROPER_NOUNS = {
+    "quintana roo", "yucatan", "yucatán", "mexico", "méxico",
+    "distrito federal",
+}
+
+
+def extract_proper_nouns(*texts: str) -> list[str]:
+    """Nombres propios (2+ palabras capitalizadas seguidas) de cualquiera de
+    los textos dados, en orden de aparición, sin duplicados ni los genéricos
+    del propio tema del video (ver _GENERIC_PROPER_NOUNS)."""
+    seen: dict[str, str] = {}
+    for text in texts:
+        for match in _PROPER_NOUN_RE.findall(text or ""):
+            key = match.lower()
+            if key in _GENERIC_PROPER_NOUNS or key in seen:
+                continue
+            seen[key] = match
+    return list(seen.values())
+
+
+# Sitios/eventos reales de tragedia, bien documentados y con muchísimas
+# fotos de archivo bajo términos genéricos ("prisoner", "camp",
+# "historical") -- pueden colarse como match de un plano sin ninguna
+# relación real con ellos. Visto en un video real: candidatos de
+# Auschwitz-Birkenau elegidos para ilustrar una colonia penal mexicana no
+# relacionada, con buen score porque el título comparte "historic"/
+# "prisoners"/"camp". Se descartan de plano salvo que el propio plano los
+# mencione explícitamente (si la query los nombra, no se bloquean).
+_SENSITIVE_BLOCKLIST = {
+    "auschwitz", "birkenau", "holocaust", "holocausto", "dachau",
+    "buchenwald", "treblinka", "genocide", "genocidio",
+}
+
+
 def relevance_score(query: str, candidate_text: str) -> float:
     """Fracción (0..1) de palabras de la query que aparecen -exacta o
     aproximadamente (variantes de idioma/ortografía)- en el título/tags del
@@ -91,6 +160,9 @@ def relevance_score(query: str, candidate_text: str) -> float:
         return 0.0
     candidate_words = _words(candidate_text)
     if not candidate_words:
+        return 0.0
+    blocked = _SENSITIVE_BLOCKLIST & candidate_words
+    if blocked and not (blocked & query_words):
         return 0.0
     hits = 0
     for q in query_words:

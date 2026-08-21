@@ -18,7 +18,7 @@ class Settings:
     whisper_model: str
     whisper_cpu_threads: int
     whisper_language: str | None
-    image_backend: str  # "a1111" | "placeholder"
+    image_backend: str  # "a1111" | "placeholder" | "none"
     a1111_base_url: str
     sd_checkpoint: str | None
     sd_negative_prompt: str

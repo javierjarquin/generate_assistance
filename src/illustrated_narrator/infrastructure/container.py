@@ -5,9 +5,12 @@ from functools import cached_property
 from illustrated_narrator.adapters.audio.audio_bed import AudioBedBuilder
 from illustrated_narrator.adapters.images.automatic1111_adapter import Automatic1111ImageAdapter
 from illustrated_narrator.adapters.media.freesound_adapter import FreesoundAdapter
+from illustrated_narrator.adapters.media.nasa_images_adapter import NasaImagesAdapter
+from illustrated_narrator.adapters.media.openverse_adapter import OpenverseAdapter
 from illustrated_narrator.adapters.media.pexels_adapter import PexelsImageAdapter
 from illustrated_narrator.adapters.media.pexels_video_adapter import PexelsVideoAdapter
 from illustrated_narrator.adapters.media.wikimedia_adapter import WikimediaCommonsAdapter
+from illustrated_narrator.adapters.media.wikipedia_article_adapter import WikipediaArticleAdapter
 from illustrated_narrator.adapters.publish.facebook_adapter import FacebookPagePublisher
 from illustrated_narrator.adapters.transcription.faster_whisper_adapter import FasterWhisperTranscriber
 from illustrated_narrator.adapters.video.ffmpeg_assembler import FFmpegAssembler
@@ -44,6 +47,12 @@ class Container:
             )
 
             return PlaceholderImageAdapter()
+        if self.settings.image_backend == "none":
+            from illustrated_narrator.adapters.images.null_image_adapter import (
+                NullImageGenerator,
+            )
+
+            return NullImageGenerator()
         return Automatic1111ImageAdapter(
             self.settings.a1111_base_url, checkpoint=self.settings.sd_checkpoint
         )
@@ -107,21 +116,51 @@ class Container:
         return WikimediaCommonsAdapter()
 
     @cached_property
+    def _openverse_adapter(self) -> OpenverseAdapter:
+        return OpenverseAdapter()
+
+    @cached_property
+    def _wikipedia_article_adapter(self) -> WikipediaArticleAdapter:
+        return WikipediaArticleAdapter()
+
+    @cached_property
+    def _nasa_images_adapter(self) -> NasaImagesAdapter:
+        return NasaImagesAdapter()
+
+    @cached_property
     def _freesound_adapter(self) -> FreesoundAdapter:
         return FreesoundAdapter(self.settings.freesound_api_key)
 
     @cached_property
     def stock_image_sources_default(self) -> list[StockImagePort]:
         """Orden por defecto: stock general (fotos + B-roll de video) primero,
-        archivo como respaldo. El video compite por relevancia igual que las
-        fotos — no hay prioridad fija entre ambos."""
-        candidates = [self._pexels_adapter, self._pexels_video_adapter, self._wikimedia_adapter]
+        archivo como respaldo, Openverse al final (agrega Flickr/museos/CC de
+        muchas fuentes -- buen extra cuando Pexels/Wikimedia no alcanzan).
+        El video compite por relevancia igual que las fotos — no hay
+        prioridad fija entre ambos."""
+        candidates = [
+            self._pexels_adapter,
+            self._pexels_video_adapter,
+            self._wikimedia_adapter,
+            self._openverse_adapter,
+        ]
         return [c for c in candidates if c is not None and c.is_available()]
 
     @cached_property
     def stock_image_sources_historico(self) -> list[StockImagePort]:
-        """Planos archivo_historico: archivo público primero, stock de respaldo."""
-        candidates = [self._wikimedia_adapter, self._pexels_adapter, self._pexels_video_adapter]
+        """Planos archivo_historico: archivo público primero, stock de respaldo.
+        wikipedia_article + nasa al final -- esta lista es también el pool que
+        usa ResearchPlanoMedia._proper_noun_fallback como ÚLTIMO recurso
+        automático para CUALQUIER plano (no solo archivo_historico) antes de
+        rendirse y dejar la toma sin medio real."""
+        candidates = [
+            self._wikimedia_adapter,
+            self._openverse_adapter,
+            self._pexels_adapter,
+            self._pexels_video_adapter,
+            self._wikipedia_article_adapter,
+            self._nasa_images_adapter,
+        ]
         return [c for c in candidates if c is not None and c.is_available()]
 
     @cached_property
@@ -208,4 +247,5 @@ class Container:
             accent_color_ass=hex_to_ass_color(self.settings.brand_accent_color),
             logo_path=self.settings.brand_logo_path,
             mascot=self.mascot_config,
+            require_real_media=self.settings.image_backend == "none",
         )

@@ -2,7 +2,7 @@
 
 ## Qué es este proyecto
 
-`illustrated-narrator` genera videos narrados (verticales/horizontales) a partir de un `guion.json` (guion por planos) + un audio de narración real. Para las imágenes/video de cada plano investiga medios reales (Pexels, Wikimedia) antes de considerar cualquier otra fuente; usa Whisper para transcribir/alinear la narración y ffmpeg para el ensamblado final.
+`illustrated-narrator` genera videos narrados (verticales/horizontales) a partir de un `guion.json` (guion por planos) + un audio de narración real. Para las imágenes/video de cada plano investiga medios reales antes de considerar cualquier otra fuente: Pexels (fotos+video) y Wikimedia Commons primero, Openverse como respaldo; y como último recurso automático (`_proper_noun_fallback`, con nombres propios de la narración, para CUALQUIER plano) también prueba artículos de Wikipedia (imágenes de contenido embebidas) y NASA Images. Usa Whisper para transcribir/alinear la narración y ffmpeg para el ensamblado final.
 
 ## Config fija — no proponer cambiarla
 
@@ -79,7 +79,7 @@ una escalación del bot.
 Cuando llega un `guion.json` sin narración (ej. subido por Telegram o dejado en `C:\Android_in\<slug>\`), el audio se genera con `tts-kokoro` (proyecto hermano, `C:\tts-kokoro`) ANTES de tocar `illustrated-narrator`:
 
 1. Copiar el `guion.json` a `C:\tts-kokoro\projects\<slug>\guion.json`.
-2. Generar el audio: `C:\tts-kokoro\.venv\Scripts\python.exe -m tts_kokoro.cli --guion C:\tts-kokoro\projects\<slug>\guion.json --voz <voz> --velocidad 1.15` — la voz la indica el usuario (bot: `/voz`, default `am_adam`; si no se especifica en el mensaje, usar `am_adam`). Nunca asumir `pm_santa` fijo, eso era el default viejo. Esto deja un WAV por plano en `tts-kokoro/projects/<slug>/narracion/` y reescribe `duracion_seg`/`inicio_aprox` con la duración real.
+2. Generar el audio: `C:\tts-kokoro\.venv\Scripts\python.exe -m tts_kokoro.cli --guion C:\tts-kokoro\projects\<slug>\guion.json --voz <voz> --velocidad 1.0` — la voz la indica el usuario (bot: `/voz`, default `am_adam`; si no se especifica en el mensaje, usar `am_adam`). Velocidad normal (1.0), no 1.15 — eso era una prueba anterior. Nunca asumir `pm_santa` fijo, eso era el default viejo. Esto deja un WAV por plano en `tts-kokoro/projects/<slug>/narracion/` y reescribe `duracion_seg`/`inicio_aprox` con la duración real.
 3. Crear `C:\illustrated-narrator\projects\<slug>\`, copiar ahí el `guion.json` YA actualizado por tts-kokoro (no el original), y concatenar los WAV en orden (`p00.wav`, `p01.wav`, ...) a `narracion.wav` (48kHz estéreo PCM) con ffmpeg.
 4. **Logo del canal**: si existe algún archivo `C:\illustrated-narrator\assets\dato_mata_gato_logo.*`, copiarlo a `projects/<slug>/media/p00/elegido_1.<ext>` (crear la carpeta si no existe) ANTES de correr `narrator generate` — el plano p00 (identidad_apertura/logo) SIEMPRE usa esta imagen en vez de buscar en Pexels/Wikimedia. Si no existe ningún logo todavía, seguir el comportamiento normal de búsqueda para p00.
 5. A partir de acá sigue el flujo normal de "Refinamiento manual" de abajo: `NARR_NARRACION=voz poetry run narrator generate <slug> --vertical` (el `.env` compartido puede tener `NARR_NARRACION=mascota` de otro capítulo — SIEMPRE forzar `voz` con la variable de entorno para esta corrida, sin tocar el `.env`).

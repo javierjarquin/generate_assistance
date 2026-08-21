@@ -9,6 +9,7 @@ atribución (a diferencia de Pexels).
 import logging
 import time
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -131,10 +132,17 @@ class WikimediaCommonsAdapter(StockImagePort):
                 continue
             info = infos[0]
             url = info.get("url", "")
-            if not url.lower().endswith(_ALLOWED_EXTENSIONS):
+            # Wikimedia agrega ?utm_source=... a la url de imageinfo -- ya no
+            # termina en la extensión, así que hay que mirar el path de la
+            # URL (sin query string), no el string crudo (confirmado en una
+            # corrida real: esto rechazaba silenciosamente el 100% de los
+            # resultados de Wikimedia, incluidas fotos reales de cabezas
+            # colosales olmecas que sí existen en Commons).
+            url_path = urlsplit(url).path
+            if not url_path.lower().endswith(_ALLOWED_EXTENSIONS):
                 continue
             meta = info.get("extmetadata", {})
-            dest = dest_dir / f"wikimedia_{page['pageid']}{Path(url).suffix.lower()}"
+            dest = dest_dir / f"wikimedia_{page['pageid']}{Path(url_path).suffix.lower()}"
             try:
                 self._throttle()
                 if not self._download_capped(url, dest):

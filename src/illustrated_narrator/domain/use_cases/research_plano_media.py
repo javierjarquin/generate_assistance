@@ -19,7 +19,11 @@ from illustrated_narrator.domain.services.media_manifest import (
     record_shot_result,
     save_manifest,
 )
-from illustrated_narrator.domain.services.media_relevance import derive_query, relevance_score
+from illustrated_narrator.domain.services.media_relevance import (
+    derive_query,
+    extract_proper_nouns,
+    relevance_score,
+)
 from illustrated_narrator.domain.services.retention_plan import Shot
 from illustrated_narrator.domain.services.shot_assets import (
     is_video_file,
@@ -71,7 +75,19 @@ class ResearchPlanoMedia:
                 else self._sources_default
             ) or (self._sources_default or self._sources_historico)
             plano_media_dir = media_dir / plano.id
-            used_urls: set[str] = set()
+            # Sembrado desde el manifest existente: si esta corrida solo
+            # reinvestiga las tomas que fallaron antes (las demas se saltean
+            # abajo porque ya tienen archivo en disco), este set arrancaba
+            # vacio y no sabia qué URL ya usaron sus tomas hermanas -- una
+            # toma reintentada podia elegir la MISMA foto que otra toma del
+            # mismo plano ya resuelta, repitiendo imagen dentro de un plano
+            # (confirmado en una corrida real: p03 toma 1 y toma 4 terminaron
+            # con el mismo pexels_33039807.jpg).
+            used_urls: set[str] = {
+                entry["chosen"]["source_url"]
+                for shot_id, entry in manifest.items()
+                if entry.get("chosen") and (shot_id == plano.id or shot_id.startswith(f"{plano.id}_"))
+            }
 
             for shot in shots:
                 if resolve_shot_asset(images_dir, media_dir, shot) is not None:
@@ -94,6 +110,11 @@ class ResearchPlanoMedia:
                 )
                 candidates = self._search_all(sources, query, plano_media_dir)
                 chosen = self._best_match(query, candidates, used_urls)
+                if chosen is None:
+                    fallback = self._proper_noun_fallback(plano, plano_media_dir, used_urls)
+                    if fallback is not None:
+                        query, fb_candidates, chosen = fallback
+                        candidates = candidates + fb_candidates
                 record_shot_result(manifest, shot.shot_id, query, candidates, chosen)
                 if chosen is not None:
                     used_urls.add(chosen.source_url)
@@ -141,6 +162,42 @@ class ResearchPlanoMedia:
         if relevance_score(query, best.title) < self._effective_min_score(best):
             return None
         return best
+
+    # Un nombre propio (persona/lugar) casi literal en el título es señal
+    # mucho más fuerte que el match genérico de _effective_min_score -- pero
+    # tiene que ser el nombre COMPLETO, no solo una palabra. Con el umbral
+    # anterior (0.5) un nombre de pila comun bastaba para dar falso positivo:
+    # "Alberto Bazbaz" contra "Alberto Fernández Blanco" da exactamente 0.5
+    # (solo "Alberto" matchea) y una persona real sin ninguna relación con el
+    # plano terminaba en el video (confirmado en una corrida real, caso
+    # guion-paulette). "Cecilio Chi" contra "Esculturas de Cecilio Chí en
+    # Chetumal" sigue dando 1.0 con las dos palabras, así que subir el
+    # umbral a exigir el nombre completo no pierde ese caso bueno.
+    _PROPER_NOUN_MIN_SCORE = 1.0
+
+    def _proper_noun_fallback(
+        self, plano: Plano, dest_dir: Path, used_urls: set[str]
+    ) -> tuple[str, list[MediaCandidate], MediaCandidate] | None:
+        """Si la búsqueda principal (derivada del prompt_ia en inglés, pensado
+        para dirigir un modelo de imagen) no encontró nada relevante, prueba
+        el/los nombres propios reales del plano (narracion/descripcion, en
+        español) directo contra Wikimedia. Mismo principio que
+        archivo_historico pero automático para CUALQUIER plano -- confirmado
+        en un video real: la query genérica no encontraba nada para "Cecilio
+        Chi", pero buscando su nombre aparecían fotos reales de su estatua."""
+        if not self._sources_historico:
+            return None
+        names = extract_proper_nouns(plano.narracion, plano.visual.descripcion)
+        for name in names:
+            candidates = self._search_all(self._sources_historico, name, dest_dir)
+            available = [c for c in candidates if c.source_url not in used_urls]
+            if not available:
+                continue
+            scored = sorted(available, key=lambda c: relevance_score(name, c.title), reverse=True)
+            best = scored[0]
+            if relevance_score(name, best.title) >= self._PROPER_NOUN_MIN_SCORE:
+                return name, candidates, best
+        return None
 
     def _effective_min_score(self, candidate: MediaCandidate) -> float:
         # Pexels ya hace su propio matching semantico contra la query en el

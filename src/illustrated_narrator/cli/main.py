@@ -53,6 +53,9 @@ def generate(
     except FileNotFoundError as exc:
         typer.echo(str(exc))
         raise typer.Exit(code=1) from exc
+    except RuntimeError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=1) from exc
 
     if report.alignment:
         typer.echo(
