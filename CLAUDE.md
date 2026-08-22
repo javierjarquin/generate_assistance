@@ -102,6 +102,9 @@ No tocar `narracion` ni el audio.
 - Revisar `projects/<slug>/media/manifest.json`: qué se eligió (`chosen`) y qué se descartó (`candidates`) por shot, con título/fuente/licencia. No guarda score numérico — se puede recalcular con `relevance_score(query, candidate.title)` (`domain/services/media_relevance.py`) para señalar planos con match débil.
 - Señalar planos con relevancia baja para que el usuario decida: ajustar query, o subir una foto real a mano en `media/<plano_id>/elegido_N.*` (gana automáticamente sobre la búsqueda).
 
+#### `pais_incoherente` (país/lugar equivocado en el resultado)
+Antes de agregar el sitio a `_SENSITIVE_BLOCKLIST` en `media_relevance.py` (parche reactivo, uno por uno cada vez que aparece un caso nuevo — Auschwitz, Alcatraz, etc.), revisar si el `guion.json` ya declara `meta.pais` (ej. `"pais": "México"`). Si NO lo tiene, agregarlo — `ResearchPlanoMedia` ya lo usa como fallback automático (ensancha la query con el país, y si tampoco alcanza, con el continente vía `continente_de()`) para CUALQUIER plano sin medio real, y de paso reduce la tasa de estos falsos positivos en primer lugar (una query ya acotada a "Mexico" difícilmente devuelve Alcatraz como mejor resultado). `visual.pais` por plano pisa el default del guion si una escena puntual pasa en otro país. Seguir agregando al blocklist solo para el caso puntual ya detectado, no como sustituto de declarar el país.
+
 ### Límite honesto que hay que respetar
 No puedo ver ni oír el `.mp4` final. Nunca afirmar haber "validado" la coherencia audiovisual de un video viéndolo — el trabajo es sobre `guion.json`, `manifest.json` y los archivos de media. Lo que solo se puede juzgar viendo/escuchando el video se lo señalo al usuario para que lo revise él (celular).
 

@@ -49,6 +49,7 @@ def _parse_meta(raw: dict) -> GuionMeta:
         idioma=raw.get("idioma", "es-MX"),
         gancho=raw.get("gancho"),
         mascota=_parse_mascota(raw.get("mascota")),
+        pais=raw.get("pais"),
     )
 
 
@@ -104,6 +105,7 @@ def _parse_plano(raw: dict, index: int) -> Plano:
         shake=bool(visual_raw.get("shake", False)),
         motion=visual_raw.get("motion"),
         busqueda_medios=visual_raw.get("busqueda_medios"),
+        pais=visual_raw.get("pais"),
     )
     audio_raw = raw.get("audio", {})
     audio = AudioSpec(musica=audio_raw.get("musica"), sfx=audio_raw.get("sfx"))

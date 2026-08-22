@@ -153,6 +153,7 @@ class GenerateNarrationVideo:
                     project.media_dir,
                     project.media_manifest_path,
                     shots_by_plano,
+                    pais_default=guion.meta.pais,
                 )
                 report.media_shots_resolved = media_report.shots_resolved
             except Exception as exc:  # noqa: BLE001 — sin medios reales, sigue la generación IA

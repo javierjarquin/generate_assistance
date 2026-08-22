@@ -42,6 +42,26 @@ def _plano(id_: str = "p1") -> Plano:
     )
 
 
+class _GeoAwareSource(StockImagePort):
+    """Solo devuelve un candidato relevante si la query incluye "mexico" --
+    simula que la búsqueda original (sin país) no encuentra nada bueno pero
+    la ensanchada con el país sí."""
+
+    def is_available(self) -> bool:
+        return True
+
+    def search(self, query: str, dest_dir: Path, count: int) -> list[MediaCandidate]:
+        if "mexico" not in query.lower():
+            return []
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        dest = dest_dir / "match.jpg"
+        dest.write_bytes(b"fake")
+        return [MediaCandidate(
+            path=dest, title="prison cell block Mexico", source="test",
+            source_url="https://example.com/match", license="test",
+        )]
+
+
 def test_search_all_queries_every_source_not_just_the_first(tmp_path: Path) -> None:
     source_a = _FakeSource("a", tmp_path)
     source_b = _FakeSource("b", tmp_path)
@@ -66,3 +86,71 @@ def test_search_all_queries_every_source_not_just_the_first(tmp_path: Path) -> N
     assert source_a.calls == 1
     assert source_b.calls == 1
     assert source_c.calls == 1
+
+
+def test_geo_fallback_usa_el_pais_del_guion_cuando_nada_mas_encuentra(tmp_path: Path) -> None:
+    research = ResearchPlanoMedia(
+        sources_default=[_GeoAwareSource()], sources_historico=[],
+        candidates_per_shot=3, min_score=0.5,
+    )
+    plano = Plano(
+        id="p06", seccion="s", narracion="x",
+        visual=VisualSpec(
+            tipo=VisualTipo.IMAGEN_IA, prompt_ia="prison cell block",
+            busqueda_medios="prison cell block",
+        ),
+    )
+    shots_by_plano = {plano.id: [Shot(plano_id=plano.id, index=0, total=1)]}
+
+    report = research.execute(
+        [plano], tmp_path / "images", tmp_path / "media", tmp_path / "media" / "manifest.json",
+        shots_by_plano, pais_default="Mexico",
+    )
+
+    assert report.shots_resolved == 1
+    assert (tmp_path / "images" / "p06.png").exists()
+
+
+def test_geo_fallback_usa_pais_del_plano_por_encima_del_default_del_guion(tmp_path: Path) -> None:
+    research = ResearchPlanoMedia(
+        sources_default=[_GeoAwareSource()], sources_historico=[],
+        candidates_per_shot=3, min_score=0.5,
+    )
+    plano = Plano(
+        id="p09", seccion="s", narracion="x",
+        visual=VisualSpec(
+            tipo=VisualTipo.IMAGEN_IA, prompt_ia="prison cell block",
+            busqueda_medios="prison cell block", pais="Mexico",
+        ),
+    )
+    shots_by_plano = {plano.id: [Shot(plano_id=plano.id, index=0, total=1)]}
+
+    # pais_default distinto ("Francia") -- debe ganar el pais del plano
+    report = research.execute(
+        [plano], tmp_path / "images", tmp_path / "media", tmp_path / "media" / "manifest.json",
+        shots_by_plano, pais_default="Francia",
+    )
+
+    assert report.shots_resolved == 1
+
+
+def test_sin_pais_no_hay_fallback_geografico(tmp_path: Path) -> None:
+    research = ResearchPlanoMedia(
+        sources_default=[_GeoAwareSource()], sources_historico=[],
+        candidates_per_shot=3, min_score=0.5,
+    )
+    plano = Plano(
+        id="p06", seccion="s", narracion="x",
+        visual=VisualSpec(
+            tipo=VisualTipo.IMAGEN_IA, prompt_ia="prison cell block",
+            busqueda_medios="prison cell block",
+        ),
+    )
+    shots_by_plano = {plano.id: [Shot(plano_id=plano.id, index=0, total=1)]}
+
+    report = research.execute(
+        [plano], tmp_path / "images", tmp_path / "media", tmp_path / "media" / "manifest.json",
+        shots_by_plano,
+    )
+
+    assert report.shots_resolved == 0

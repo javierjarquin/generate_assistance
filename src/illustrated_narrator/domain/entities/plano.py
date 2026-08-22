@@ -36,6 +36,9 @@ class VisualSpec:
     # Query explícita para buscar medios reales (stock/archivo); si es None se
     # deriva de prompt_ia/descripcion (ver domain/services/media_relevance.py)
     busqueda_medios: str | None = None
+    # País de este plano puntual, si es distinto al país del guion
+    # (meta.pais). None = usa el default del guion.
+    pais: str | None = None
 
 
 @dataclass(frozen=True)

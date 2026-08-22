@@ -20,6 +20,8 @@ from illustrated_narrator.domain.services.media_manifest import (
     save_manifest,
 )
 from illustrated_narrator.domain.services.media_relevance import (
+    broaden_query,
+    continente_de,
     derive_query,
     extract_proper_nouns,
     relevance_score,
@@ -61,6 +63,7 @@ class ResearchPlanoMedia:
         media_dir: Path,
         manifest_path: Path,
         shots_by_plano: dict[str, list[Shot]],
+        pais_default: str | None = None,
     ) -> ResearchMediaReport:
         report = ResearchMediaReport()
         if not self._sources_default and not self._sources_historico:
@@ -112,6 +115,13 @@ class ResearchPlanoMedia:
                 chosen = self._best_match(query, candidates, used_urls)
                 if chosen is None:
                     fallback = self._proper_noun_fallback(plano, plano_media_dir, used_urls)
+                    if fallback is not None:
+                        query, fb_candidates, chosen = fallback
+                        candidates = candidates + fb_candidates
+                if chosen is None:
+                    fallback = self._geo_fallback(
+                        plano, query, sources, plano_media_dir, used_urls, pais_default
+                    )
                     if fallback is not None:
                         query, fb_candidates, chosen = fallback
                         candidates = candidates + fb_candidates
@@ -197,6 +207,35 @@ class ResearchPlanoMedia:
             best = scored[0]
             if relevance_score(name, best.title) >= self._PROPER_NOUN_MIN_SCORE:
                 return name, candidates, best
+        return None
+
+    def _geo_fallback(
+        self, plano: Plano, query: str, sources: list[StockImagePort],
+        dest_dir: Path, used_urls: set[str], pais_default: str | None,
+    ) -> tuple[str, list[MediaCandidate], MediaCandidate] | None:
+        """Último recurso antes de dejar la toma sin medio: reintenta la
+        MISMA query (conserva qué es la escena) ensanchada primero con el
+        país del plano (meta.pais del guion, o visual.pais si este plano
+        puntual pasa en otro lugar) y, si tampoco encuentra nada relevante,
+        con su continente -- más rango de búsqueda sin perder el contenido.
+        Reduce además los falsos positivos de país incoherente (ver
+        _SENSITIVE_BLOCKLIST): una query ya acotada a "Mexico" difícilmente
+        devuelve Alcatraz o Auschwitz como mejor resultado."""
+        pais = plano.visual.pais or pais_default
+        intentos = [broaden_query(query, pais), broaden_query(query, continente_de(pais))]
+        for query_ampliada in intentos:
+            if not query_ampliada:
+                continue
+            candidates = self._search_all(sources, query_ampliada, dest_dir)
+            available = [c for c in candidates if c.source_url not in used_urls]
+            if not available:
+                continue
+            scored = sorted(
+                available, key=lambda c: relevance_score(query_ampliada, c.title), reverse=True
+            )
+            best = scored[0]
+            if relevance_score(query_ampliada, best.title) >= self._effective_min_score(best):
+                return query_ampliada, candidates, best
         return None
 
     def _effective_min_score(self, candidate: MediaCandidate) -> float:

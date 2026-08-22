@@ -85,6 +85,54 @@ def derive_query(prompt_ia: str, descripcion: str, override: str | None = None) 
     return (descripcion or prompt_ia or "").strip()
 
 
+# Tabla chica país->continente (sin librería de geo -- alcanza con los
+# países que de verdad aparecen en los guiones del canal). Claves en
+# minúsculas sin acentos (ver _fold_accents) para matchear "México" y
+# "mexico" por igual.
+_PAIS_A_CONTINENTE = {
+    "mexico": "North America", "estados unidos": "North America",
+    "eeuu": "North America", "canada": "North America",
+    "guatemala": "North America", "honduras": "North America",
+    "el salvador": "North America", "nicaragua": "North America",
+    "costa rica": "North America", "panama": "North America",
+    "cuba": "North America", "republica dominicana": "North America",
+    "argentina": "South America", "brasil": "South America",
+    "chile": "South America", "colombia": "South America",
+    "peru": "South America", "venezuela": "South America",
+    "ecuador": "South America", "bolivia": "South America",
+    "uruguay": "South America", "paraguay": "South America",
+    "espana": "Europe", "francia": "Europe", "italia": "Europe",
+    "alemania": "Europe", "reino unido": "Europe", "portugal": "Europe",
+    "rusia": "Europe", "polonia": "Europe",
+    "china": "Asia", "japon": "Asia", "india": "Asia",
+    "corea del sur": "Asia", "corea del norte": "Asia",
+    "egipto": "Africa", "sudafrica": "Africa", "nigeria": "Africa",
+    "australia": "Oceania",
+}
+
+
+def continente_de(pais: str | None) -> str | None:
+    """Continente correspondiente a un país (o None si no está en la tabla
+    o no se declaró país). Usado como último recurso de búsqueda -- más
+    amplio que el país cuando ni eso encuentra nada bueno."""
+    if not pais:
+        return None
+    return _PAIS_A_CONTINENTE.get(_fold_accents(pais.strip().lower()))
+
+
+def broaden_query(query: str, ambito: str | None) -> str | None:
+    """Amplía una query ya derivada con un ámbito geográfico (país o
+    continente), para reintentar cuando la búsqueda original no encontró
+    nada relevante -- conserva el CONTENIDO (qué es la escena) y solo
+    ensancha el DÓNDE. None si no hay ámbito que agregar o ya está
+    incluido (evita "Mexico Mexico")."""
+    if not ambito:
+        return None
+    if _fold_accents(ambito.lower()) in _fold_accents(query.lower()):
+        return None
+    return f"{query} {ambito}".strip()
+
+
 # Similitud mínima (difflib, 0..1) para contar dos palabras como "la misma"
 # aunque no sean idénticas letra por letra. Wikimedia Commons tiene muchos
 # títulos en portugués/alemán/latín científico frente a una query en inglés
@@ -137,17 +185,23 @@ def extract_proper_nouns(*texts: str) -> list[str]:
     return list(seen.values())
 
 
-# Sitios/eventos reales de tragedia, bien documentados y con muchísimas
-# fotos de archivo bajo términos genéricos ("prisoner", "camp",
-# "historical") -- pueden colarse como match de un plano sin ninguna
-# relación real con ellos. Visto en un video real: candidatos de
+# Sitios/eventos reales de tragedia, o simplemente lugares reales tan
+# ICÓNICOS/RECONOCIBLES que romperían la coherencia geográfica del video si
+# aparecen sin que el propio plano los mencione -- bien documentados y con
+# muchísimas fotos de archivo bajo términos genéricos ("prisoner", "camp",
+# "historical", "prison corridor") que pueden colarse como match de un plano
+# sin ninguna relación real con ellos. Visto en videos reales: candidatos de
 # Auschwitz-Birkenau elegidos para ilustrar una colonia penal mexicana no
-# relacionada, con buen score porque el título comparte "historic"/
-# "prisoners"/"camp". Se descartan de plano salvo que el propio plano los
-# mencione explícitamente (si la query los nombra, no se bloquean).
+# relacionada (buen score porque el título comparte "historic"/"prisoners"/
+# "camp"); y Alcatraz elegido para un "pasillo de prision generico" de un
+# caso mexicano (Cassez-Vallarta) -- ambos con buen score por vocabulario
+# genérico compartido, pero geográficamente incoherentes. Se descartan de
+# plano salvo que el propio plano los mencione explícitamente (si la query
+# los nombra, no se bloquean).
 _SENSITIVE_BLOCKLIST = {
     "auschwitz", "birkenau", "holocaust", "holocausto", "dachau",
     "buchenwald", "treblinka", "genocide", "genocidio",
+    "alcatraz",
 }
 
 

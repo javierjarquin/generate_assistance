@@ -32,6 +32,10 @@ class GuionMeta:
     gancho: str | None = None
     # Mascota que presenta el video. None = manda el entorno (NARR_NARRACION...).
     mascota: MascotaConfig | None = None
+    # País donde pasa el caso (ej. "México") -- default para la búsqueda de
+    # medios reales de todos los planos (se puede pisar por plano en
+    # visual.pais). Ver domain/services/media_relevance.py.
+    pais: str | None = None
 
 
 @dataclass(frozen=True)
