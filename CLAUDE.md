@@ -65,9 +65,9 @@ sin gastar un token tuyo — todo esto:
 describe como pendiente** (la lista de tomas `pais_incoherente` o
 `sin_medio`) — ajustar `busqueda_medios`/investigar SOLO esas tomas
 puntuales, correr `narrator generate` de nuevo las veces que haga falta,
-y copiar a `Android_out` al terminar. No re-hagas audio, logo, ni
-imágenes manuales — repetir eso es tokens gastados en algo que ya estaba
-resuelto por código.
+y subir a Drive al terminar (ver "Después de generar" abajo). No re-hagas
+audio, logo, ni imágenes manuales — repetir eso es tokens gastados en algo
+que ya estaba resuelto por código.
 
 Los pasos de "Pipeline completo de un capítulo nuevo" de abajo son para
 cuando alguien trabaja DIRECTO en una sesión interactiva sin pasar por el
@@ -111,7 +111,7 @@ No puedo ver ni oír el `.mp4` final. Nunca afirmar haber "validado" la coherenc
 
 ### Después de generar — SIEMPRE, sin preguntar
 En cuanto `narrator generate` termina OK y existe `projects/<slug>/final.mp4`, si el capítulo vino de `C:\Android_in\<slug>\` (tiene guion.json/audio ahí):
-1. Copiar `projects/<slug>/final.mp4` -> `C:\Android_out\<slug>.mp4`.
+1. Subir a Drive: `C:\dato-mata-gato-bot\.venv\Scripts\python.exe -m dato_mata_gato_bot.upload_cli <slug>`. Este comando ya arma el nombre `<titulo_del_guion>_<DDMMYYYY>.mp4` (calendario progresivo, arranca 25/08/2026, un día por capítulo nuevo — reintentos del mismo slug no le pisan la fecha) y actualiza `data/publish_schedule.json` solo — no armar el nombre ni tocar ese archivo a mano.
 2. Crear `C:\Android_in\<slug>\_GENERADO.txt` (misma marca que usa `procesar_lote.ps1`) para que el lote no lo vuelva a procesar y pise este resultado.
 
 Hacer esto automáticamente, sin pedir confirmación — preguntar acá en cada capítulo es ruido, no una decisión real que el usuario necesite tomar. Si hay dudas de contenido/medios pendientes de revisar, señalarlas igual, pero no bloquean este paso.
@@ -149,3 +149,4 @@ Después de colocar la(s) imagen(es): borrar cualquier `images/<shot_id>.png` vi
 | `projects/<slug>/media/manifest.json` | Qué se investigó/eligió por shot |
 | `projects/<slug>/planos_alineados.json` | Estado por plano — resumible, no hace falta borrar todo para reintentar un plano puntual |
 | `projects/<slug>/final.mp4` | Salida del capítulo |
+| `C:\dato-mata-gato-bot\data\publish_schedule.json` | Calendario de publicación (slug -> fecha/nombre/link de Drive) |
