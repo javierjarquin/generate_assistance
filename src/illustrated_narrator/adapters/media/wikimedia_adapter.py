@@ -42,6 +42,14 @@ _USER_AGENT = "illustrated-narrator/1.0 (https://github.com/; local tool, single
 # entre requests + un reintento acotado que respeta Retry-After evita tanto
 # el 429 en cascada como un reintento sin límite que cuelgue la investigación.
 _MIN_INTERVAL_SECONDS = 1.5
+# upload.wikimedia.org (la CDN de descarga, no la API de búsqueda) devuelve
+# 403 -- no 429 -- cuando la carga total de la sesión es alta, aunque el
+# archivo exista y sea público (confirmado en una corrida real: 403 repetido
+# durante ~14 min para archivos reales de figuras públicas, mismo archivo
+# con curl aislado después dio 200 sin cambiar nada). Openverse agrega
+# muchos archivos alojados en el mismo host y no throttlea sus descargas,
+# así que la presión sobre esa CDN es compartida entre ambos adapters. 403
+# entra al retry además de 429/503 por este motivo puntual.
 
 
 class WikimediaCommonsAdapter(StockImagePort):
@@ -51,7 +59,7 @@ class WikimediaCommonsAdapter(StockImagePort):
         # (python-requests/x.x) -- hay que pisarlo, no basta con setdefault.
         self._http.headers["User-Agent"] = _USER_AGENT
         retry = Retry(
-            total=2, backoff_factor=2.0, status_forcelist=(429, 503),
+            total=2, backoff_factor=2.0, status_forcelist=(403, 429, 503),
             respect_retry_after_header=True, allowed_methods=("GET",),
         )
         adapter = HTTPAdapter(max_retries=retry)
