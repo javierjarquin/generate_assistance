@@ -26,6 +26,7 @@ from pathlib import Path
 
 import requests
 
+from illustrated_narrator.adapters.video.a1111_lifecycle import restart_a1111
 from illustrated_narrator.ports.video_generator import VideoGenerationRequest, VideoGeneratorPort
 
 logger = logging.getLogger(__name__)
@@ -42,9 +43,27 @@ _SAMPLER = "Euler a"
 
 
 class AnimateDiffA1111Adapter(VideoGeneratorPort):
-    def __init__(self, base_url: str, session: requests.Session | None = None) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        session: requests.Session | None = None,
+        restart_before_generate: bool = False,
+        bat_path: str = r"C:\illustrated-narrator\tools\run_a1111.bat",
+        bat_cwd: str = r"C:\illustrated-narrator\tools",
+    ) -> None:
         self._base_url = base_url.rstrip("/")
         self._http = session or requests.Session()
+        # Opt-in (NARR_A1111_RESTART_BEFORE_USE) -- reinicia A1111 antes de
+        # CADA generación, no solo la primera. Confirmado en corrida real
+        # que la segunda generación de video-IA de una misma corrida dio
+        # 500 (agotamiento de VRAM entre generaciones consecutivas) aunque
+        # la primera hubiera salido bien -- ver a1111_lifecycle.py. Nunca
+        # activo por default: el fallback de video-IA en sí ya es opt-in
+        # (NARR_VIDEO_FALLBACK_MAX_PLANOS), y reiniciar A1111 en medio de
+        # una sesión interactiva del usuario sería sorprendente/disruptivo.
+        self._restart_before_generate = restart_before_generate
+        self._bat_path = bat_path
+        self._bat_cwd = bat_cwd
 
     def is_available(self) -> bool:
         try:
@@ -54,6 +73,8 @@ class AnimateDiffA1111Adapter(VideoGeneratorPort):
             return False
 
     def generate(self, request: VideoGenerationRequest, dest: Path) -> Path:
+        if self._restart_before_generate:
+            restart_a1111(self._base_url, self._bat_path, self._bat_cwd)
         frames = max(8, round(request.duration_seconds * request.fps))
         payload = {
             "prompt": request.prompt,

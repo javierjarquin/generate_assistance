@@ -66,6 +66,12 @@ class Settings:
     # opt-in explícito, "cero IA" sigue siendo el comportamiento normal).
     video_fallback_max_planos: int
     video_fallback_max_seconds: float
+    # Reinicia A1111 antes de CADA generación de video-IA -- confirmado en
+    # corrida real que la segunda generación de una misma corrida daba 500
+    # (agotamiento de VRAM), aunque la primera hubiera salido bien. Opt-in,
+    # el bot de Telegram lo activa en sus corridas automáticas; nunca por
+    # default en una sesión interactiva (ver a1111_lifecycle.py).
+    a1111_restart_before_video_fallback: bool
 
 
 def load_settings() -> Settings:
@@ -141,4 +147,7 @@ def load_settings() -> Settings:
         # prueba real end-to-end (RuntimeError: no hay memoria suficiente).
         # No subir sin volver a probar.
         video_fallback_max_seconds=float(os.getenv("NARR_VIDEO_FALLBACK_MAX_SECONDS", "2.0")),
+        a1111_restart_before_video_fallback=(
+            os.getenv("NARR_A1111_RESTART_BEFORE_USE", "0").strip() == "1"
+        ),
     )

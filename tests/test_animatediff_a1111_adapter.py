@@ -80,6 +80,42 @@ def test_generate_arma_el_payload_con_animatediff_alwayson_y_modulo_estandar(tmp
     assert ad_args["fps"] == 8
 
 
+def test_generate_no_reinicia_a1111_por_default(tmp_path: Path, monkeypatch) -> None:
+    calls = []
+    monkeypatch.setattr(
+        "illustrated_narrator.adapters.video.animatediff_a1111_adapter.restart_a1111",
+        lambda *a, **kw: calls.append((a, kw)),
+    )
+    b64 = base64.b64encode(_FAKE_MP4).decode()
+    session = _FakeSession(txt2img_json={"images": [b64]})
+    adapter = AnimateDiffA1111Adapter("http://127.0.0.1:7860", session=session)
+
+    adapter.generate(VideoGenerationRequest(prompt="x"), tmp_path / "p06.mp4")
+
+    assert calls == []
+
+
+def test_generate_reinicia_a1111_si_restart_before_generate(tmp_path: Path, monkeypatch) -> None:
+    # Confirmado en corrida real (guion-caro-quintero): la segunda
+    # generación de video-IA de una misma corrida dio 500 (agotamiento de
+    # VRAM). El bot activa este flag para que cada generación arranque con
+    # A1111 recién reiniciado -- nunca activo por default (ver constructor).
+    calls = []
+    monkeypatch.setattr(
+        "illustrated_narrator.adapters.video.animatediff_a1111_adapter.restart_a1111",
+        lambda *a, **kw: calls.append((a, kw)),
+    )
+    b64 = base64.b64encode(_FAKE_MP4).decode()
+    session = _FakeSession(txt2img_json={"images": [b64]})
+    adapter = AnimateDiffA1111Adapter(
+        "http://127.0.0.1:7860", session=session, restart_before_generate=True,
+    )
+
+    adapter.generate(VideoGenerationRequest(prompt="x"), tmp_path / "p06.mp4")
+
+    assert len(calls) == 1
+
+
 def test_generate_falla_si_no_hay_mp4_en_la_respuesta(tmp_path: Path) -> None:
     session = _FakeSession(txt2img_json={"images": []})
     adapter = AnimateDiffA1111Adapter("http://127.0.0.1:7860", session=session)

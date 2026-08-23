@@ -69,7 +69,10 @@ class Container:
         # GeneratePlanoImages.
         if self.settings.video_fallback_max_planos <= 0:
             return None
-        return AnimateDiffA1111Adapter(self.settings.a1111_base_url)
+        return AnimateDiffA1111Adapter(
+            self.settings.a1111_base_url,
+            restart_before_generate=self.settings.a1111_restart_before_video_fallback,
+        )
 
     @cached_property
     def transcriber(self) -> TranscriptionPort:
