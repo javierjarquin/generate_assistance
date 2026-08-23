@@ -232,6 +232,10 @@ def relevance_score(query: str, candidate_text: str) -> float:
     return hits / len(query_words)
 
 
+_TITLE_PREFIX_RE = re.compile(r"^(file|archivo|image|imagen)\s*:\s*", re.IGNORECASE)
+_TITLE_EXT_RE = re.compile(r"\.(jpe?g|png|gif|webp|tiff?|bmp)$", re.IGNORECASE)
+
+
 def title_specificity(title: str) -> int:
     """Cantidad de palabras de contenido en un título -- desempate para
     cuando varios candidatos empatan en relevance_score (frecuente: la
@@ -243,5 +247,15 @@ def title_specificity(title: str) -> int:
     Brigadas Querétaro - Protesta contra reforma energética de Felipe
     Calderón - CDMX 2008.jpg" empataban en 1.0 -- se eligió la foto de una
     protesta en vez de un retrato porque venía primero en la lista, no
-    porque fuera mejor match)."""
-    return len(_words(title))
+    porque fuera mejor match).
+
+    Saca el prefijo "File:"/"Archivo:" y la extensión antes de contar --
+    son artefactos del formato de título de Wikimedia/Wikipedia (no de
+    Openverse/Pexels), y sin sacarlos penalizan a un retrato real de
+    Wikimedia frente a un título más corto de otra fuente aunque el
+    contenido sea peor (confirmado en una corrida real: "File:Felipe
+    Calderón.jpg", 4 palabras incluyendo "file"/"jpg", perdió contra
+    "Felipe Calderón - Caricature", 3 palabras, de Openverse -- una
+    caricatura le ganó a un retrato real solo por el wrapper del título)."""
+    cleaned = _TITLE_EXT_RE.sub("", _TITLE_PREFIX_RE.sub("", title))
+    return len(_words(cleaned))

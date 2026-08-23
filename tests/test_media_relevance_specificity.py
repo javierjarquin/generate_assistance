@@ -23,3 +23,15 @@ def test_title_specificity_prefiere_titulo_mas_corto():
         "de Felipe Calderón - CDMX 2008.jpg"
     )
     assert title_specificity(corto) < title_specificity(largo)
+
+
+def test_title_specificity_ignora_el_wrapper_file_y_extension():
+    """Sin sacar "File:"/".jpg" antes de contar, un retrato real de
+    Wikimedia pierde contra un título más corto de otra fuente (Openverse,
+    sin ese wrapper) aunque el contenido sea peor -- confirmado en una
+    corrida real: una caricatura de Felipe Calderón le ganó a su retrato
+    real solo porque "File:Felipe Calderón.jpg" cuenta "file" y "jpg" como
+    palabras."""
+    retrato_wikimedia = "File:Felipe Calderón.jpg"
+    caricatura_openverse = "Felipe Calderón - Caricature"
+    assert title_specificity(retrato_wikimedia) < title_specificity(caricatura_openverse)
