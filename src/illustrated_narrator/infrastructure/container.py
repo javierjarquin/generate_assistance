@@ -13,7 +13,7 @@ from illustrated_narrator.adapters.media.wikimedia_adapter import WikimediaCommo
 from illustrated_narrator.adapters.media.wikipedia_article_adapter import WikipediaArticleAdapter
 from illustrated_narrator.adapters.publish.facebook_adapter import FacebookPagePublisher
 from illustrated_narrator.adapters.transcription.faster_whisper_adapter import FasterWhisperTranscriber
-from illustrated_narrator.adapters.video.animatelcm_a1111_adapter import AnimateLcmA1111Adapter
+from illustrated_narrator.adapters.video.animatediff_a1111_adapter import AnimateDiffA1111Adapter
 from illustrated_narrator.adapters.video.ffmpeg_assembler import FFmpegAssembler
 from illustrated_narrator.domain.use_cases.generate_narration_video import GenerateNarrationVideo
 from illustrated_narrator.domain.use_cases.generate_plano_images import GeneratePlanoImages
@@ -62,11 +62,14 @@ class Container:
     @cached_property
     def video_generator(self) -> VideoGeneratorPort | None:
         # Mismo servidor A1111 que image_generator (--api), extensión
-        # sd-webui-animatediff con el motion module AnimateLCM. None si el
-        # fallback está desactivado (default) -- ver GeneratePlanoImages.
+        # sd-webui-animatediff con el motion module ESTÁNDAR (no AnimateLCM
+        # -- confirmado en pruebas reales que AnimateLCM colapsa en ruido
+        # para contenido de bajo detalle, justo lo que más pasa por acá).
+        # None si el fallback está desactivado (default) -- ver
+        # GeneratePlanoImages.
         if self.settings.video_fallback_max_planos <= 0:
             return None
-        return AnimateLcmA1111Adapter(self.settings.a1111_base_url)
+        return AnimateDiffA1111Adapter(self.settings.a1111_base_url)
 
     @cached_property
     def transcriber(self) -> TranscriptionPort:
