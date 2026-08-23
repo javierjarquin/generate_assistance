@@ -25,6 +25,7 @@ from illustrated_narrator.domain.services.media_relevance import (
     derive_query,
     extract_proper_nouns,
     relevance_score,
+    title_specificity,
 )
 from illustrated_narrator.domain.services.retention_plan import Shot
 from illustrated_narrator.domain.services.shot_assets import (
@@ -171,8 +172,13 @@ class ResearchPlanoMedia:
         available = [c for c in candidates if c.source_url not in used_urls]
         if not available:
             return None
+        # Desempate por especificidad del título: con varios candidatos
+        # empatados en score, preferir el título más corto/limpio en vez de
+        # quedarse con el primero que apareció (ver title_specificity).
         scored = sorted(
-            available, key=lambda c: relevance_score(query, c.title), reverse=True
+            available,
+            key=lambda c: (relevance_score(query, c.title), -title_specificity(c.title)),
+            reverse=True,
         )
         best = scored[0]
         if relevance_score(query, best.title) < self._effective_min_score(best):
@@ -219,7 +225,11 @@ class ResearchPlanoMedia:
             available = [c for c in candidates if c.source_url not in used_urls]
             if not available:
                 continue
-            scored = sorted(available, key=lambda c: relevance_score(name, c.title), reverse=True)
+            scored = sorted(
+                available,
+                key=lambda c: (relevance_score(name, c.title), -title_specificity(c.title)),
+                reverse=True,
+            )
             best = scored[0]
             if relevance_score(name, best.title) >= self._PROPER_NOUN_MIN_SCORE:
                 used_names.add(name)
@@ -248,7 +258,9 @@ class ResearchPlanoMedia:
             if not available:
                 continue
             scored = sorted(
-                available, key=lambda c: relevance_score(query_ampliada, c.title), reverse=True
+                available,
+                key=lambda c: (relevance_score(query_ampliada, c.title), -title_specificity(c.title)),
+                reverse=True,
             )
             best = scored[0]
             if relevance_score(query_ampliada, best.title) >= self._effective_min_score(best):

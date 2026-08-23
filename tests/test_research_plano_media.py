@@ -196,6 +196,64 @@ def test_proper_noun_fallback_reparte_entre_varias_figuras_del_mismo_plano(tmp_p
     assert "Felipe Calderón" in titles
 
 
+class _TiedTitlesSource(StockImagePort):
+    """Dos candidatos que empatan en relevance_score(1.0) para la misma
+    query -- uno con título largo que solo MENCIONA el nombre de paso
+    (protesta), otro con título corto/limpio (probable retrato)."""
+
+    def is_available(self) -> bool:
+        return True
+
+    def search(self, query: str, dest_dir: Path, count: int) -> list[MediaCandidate]:
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        if query != "Felipe Calderón":
+            return []
+        largo_path = dest_dir / "largo.jpg"
+        largo_path.write_bytes(b"fake")
+        corto_path = dest_dir / "corto.jpg"
+        corto_path.write_bytes(b"fake")
+        return [
+            MediaCandidate(
+                path=largo_path,
+                title=(
+                    "File:Brigadas Querétaro - Protesta contra reforma "
+                    "energética de Felipe Calderón - CDMX 2008.jpg"
+                ),
+                source="wikimedia", source_url="https://example.com/largo", license="test",
+            ),
+            MediaCandidate(
+                path=corto_path, title="File:Felipe Calderón.jpg", source="wikimedia",
+                source_url="https://example.com/corto", license="test",
+            ),
+        ]
+
+
+def test_proper_noun_fallback_prefiere_titulo_especifico_ante_empate(tmp_path: Path) -> None:
+    """Con dos candidatos empatados en relevance_score, debe ganar el título
+    más corto/específico (probable retrato), no el primero que aparece en
+    la lista (bug real: una foto de una protesta le ganó a un retrato
+    porque Wikimedia la devolvió primero y el desempate era por orden de
+    inserción)."""
+    research = ResearchPlanoMedia(
+        sources_default=[], sources_historico=[_TiedTitlesSource()],
+        candidates_per_shot=3, min_score=0.5,
+    )
+    plano = Plano(
+        id="p04", seccion="s",
+        narracion="Fue recibida por el presidente Felipe Calderón.",
+        visual=VisualSpec(tipo=VisualTipo.IMAGEN_IA, prompt_ia="bosque", busqueda_medios="bosque"),
+    )
+    shots_by_plano = {plano.id: [Shot(plano_id=plano.id, index=0, total=1)]}
+
+    manifest_path = tmp_path / "media" / "manifest.json"
+    research.execute(
+        [plano], tmp_path / "images", tmp_path / "media", manifest_path, shots_by_plano,
+    )
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["p04"]["chosen"]["title"] == "File:Felipe Calderón.jpg"
+
+
 def test_sin_pais_no_hay_fallback_geografico(tmp_path: Path) -> None:
     research = ResearchPlanoMedia(
         sources_default=[_GeoAwareSource()], sources_historico=[],

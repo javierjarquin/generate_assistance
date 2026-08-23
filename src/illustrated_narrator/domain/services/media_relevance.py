@@ -230,3 +230,18 @@ def relevance_score(query: str, candidate_text: str) -> float:
         if best >= _FUZZY_MIN_RATIO:
             hits += 1
     return hits / len(query_words)
+
+
+def title_specificity(title: str) -> int:
+    """Cantidad de palabras de contenido en un título -- desempate para
+    cuando varios candidatos empatan en relevance_score (frecuente: la
+    query es un nombre propio de 2 palabras y CUALQUIER título que
+    mencione ambas palabras da 1.0, sin importar cuántas palabras más
+    tenga alrededor). Menos palabras = título más específico/limpio, señal
+    de que es DE esa persona/tema y no solo la MENCIONA de paso (caso real:
+    para la query "Felipe Calderón", "File:Felipe Calderón.jpg" y "File:
+    Brigadas Querétaro - Protesta contra reforma energética de Felipe
+    Calderón - CDMX 2008.jpg" empataban en 1.0 -- se eligió la foto de una
+    protesta en vez de un retrato porque venía primero en la lista, no
+    porque fuera mejor match)."""
+    return len(_words(title))
