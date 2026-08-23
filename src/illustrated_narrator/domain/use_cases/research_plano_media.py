@@ -98,6 +98,17 @@ class ResearchPlanoMedia:
             # las tomas que caen a este fallback (mientras tenga fotos
             # disponibles) y las demás nunca se intentan.
             used_names: set[str] = set()
+            # Mejor candidato real ya elegido por una toma hermana de este
+            # plano -- último recurso si una toma se queda sin NINGÚN match
+            # propio tras agotar búsqueda + nombre propio + país/continente.
+            # Sin esto, un plano con más tomas que fotos realmente distintas
+            # disponibles (frecuente: una query genérica solo tiene 1-2
+            # candidatos buenos pero el plano tiene 4-5 tomas) deja las
+            # tomas sobrantes "sin_medio" -- confirmado en corridas reales
+            # (guion-cassez-vallarta) que eso dispara escalada a Claude cada
+            # vez. Repetir una foto real dentro del mismo plano es mejor que
+            # una toma vacía.
+            best_reusable: MediaCandidate | None = None
 
             for shot in shots:
                 if resolve_shot_asset(images_dir, media_dir, shot) is not None:
@@ -132,9 +143,12 @@ class ResearchPlanoMedia:
                     if fallback is not None:
                         query, fb_candidates, chosen = fallback
                         candidates = candidates + fb_candidates
+                if chosen is None and best_reusable is not None:
+                    chosen = best_reusable
                 record_shot_result(manifest, shot.shot_id, query, candidates, chosen)
                 if chosen is not None:
                     used_urls.add(chosen.source_url)
+                    best_reusable = chosen
                     dest = (
                         shot_video_path(media_dir, shot)
                         if chosen.media_type == "video"

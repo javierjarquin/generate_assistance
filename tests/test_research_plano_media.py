@@ -274,3 +274,55 @@ def test_sin_pais_no_hay_fallback_geografico(tmp_path: Path) -> None:
     )
 
     assert report.shots_resolved == 0
+
+
+class _SingleCandidateSource(StockImagePort):
+    """Devuelve SIEMPRE el mismo único candidato bueno -- simula una query
+    genérica con solo 1-2 fotos realmente relevantes disponibles."""
+
+    def is_available(self) -> bool:
+        return True
+
+    def search(self, query: str, dest_dir: Path, count: int) -> list[MediaCandidate]:
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        dest = dest_dir / "unico.jpg"
+        dest.write_bytes(b"fake")
+        return [MediaCandidate(
+            path=dest, title=query, source="pexels",
+            source_url="https://example.com/unico", license="test",
+        )]
+
+
+def test_reutiliza_mejor_candidato_para_tomas_sin_match_propio(tmp_path: Path) -> None:
+    """Un plano con más tomas que fotos realmente distintas disponibles no
+    debe dejar las tomas sobrantes sin medio -- repetir la mejor foto real
+    ya encontrada por una toma hermana es mejor que una toma vacía (bug
+    real: guion-cassez-vallarta, planos con 4-5 tomas y solo 1-2 candidatos
+    reales relevantes terminaban con la mayoría de las tomas sin_medio,
+    disparando escalada a Claude)."""
+    research = ResearchPlanoMedia(
+        sources_default=[_SingleCandidateSource()], sources_historico=[],
+        candidates_per_shot=3, min_score=0.5,
+    )
+    plano = Plano(
+        id="p07", seccion="s", narracion="x",
+        visual=VisualSpec(
+            tipo=VisualTipo.IMAGEN_IA, prompt_ia="empty press conference lectern",
+            busqueda_medios="empty press conference lectern",
+        ),
+    )
+    shots_by_plano = {plano.id: [
+        Shot(plano_id=plano.id, index=0, total=3),
+        Shot(plano_id=plano.id, index=1, total=3),
+        Shot(plano_id=plano.id, index=2, total=3),
+    ]}
+
+    manifest_path = tmp_path / "media" / "manifest.json"
+    report = research.execute(
+        [plano], tmp_path / "images", tmp_path / "media", manifest_path, shots_by_plano,
+    )
+
+    assert report.shots_resolved == 3
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    urls = {manifest[f"p07_{i}"]["chosen"]["source_url"] for i in (1, 2, 3)}
+    assert urls == {"https://example.com/unico"}
