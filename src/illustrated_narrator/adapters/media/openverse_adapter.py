@@ -7,32 +7,73 @@ gratuita para ampliar lo que Pexels/Wikimedia no encuentran solos.
 """
 
 import logging
+import time
 from pathlib import Path
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
+from illustrated_narrator.adapters.media._http_hard_timeout import call_with_hard_timeout
 from illustrated_narrator.ports.stock_media import MediaCandidate, StockImagePort
 
 logger = logging.getLogger(__name__)
 
 _TIMEOUT = 15
+# Timeout duro (cubre DNS colgado, ver _http_hard_timeout.py) para la llamada
+# que abre la conexión -- una vez con headers recibidos, el resto ya está
+# acotado por _TIMEOUT (reads) y _MAX_DOWNLOAD_SECONDS (streaming).
+_HARD_TIMEOUT = 20
 _API_URL = "https://api.openverse.org/v1/images/"
 # Mismo motivo que en wikimedia_adapter.py: algunas fuentes agregadas por
 # Openverse sirven escaneos/fotos de altísima resolución que no aportan nada
 # para un cutaway de unos pocos segundos y solo alargan la descarga.
 _MAX_DOWNLOAD_BYTES = 20_000_000
+# El tope de bytes no alcanza solo: un archivo CHICO que gotea muy lento
+# nunca llega a _MAX_DOWNLOAD_BYTES y el timeout de requests se reinicia con
+# cada byte recibido, así que nunca se dispara (mismo bug ya documentado en
+# wikimedia_adapter.py para archivos grandes, pero este caso es un archivo
+# cualquiera con conexión lenta -- confirmado en una corrida real: colgó la
+# investigación de medios sin CPU y sin progreso por más de 10 minutos).
+_MAX_DOWNLOAD_SECONDS = 20
 _ALLOWED_EXTENSIONS = (".jpg", ".jpeg", ".png")
+# Openverse agrega archivos alojados en la CDN de Wikimedia (upload.wikimedia
+# .org) sin pasar por su propia CDN -- esas descargas compiten con las de
+# WikimediaCommonsAdapter por el mismo host y, sin throttle propio acá,
+# aceleran el 403 por carga (ver wikimedia_adapter.py, mismo síntoma
+# confirmado en una corrida real: 403 repetido en archivos que sí existen y
+# son públicos, se resuelven solos con reintento/espera).
+_MIN_INTERVAL_SECONDS = 1.0
 
 
 class OpenverseAdapter(StockImagePort):
     def __init__(self, session: requests.Session | None = None) -> None:
         self._http = session or requests.Session()
+        retry = Retry(
+            total=2, backoff_factor=2.0, status_forcelist=(403, 429, 503),
+            respect_retry_after_header=True, allowed_methods=("GET",),
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        self._http.mount("https://", adapter)
+        self._http.mount("http://", adapter)
+        self._last_request_at = 0.0
 
     def is_available(self) -> bool:
         return True  # API pública, sin key
 
+    def _throttle(self) -> None:
+        elapsed = time.monotonic() - self._last_request_at
+        if elapsed < _MIN_INTERVAL_SECONDS:
+            time.sleep(_MIN_INTERVAL_SECONDS - elapsed)
+        self._last_request_at = time.monotonic()
+
     def _download_capped(self, url: str, dest: Path) -> bool:
-        with self._http.get(url, timeout=_TIMEOUT, stream=True) as resp:
+        start = time.monotonic()
+        self._throttle()
+        resp = call_with_hard_timeout(
+            lambda: self._http.get(url, timeout=_TIMEOUT, stream=True), _HARD_TIMEOUT
+        )
+        with resp:
             resp.raise_for_status()
             content_length = resp.headers.get("Content-Length")
             if content_length and int(content_length) > _MAX_DOWNLOAD_BYTES:
@@ -43,6 +84,8 @@ class OpenverseAdapter(StockImagePort):
                 written += len(chunk)
                 if written > _MAX_DOWNLOAD_BYTES:
                     return False
+                if time.monotonic() - start > _MAX_DOWNLOAD_SECONDS:
+                    return False
                 chunks.append(chunk)
         dest.write_bytes(b"".join(chunks))
         return True
@@ -51,19 +94,22 @@ class OpenverseAdapter(StockImagePort):
         if not query.strip():
             return []
         try:
-            resp = self._http.get(
-                _API_URL,
-                params={
-                    "q": query,
-                    "page_size": count,
-                    "mature": "false",
-                },
-                headers={"User-Agent": "illustrated-narrator/1.0 (local tool, single user)"},
-                timeout=_TIMEOUT,
+            resp = call_with_hard_timeout(
+                lambda: self._http.get(
+                    _API_URL,
+                    params={
+                        "q": query,
+                        "page_size": count,
+                        "mature": "false",
+                    },
+                    headers={"User-Agent": "illustrated-narrator/1.0 (local tool, single user)"},
+                    timeout=_TIMEOUT,
+                ),
+                _HARD_TIMEOUT,
             )
             resp.raise_for_status()
             results = resp.json().get("results", [])
-        except (requests.RequestException, ValueError) as exc:
+        except (requests.RequestException, ValueError, TimeoutError) as exc:
             logger.warning("Openverse: búsqueda '%s' falló (%s)", query, exc)
             return []
 
@@ -84,7 +130,7 @@ class OpenverseAdapter(StockImagePort):
                         "tanta resolución para un cutaway)", url, _MAX_DOWNLOAD_BYTES // 1_000_000,
                     )
                     continue
-            except requests.RequestException as exc:
+            except (requests.RequestException, TimeoutError) as exc:
                 logger.warning("Openverse: descarga de %s falló (%s)", url, exc)
                 continue
             license_name = item.get("license", "").upper()
