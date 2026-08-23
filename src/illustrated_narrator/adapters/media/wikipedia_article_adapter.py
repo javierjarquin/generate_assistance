@@ -10,16 +10,27 @@ el artículo correspondiente (ej. el retrato de una persona en su ficha).
 
 import logging
 import re
+import time
 from pathlib import Path
 from urllib.parse import urlsplit
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
+from illustrated_narrator.adapters.media._http_hard_timeout import call_with_hard_timeout
 from illustrated_narrator.ports.stock_media import MediaCandidate, StockImagePort
 
 logger = logging.getLogger(__name__)
 
 _TIMEOUT = 15
+# Timeout duro (cubre DNS colgado) + tope de tiempo total de descarga (cubre
+# un archivo chico con conexión lenta, que nunca llega a _MAX_DOWNLOAD_BYTES)
+# -- mismo bug ya documentado y arreglado en wikimedia_adapter.py y
+# openverse_adapter.py, misma causa (el timeout de requests no cubre ninguno
+# de los dos casos).
+_HARD_TIMEOUT = 20
+_MAX_DOWNLOAD_SECONDS = 20
 _API_URL = "https://es.wikipedia.org/w/api.php"
 _ALLOWED_EXTENSIONS = (".jpg", ".jpeg", ".png")
 # Mismo motivo que wikimedia_adapter.py: evitar escaneos/fotos de archivo de
@@ -44,12 +55,22 @@ class WikipediaArticleAdapter(StockImagePort):
         self._http = session or requests.Session()
         self._http.headers["User-Agent"] = _USER_AGENT
         self._api_url = api_url
+        retry = Retry(
+            total=2, backoff_factor=2.0, status_forcelist=(403, 429, 503),
+            respect_retry_after_header=True, allowed_methods=("GET",),
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        self._http.mount("https://", adapter)
+        self._http.mount("http://", adapter)
 
     def is_available(self) -> bool:
         return True  # API pública, sin key
 
     def _get(self, params: dict) -> dict:
-        resp = self._http.get(self._api_url, params={**params, "format": "json"}, timeout=_TIMEOUT)
+        resp = call_with_hard_timeout(
+            lambda: self._http.get(self._api_url, params={**params, "format": "json"}, timeout=_TIMEOUT),
+            _HARD_TIMEOUT,
+        )
         resp.raise_for_status()
         return resp.json()
 
@@ -67,7 +88,20 @@ class WikipediaArticleAdapter(StockImagePort):
         return [i["title"] for i in pagina.get("images", []) if not _RUIDO.search(i["title"])]
 
     def _download_capped(self, url: str, dest: Path) -> bool:
-        with self._http.get(url, timeout=_TIMEOUT, stream=True) as resp:
+        # Mismo fix real que wikimedia_adapter.py: upload.wikimedia.org
+        # devuelve 403 en conexiones REUTILIZADAS de una misma Session
+        # (keep-alive), no por cookies ni volumen -- Connection: close
+        # fuerza una conexión nueva por descarga (confirmado con pruebas
+        # reales aisladas).
+        self._http.cookies.clear()
+        start = time.monotonic()
+        resp = call_with_hard_timeout(
+            lambda: self._http.get(
+                url, timeout=_TIMEOUT, stream=True, headers={"Connection": "close"}
+            ),
+            _HARD_TIMEOUT,
+        )
+        with resp:
             resp.raise_for_status()
             content_length = resp.headers.get("Content-Length")
             if content_length and int(content_length) > _MAX_DOWNLOAD_BYTES:
@@ -78,6 +112,8 @@ class WikipediaArticleAdapter(StockImagePort):
                 written += len(chunk)
                 if written > _MAX_DOWNLOAD_BYTES:
                     return False
+                if time.monotonic() - start > _MAX_DOWNLOAD_SECONDS:
+                    return False
                 chunks.append(chunk)
         dest.write_bytes(b"".join(chunks))
         return True
@@ -87,7 +123,7 @@ class WikipediaArticleAdapter(StockImagePort):
             return []
         try:
             article_title = self._find_article_title(query)
-        except (requests.RequestException, ValueError) as exc:
+        except (requests.RequestException, ValueError, TimeoutError) as exc:
             logger.warning("Wikipedia (artículo): búsqueda '%s' falló (%s)", query, exc)
             return []
         if not article_title:
@@ -95,7 +131,7 @@ class WikipediaArticleAdapter(StockImagePort):
 
         try:
             archivos = self._content_image_titles(article_title)
-        except (requests.RequestException, ValueError) as exc:
+        except (requests.RequestException, ValueError, TimeoutError) as exc:
             logger.warning("Wikipedia (artículo): imágenes de '%s' fallaron (%s)", article_title, exc)
             return []
         if not archivos:
@@ -112,7 +148,7 @@ class WikipediaArticleAdapter(StockImagePort):
                     "action": "query", "prop": "imageinfo",
                     "iiprop": "url|extmetadata", "titles": lote,
                 })
-            except (requests.RequestException, ValueError) as exc:
+            except (requests.RequestException, ValueError, TimeoutError) as exc:
                 logger.warning("Wikipedia (artículo): imageinfo falló (%s)", exc)
                 continue
             for page in data.get("query", {}).get("pages", {}).values():
@@ -137,7 +173,7 @@ class WikipediaArticleAdapter(StockImagePort):
                             url, _MAX_DOWNLOAD_BYTES // 1_000_000,
                         )
                         continue
-                except requests.RequestException as exc:
+                except (requests.RequestException, TimeoutError) as exc:
                     logger.warning("Wikipedia (artículo): descarga de %s falló (%s)", url, exc)
                     continue
                 candidates.append(

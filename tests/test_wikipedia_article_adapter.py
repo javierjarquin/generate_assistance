@@ -32,16 +32,25 @@ class _FakeStreamResponse:
         return False
 
 
+class _FakeCookieJar:
+    def clear(self) -> None:
+        pass
+
+
 class _FakeSession:
     def __init__(self, search_json=None, images_json=None, imageinfo_json=None, image_bytes=b"fake-jpg") -> None:
         self.headers: dict = {}
+        self.cookies = _FakeCookieJar()
         self._search_json = search_json
         self._images_json = images_json
         self._imageinfo_json = imageinfo_json
         self._image_bytes = image_bytes
         self.requested = []
 
-    def get(self, url, params=None, timeout=None, stream=False):
+    def mount(self, prefix, adapter) -> None:
+        pass
+
+    def get(self, url, params=None, timeout=None, stream=False, headers=None):
         self.requested.append(params or {})
         if stream:
             return _FakeStreamResponse(self._image_bytes)

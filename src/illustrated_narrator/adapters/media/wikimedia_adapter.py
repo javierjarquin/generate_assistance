@@ -15,11 +15,16 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
+from illustrated_narrator.adapters.media._http_hard_timeout import call_with_hard_timeout
 from illustrated_narrator.ports.stock_media import MediaCandidate, StockImagePort
 
 logger = logging.getLogger(__name__)
 
 _TIMEOUT = 15
+# Timeout duro (cubre DNS colgado, ver _http_hard_timeout.py) para la llamada
+# que abre la conexión -- una vez con headers recibidos, el resto ya está
+# acotado por _TIMEOUT (reads) y _MAX_DOWNLOAD_SECONDS (streaming).
+_HARD_TIMEOUT = 20
 _API_URL = "https://commons.wikimedia.org/w/api.php"
 _ALLOWED_EXTENSIONS = (".jpg", ".jpeg", ".png")
 # Wikimedia sirve muchos archivos de archivo/científicos como escaneos de
@@ -33,6 +38,11 @@ _ALLOWED_EXTENSIONS = (".jpg", ".jpeg", ".png")
 # streaming y se aborta si supera el tope, sea por Content-Length o durante
 # la lectura, así que el corte es inmediato, no una espera larga.
 _MAX_DOWNLOAD_BYTES = 20_000_000
+# El tope de bytes no cubre el caso de un archivo CHICO con conexión lenta:
+# nunca llega a _MAX_DOWNLOAD_BYTES y el timeout de requests se reinicia con
+# cada byte recibido, así que nunca se dispara -- mismo síntoma (colgado sin
+# CPU, sin progreso) confirmado en una corrida real contra Openverse.
+_MAX_DOWNLOAD_SECONDS = 20
 # Wikimedia bloquea con 403 las peticiones sin User-Agent descriptivo
 # (https://meta.wikimedia.org/wiki/User-Agent_policy) — requests manda uno
 # genérico por defecto.
@@ -80,7 +90,24 @@ class WikimediaCommonsAdapter(StockImagePort):
         """Descarga en streaming, abortando si supera _MAX_DOWNLOAD_BYTES (por
         Content-Length o durante la lectura, si el header falta o miente).
         True si se descargó completo, False si se saltó por tamaño."""
-        with self._http.get(url, timeout=_TIMEOUT, stream=True) as resp:
+        # upload.wikimedia.org devuelve 403 específicamente en conexiones
+        # REUTILIZADAS de una misma Session (keep-alive) después de varias
+        # descargas -- confirmado con pruebas reales aisladas: una llamada
+        # nueva de `requests` (sin Session) siempre dio 200 para el mismo
+        # archivo mientras la Session de la sesión seguía en 403; agregar
+        # Connection: close a 3 pedidos seguidos en la MISMA Session hizo
+        # que los 3 dieran 200. No es cookies ni User-Agent ni volumen total
+        # -- es la conexión persistente específicamente. Limpiar la cookie
+        # de todos modos (no hace daño) pero el fix real es este header.
+        self._http.cookies.clear()
+        start = time.monotonic()
+        resp = call_with_hard_timeout(
+            lambda: self._http.get(
+                url, timeout=_TIMEOUT, stream=True, headers={"Connection": "close"}
+            ),
+            _HARD_TIMEOUT,
+        )
+        with resp:
             resp.raise_for_status()
             content_length = resp.headers.get("Content-Length")
             if content_length and int(content_length) > _MAX_DOWNLOAD_BYTES:
@@ -90,6 +117,8 @@ class WikimediaCommonsAdapter(StockImagePort):
             for chunk in resp.iter_content(chunk_size=262_144):
                 written += len(chunk)
                 if written > _MAX_DOWNLOAD_BYTES:
+                    return False
+                if time.monotonic() - start > _MAX_DOWNLOAD_SECONDS:
                     return False
                 chunks.append(chunk)
         dest.write_bytes(b"".join(chunks))
@@ -108,10 +137,12 @@ class WikimediaCommonsAdapter(StockImagePort):
         }
         try:
             self._throttle()
-            resp = self._http.get(_API_URL, params=params, timeout=_TIMEOUT)
+            resp = call_with_hard_timeout(
+                lambda: self._http.get(_API_URL, params=params, timeout=_TIMEOUT), _HARD_TIMEOUT
+            )
             resp.raise_for_status()
             return resp.json().get("query", {}).get("pages", {})
-        except (requests.RequestException, ValueError) as exc:
+        except (requests.RequestException, ValueError, TimeoutError) as exc:
             logger.warning("Wikimedia Commons: búsqueda '%s' falló (%s)", gsrsearch_terms, exc)
             return {}
 
@@ -159,7 +190,7 @@ class WikimediaCommonsAdapter(StockImagePort):
                         "tanta resolución para un cutaway)", url, _MAX_DOWNLOAD_BYTES // 1_000_000,
                     )
                     continue
-            except requests.RequestException as exc:
+            except (requests.RequestException, TimeoutError) as exc:
                 logger.warning("Wikimedia Commons: descarga de %s falló (%s)", url, exc)
                 continue
             candidates.append(

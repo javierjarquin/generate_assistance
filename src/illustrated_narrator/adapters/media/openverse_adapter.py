@@ -68,10 +68,19 @@ class OpenverseAdapter(StockImagePort):
         self._last_request_at = time.monotonic()
 
     def _download_capped(self, url: str, dest: Path) -> bool:
+        # Muchos resultados de Openverse apuntan directo a upload.wikimedia
+        # .org -- ese host devuelve 403 en conexiones REUTILIZADAS de una
+        # misma Session (keep-alive), no por cookies ni volumen (ver el fix
+        # real y cómo se confirmó en wikimedia_adapter.py). Connection:
+        # close fuerza una conexión nueva por descarga.
+        self._http.cookies.clear()
         start = time.monotonic()
         self._throttle()
         resp = call_with_hard_timeout(
-            lambda: self._http.get(url, timeout=_TIMEOUT, stream=True), _HARD_TIMEOUT
+            lambda: self._http.get(
+                url, timeout=_TIMEOUT, stream=True, headers={"Connection": "close"}
+            ),
+            _HARD_TIMEOUT,
         )
         with resp:
             resp.raise_for_status()
