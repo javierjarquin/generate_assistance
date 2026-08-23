@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from illustrated_narrator.domain.entities.plano import Plano, VisualSpec, VisualTipo
@@ -132,6 +133,67 @@ def test_geo_fallback_usa_pais_del_plano_por_encima_del_default_del_guion(tmp_pa
     )
 
     assert report.shots_resolved == 1
+
+
+class _NamedFiguresSource(StockImagePort):
+    """Simula Wikimedia respondiendo distinto según el nombre propio buscado:
+    dos candidatos para "Isabel Miranda" (para poder cubrir 2 tomas con ese
+    solo nombre si nada lo evita) y uno para "Felipe Calderón"."""
+
+    def is_available(self) -> bool:
+        return True
+
+    def search(self, query: str, dest_dir: Path, count: int) -> list[MediaCandidate]:
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        if query == "Isabel Miranda":
+            candidates = []
+            for i, title in enumerate(["Isabel Miranda de Wallace", "Isabel Miranda Otra Persona"]):
+                dest = dest_dir / f"isabel_{i}.jpg"
+                dest.write_bytes(b"fake")
+                candidates.append(MediaCandidate(
+                    path=dest, title=title, source="wikimedia",
+                    source_url=f"https://example.com/isabel_{i}", license="test",
+                ))
+            return candidates
+        if query == "Felipe Calderón":
+            dest = dest_dir / "calderon.jpg"
+            dest.write_bytes(b"fake")
+            return [MediaCandidate(
+                path=dest, title="Felipe Calderón", source="wikimedia",
+                source_url="https://example.com/calderon", license="test",
+            )]
+        return []
+
+
+def test_proper_noun_fallback_reparte_entre_varias_figuras_del_mismo_plano(tmp_path: Path) -> None:
+    """Un plano que menciona a dos figuras públicas y tiene tomas de sobra
+    para cubrir ambas no debe dejar a la segunda sin foto solo porque la
+    primera mencionada ya tenía candidatos disponibles (bug real: "Felipe
+    Calderón" nunca se intentaba porque "Isabel Miranda" ya cubría las dos
+    tomas que caían al fallback de nombre propio)."""
+    research = ResearchPlanoMedia(
+        sources_default=[], sources_historico=[_NamedFiguresSource()],
+        candidates_per_shot=3, min_score=0.5,
+    )
+    plano = Plano(
+        id="p04", seccion="s",
+        narracion="Isabel Miranda viajó junto a Felipe Calderón a la capital.",
+        visual=VisualSpec(tipo=VisualTipo.IMAGEN_IA, prompt_ia="bosque", busqueda_medios="bosque"),
+    )
+    shots_by_plano = {plano.id: [
+        Shot(plano_id=plano.id, index=0, total=2),
+        Shot(plano_id=plano.id, index=1, total=2),
+    ]}
+
+    manifest_path = tmp_path / "media" / "manifest.json"
+    report = research.execute(
+        [plano], tmp_path / "images", tmp_path / "media", manifest_path, shots_by_plano,
+    )
+
+    assert report.shots_resolved == 2
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    titles = {entry["chosen"]["title"] for entry in manifest.values() if entry.get("chosen")}
+    assert "Felipe Calderón" in titles
 
 
 def test_sin_pais_no_hay_fallback_geografico(tmp_path: Path) -> None:

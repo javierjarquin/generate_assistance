@@ -91,6 +91,12 @@ class ResearchPlanoMedia:
                 for shot_id, entry in manifest.items()
                 if entry.get("chosen") and (shot_id == plano.id or shot_id.startswith(f"{plano.id}_"))
             }
+            # Nombres propios ya cubiertos por una toma hermana de este plano
+            # -- ver _proper_noun_fallback: sin esto, si el plano menciona
+            # varias figuras públicas, la primera mencionada "acapara" todas
+            # las tomas que caen a este fallback (mientras tenga fotos
+            # disponibles) y las demás nunca se intentan.
+            used_names: set[str] = set()
 
             for shot in shots:
                 if resolve_shot_asset(images_dir, media_dir, shot) is not None:
@@ -114,7 +120,7 @@ class ResearchPlanoMedia:
                 candidates = self._search_all(sources, query, plano_media_dir)
                 chosen = self._best_match(query, candidates, used_urls)
                 if chosen is None:
-                    fallback = self._proper_noun_fallback(plano, plano_media_dir, used_urls)
+                    fallback = self._proper_noun_fallback(plano, plano_media_dir, used_urls, used_names)
                     if fallback is not None:
                         query, fb_candidates, chosen = fallback
                         candidates = candidates + fb_candidates
@@ -186,7 +192,7 @@ class ResearchPlanoMedia:
     _PROPER_NOUN_MIN_SCORE = 1.0
 
     def _proper_noun_fallback(
-        self, plano: Plano, dest_dir: Path, used_urls: set[str]
+        self, plano: Plano, dest_dir: Path, used_urls: set[str], used_names: set[str]
     ) -> tuple[str, list[MediaCandidate], MediaCandidate] | None:
         """Si la búsqueda principal (derivada del prompt_ia en inglés, pensado
         para dirigir un modelo de imagen) no encontró nada relevante, prueba
@@ -198,7 +204,17 @@ class ResearchPlanoMedia:
         if not self._sources_historico:
             return None
         names = extract_proper_nouns(plano.narracion, plano.visual.descripcion)
-        for name in names:
+        # Prioriza nombres que ninguna toma hermana de este plano ya usó --
+        # si no, cuando un plano menciona varias figuras públicas, la primera
+        # mencionada en el texto "acapara" todas las tomas que caen a este
+        # fallback mientras tenga fotos disponibles, y las demás nunca se
+        # intentan (confirmado en corrida real: un plano mencionaba a Isabel
+        # Miranda de Wallace Y a Felipe Calderón, pero como Wikimedia tenía
+        # más de una foto candidata con "Isabel Miranda" en el título, las
+        # dos tomas que necesitaban este fallback se resolvieron ahí y
+        # "Felipe Calderón" -- correctamente extraído -- nunca se probó).
+        ordered_names = sorted(names, key=lambda n: n in used_names)
+        for name in ordered_names:
             candidates = self._search_all(self._sources_historico, name, dest_dir)
             available = [c for c in candidates if c.source_url not in used_urls]
             if not available:
@@ -206,6 +222,7 @@ class ResearchPlanoMedia:
             scored = sorted(available, key=lambda c: relevance_score(name, c.title), reverse=True)
             best = scored[0]
             if relevance_score(name, best.title) >= self._PROPER_NOUN_MIN_SCORE:
+                used_names.add(name)
                 return name, candidates, best
         return None
 
