@@ -13,6 +13,7 @@ from illustrated_narrator.adapters.media.wikimedia_adapter import WikimediaCommo
 from illustrated_narrator.adapters.media.wikipedia_article_adapter import WikipediaArticleAdapter
 from illustrated_narrator.adapters.publish.facebook_adapter import FacebookPagePublisher
 from illustrated_narrator.adapters.transcription.faster_whisper_adapter import FasterWhisperTranscriber
+from illustrated_narrator.adapters.video.animatelcm_a1111_adapter import AnimateLcmA1111Adapter
 from illustrated_narrator.adapters.video.ffmpeg_assembler import FFmpegAssembler
 from illustrated_narrator.domain.use_cases.generate_narration_video import GenerateNarrationVideo
 from illustrated_narrator.domain.use_cases.generate_plano_images import GeneratePlanoImages
@@ -25,6 +26,7 @@ from illustrated_narrator.ports.stock_audio import StockAudioPort
 from illustrated_narrator.ports.stock_media import StockImagePort
 from illustrated_narrator.ports.transcription import TranscriptionPort
 from illustrated_narrator.ports.video_assembler import VideoAssemblerPort
+from illustrated_narrator.ports.video_generator import VideoGeneratorPort
 
 
 class Container:
@@ -56,6 +58,15 @@ class Container:
         return Automatic1111ImageAdapter(
             self.settings.a1111_base_url, checkpoint=self.settings.sd_checkpoint
         )
+
+    @cached_property
+    def video_generator(self) -> VideoGeneratorPort | None:
+        # Mismo servidor A1111 que image_generator (--api), extensión
+        # sd-webui-animatediff con el motion module AnimateLCM. None si el
+        # fallback está desactivado (default) -- ver GeneratePlanoImages.
+        if self.settings.video_fallback_max_planos <= 0:
+            return None
+        return AnimateLcmA1111Adapter(self.settings.a1111_base_url)
 
     @cached_property
     def transcriber(self) -> TranscriptionPort:
@@ -202,6 +213,9 @@ class Container:
             sampler_name=s.sd_sampler,
             width=width,
             height=height,
+            video_generator=self.video_generator,
+            max_video_fallback_planos=s.video_fallback_max_planos,
+            max_video_fallback_seconds=s.video_fallback_max_seconds,
         )
 
     @cached_property

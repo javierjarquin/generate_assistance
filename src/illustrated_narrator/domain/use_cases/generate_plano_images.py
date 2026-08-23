@@ -13,19 +13,38 @@ las demás tomas ya resueltas del mismo plano se reparten su duración
 que recibe, así que una toma de menos simplemente se cubre estirando las
 otras). El plano solo se marca FALLIDO si ninguna de sus tomas tiene medio
 real -- ahí sí no hay nada que estirar.
-"""
+
+Último recurso, opt-in (`video_generator` + `max_video_fallback_planos` >
+0): si un plano se queda sin NINGUNA toma resuelta después de agotar
+búsqueda real + país + continente (ver ResearchPlanoMedia), y es un tipo
+conceptual/atmosférico (imagen_ia o grafico_movimiento -- NUNCA
+archivo_historico, que afirma ser documental real), genera un clip corto
+de video con IA en vez de fallar. Un solo clip por plano alcanza:
+_render_video_shot ya hace loop si el video es más corto que la toma, así
+que no hace falta generar tanto como dure el plano real. Acotado a un
+puñado de planos por corrida (max_video_fallback_planos) para no volar el
+tiempo total -- medido en una GPU real: ~4-9 min por clip."""
 
 import hashlib
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from illustrated_narrator.domain.entities.plano import Plano, PlanoEstado
+from illustrated_narrator.domain.entities.plano import Plano, PlanoEstado, VisualTipo
 from illustrated_narrator.domain.services.retention_plan import Shot, variation_suffix
 from illustrated_narrator.domain.services.shot_assets import shot_image_path, shot_video_path
 from illustrated_narrator.ports.image_generator import ImageGenerationRequest, ImageGeneratorPort
+from illustrated_narrator.ports.video_generator import VideoGenerationRequest, VideoGeneratorPort
 
 logger = logging.getLogger(__name__)
+
+# Tipos de plano elegibles para el fallback de video-IA: conceptuales/
+# atmosféricos, nunca los que afirman ser documento/archivo real.
+_VIDEO_FALLBACK_TIPOS = (VisualTipo.IMAGEN_IA, VisualTipo.GRAFICO_MOVIMIENTO)
+# Resolución validada en la prueba real (AMD RX 5500 XT, DirectML) -- más
+# alta sube el riesgo de VRAM/tiempo sin haberlo probado.
+_VIDEO_WIDTH = 512
+_VIDEO_HEIGHT = 512
 
 __all__ = ["GenerateImagesReport", "GeneratePlanoImages", "shot_image_path"]
 
@@ -54,6 +73,9 @@ class GeneratePlanoImages:
         sampler_name: str,
         width: int = 768,
         height: int = 448,
+        video_generator: VideoGeneratorPort | None = None,
+        max_video_fallback_planos: int = 0,
+        max_video_fallback_seconds: float = 2.0,
     ) -> None:
         self._images = image_generator
         self._style_suffix = style_suffix
@@ -63,6 +85,9 @@ class GeneratePlanoImages:
         self._sampler = sampler_name
         self._width = width
         self._height = height
+        self._video_generator = video_generator
+        self._max_video_fallback_planos = max_video_fallback_planos
+        self._max_video_fallback_seconds = max_video_fallback_seconds
 
     def execute(
         self,
@@ -77,6 +102,7 @@ class GeneratePlanoImages:
                 "El servicio de generación de imágenes (A1111) no responde. "
                 "Arráncalo con tools\\run_a1111.bat y vuelve a intentar."
             )
+        video_fallback_used = 0
         for plano in planos:
             shots = (shots_by_plano or {}).get(plano.id) or [
                 Shot(plano_id=plano.id, index=0, total=1)
@@ -98,6 +124,22 @@ class GeneratePlanoImages:
                 if not shot.is_extra:
                     plano.imagen_path = str(resolved)
                 first_resolved = first_resolved or resolved
+
+            if first_resolved is None and self._video_fallback_eligible(
+                plano, video_fallback_used
+            ):
+                try:
+                    first_resolved = self._generate_video_fallback(plano, shots, media_dir)
+                    video_fallback_used += 1
+                    logger.warning(
+                        "%s sin medio real en ninguna fuente; generado con video-IA "
+                        "(fallback %d/%d de esta corrida)",
+                        plano.id, video_fallback_used, self._max_video_fallback_planos,
+                    )
+                except Exception as exc:  # noqa: BLE001 — último recurso: si también falla, el plano queda FALLIDO como siempre
+                    last_error = str(exc)
+                    logger.warning("Video-IA de respaldo falló para %s (%s)", plano.id, exc)
+
             if first_resolved is not None:
                 if not plano.imagen_path:
                     # La toma "principal" (index 0) fue justo la que faltó, pero
@@ -137,4 +179,36 @@ class GeneratePlanoImages:
         )
         self._images.generate(request, dest)
         report.shots_generated += 1
+        return dest
+
+    def _video_fallback_eligible(self, plano: Plano, video_fallback_used: int) -> bool:
+        return (
+            self._video_generator is not None
+            and video_fallback_used < self._max_video_fallback_planos
+            and plano.visual.tipo in _VIDEO_FALLBACK_TIPOS
+            and self._video_generator.is_available()
+        )
+
+    def _generate_video_fallback(
+        self, plano: Plano, shots: list[Shot], media_dir: Path | None
+    ) -> Path:
+        if media_dir is None:
+            raise RuntimeError("sin media_dir, no se puede escribir el video generado")
+        # Un solo clip para TODO el plano (no por toma): _render_video_shot
+        # ya hace loop si el clip es más corto que la toma, así que basta
+        # con escribirlo en la ruta de la primera toma.
+        dest = shot_video_path(media_dir, shots[0])
+        # SIN style_suffix: confirmado en una prueba real (misma GPU) que un
+        # prompt largo (prompt_ia + el sufijo de estilo que sí usan las
+        # imágenes fijas) se queda sin VRAM incluso aislado -- el batch
+        # temporal de AnimateDiff ya está al límite en esta tarjeta con un
+        # prompt corto solo. No reagregar sin volver a probar.
+        request = VideoGenerationRequest(
+            prompt=plano.visual.prompt_ia,
+            negative_prompt=self._negative_prompt,
+            width=_VIDEO_WIDTH,
+            height=_VIDEO_HEIGHT,
+            duration_seconds=self._max_video_fallback_seconds,
+        )
+        self._video_generator.generate(request, dest)
         return dest

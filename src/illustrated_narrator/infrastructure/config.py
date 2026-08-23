@@ -60,6 +60,12 @@ class Settings:
     mascot_voice_threshold: float
     facebook_page_id: str | None
     facebook_page_access_token: str | None
+    # Último recurso: video-IA (AnimateLCM sobre A1111, mismo servidor que
+    # a1111_base_url) cuando un plano se queda sin NINGÚN medio real tras
+    # agotar búsqueda + país + continente. 0 = desactivado (default --
+    # opt-in explícito, "cero IA" sigue siendo el comportamiento normal).
+    video_fallback_max_planos: int
+    video_fallback_max_seconds: float
 
 
 def load_settings() -> Settings:
@@ -129,4 +135,10 @@ def load_settings() -> Settings:
         mascot_voice_threshold=float(os.getenv("NARR_MASCOTA_VOICE_THRESHOLD", "0.06")),
         facebook_page_id=os.getenv("NARR_FACEBOOK_PAGE_ID", "").strip() or None,
         facebook_page_access_token=os.getenv("NARR_FACEBOOK_PAGE_ACCESS_TOKEN", "").strip() or None,
+        video_fallback_max_planos=int(os.getenv("NARR_VIDEO_FALLBACK_MAX_PLANOS", "0")),
+        # 2.0s (16 frames a 8fps) es lo único validado en esta GPU real
+        # (AMD RX 5500 XT, --lowvram): 4s/32 frames se quedó sin VRAM en una
+        # prueba real end-to-end (RuntimeError: no hay memoria suficiente).
+        # No subir sin volver a probar.
+        video_fallback_max_seconds=float(os.getenv("NARR_VIDEO_FALLBACK_MAX_SECONDS", "2.0")),
     )
