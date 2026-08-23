@@ -11,4 +11,4 @@ if exist "stable-diffusion-webui\webui-user.bat" (
     echo No se encontro ninguna instalacion de A1111 en tools\
     exit /b 1
 )
-call webui-user.bat
+call .\webui-user.bat
