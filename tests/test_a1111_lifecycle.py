@@ -6,17 +6,18 @@ class _FakeCompletedProcess:
         self.stdout = stdout
 
 
-def test_restart_a1111_mata_el_pid_que_escucha_el_puerto(monkeypatch):
-    # Se busca el pid por el puerto (Get-NetTCPConnection), no por texto de
-    # línea de comando -- un filtro de PowerShell con 'launch.py' en el
-    # string puede automatchearse a sí mismo (bug real ya visto en esta
-    # misma investigación: exit code 255 por autoeliminación).
+def test_restart_a1111_mata_todos_los_procesos_launch_py(monkeypatch):
+    # launch.py arranca varios procesos python.exe relacionados -- matar
+    # solo el que escucha el puerto dejaba huérfanos (confirmado en una
+    # corrida real: hasta 6 procesos acumulados tras varios reinicios,
+    # cada uno reteniendo VRAM). El fix busca y mata TODOS los que matchean
+    # 'launch.py' en una sola pasada, no un PID puntual.
     calls = []
 
     def fake_run(cmd, **kwargs):
         calls.append(cmd)
-        if "Get-NetTCPConnection" in cmd[-1]:
-            return _FakeCompletedProcess(stdout="4242\n")
+        if "Select-Object -ExpandProperty ProcessId" in cmd[-1] and "Stop-Process" not in cmd[-1]:
+            return _FakeCompletedProcess(stdout="4242\n7777\n")
         return _FakeCompletedProcess()
 
     monkeypatch.setattr(a1111_lifecycle.subprocess, "run", fake_run)
@@ -34,7 +35,12 @@ def test_restart_a1111_mata_el_pid_que_escucha_el_puerto(monkeypatch):
     assert ok is True
     kill_calls = [c for c in calls if "Stop-Process" in c[-1]]
     assert len(kill_calls) == 1
-    assert "-Id 4242" in kill_calls[0][-1]
+    # El filtro se arma partido (concatenado) dentro del script, no como
+    # literal en el comando que Python invoca -- si el string completo
+    # apareciera literal, el filtro podría automatchearse a sí mismo (bug
+    # real ya confirmado: exit code 255 por autoeliminación).
+    assert "launch.py" not in kill_calls[0][-1]
+    assert "'launch' + '.py'" in kill_calls[0][-1]
 
 
 def test_restart_a1111_sin_proceso_previo_solo_relanza(monkeypatch):

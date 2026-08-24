@@ -22,37 +22,51 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-_KILL_TIMEOUT = 10
+_KILL_TIMEOUT = 15
 _READY_POLL_INTERVAL = 3.0
+# launch.py arranca varios procesos python.exe relacionados (no solo el que
+# termina escuchando el puerto) -- confirmado en una corrida real: matar
+# solo el PID del puerto dejaba hasta 6 procesos "launch.py" huérfanos
+# acumulados tras varios reinicios, cada uno reteniendo VRAM, lo que
+# terminaba causando el mismo síntoma (500 "not enough GPU memory") que se
+# intentaba arreglar. Hay que matarlos TODOS.
+#
+# El string de búsqueda se arma partido (concatenado) adentro del script de
+# PowerShell, no como literal en el comando que Python invoca -- si el
+# comando que lanza ESTE proceso (visible para WMI) contiene el string
+# completo, el filtro se automatchea a sí mismo y se mata solo (bug real ya
+# confirmado en esta misma investigación: exit code 255 por autoeliminación
+# al filtrar por 'launch.py' o 'stable-diffusion-webui' directo).
+_FIND_ALL_PIDS_SCRIPT = (
+    "$needle = 'launch' + '.py'; "
+    "Get-CimInstance Win32_Process | "
+    "Where-Object { $_.CommandLine -match $needle } | "
+    "Select-Object -ExpandProperty ProcessId"
+)
+_KILL_ALL_SCRIPT = (
+    "$needle = 'launch' + '.py'; "
+    "Get-CimInstance Win32_Process | "
+    "Where-Object { $_.CommandLine -match $needle } | "
+    "Select-Object -ExpandProperty ProcessId | "
+    "ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }"
+)
 
 
-def _find_listening_pid(port: int) -> int | None:
-    """PID que escucha en el puerto -- más confiable que matchear la línea
-    de comando (un filtro con 'launch.py'/'stable-diffusion-webui' en el
-    string puede automatchearse a sí mismo si corre desde PowerShell, visto
-    antes en esta misma investigación: exit code 255 por autoeliminación)."""
+def _find_a1111_pids() -> list[int]:
     try:
         result = subprocess.run(
-            [
-                "powershell", "-NoProfile", "-Command",
-                f"(Get-NetTCPConnection -LocalPort {port} -State Listen "
-                f"-ErrorAction SilentlyContinue).OwningProcess",
-            ],
+            ["powershell", "-NoProfile", "-Command", _FIND_ALL_PIDS_SCRIPT],
             capture_output=True, text=True, timeout=10,
         )
-        pid_str = result.stdout.strip()
-        return int(pid_str) if pid_str.isdigit() else None
-    except (subprocess.SubprocessError, ValueError, OSError):
-        return None
+        return [int(line) for line in result.stdout.splitlines() if line.strip().isdigit()]
+    except (subprocess.SubprocessError, OSError):
+        return []
 
 
-def _kill_pid(pid: int) -> None:
+def _kill_all_a1111_processes() -> None:
     try:
         subprocess.run(
-            [
-                "powershell", "-NoProfile", "-Command",
-                f"Stop-Process -Id {pid} -Force -ErrorAction SilentlyContinue",
-            ],
+            ["powershell", "-NoProfile", "-Command", _KILL_ALL_SCRIPT],
             capture_output=True, timeout=_KILL_TIMEOUT,
         )
     except (subprocess.SubprocessError, OSError):
@@ -60,18 +74,17 @@ def _kill_pid(pid: int) -> None:
 
 
 def restart_a1111(base_url: str, bat_path: str, cwd: str, ready_timeout: float = 180.0) -> bool:
-    """Mata el proceso actual de A1111 (si hay uno escuchando en el puerto
-    de base_url) y lo relanza, esperando hasta ready_timeout segundos a que
-    vuelva a responder. True si quedó listo, False si no -- el llamador
-    decide si abortar el fallback o intentar igual (nunca lanza, un
-    reinicio fallido no debe tirar abajo toda la corrida)."""
-    port = urlsplit(base_url).port or 7860
-
-    pid = _find_listening_pid(port)
-    if pid is not None:
-        logger.info("Reiniciando A1111 (pid %d) antes de generar video-IA", pid)
-        _kill_pid(pid)
-        time.sleep(2)  # deja liberar el puerto/VRAM antes de relanzar
+    """Mata TODOS los procesos de A1111 (launch.py y lo que haya spawneado,
+    no solo el que escucha el puerto -- ver _FIND_ALL_PIDS_SCRIPT) y lo
+    relanza, esperando hasta ready_timeout segundos a que vuelva a
+    responder. True si quedó listo, False si no -- el llamador decide si
+    abortar el fallback o intentar igual (nunca lanza, un reinicio fallido
+    no debe tirar abajo toda la corrida)."""
+    pids = _find_a1111_pids()
+    if pids:
+        logger.info("Reiniciando A1111 (pids %s) antes de generar video-IA", pids)
+        _kill_all_a1111_processes()
+        time.sleep(3)  # deja liberar el puerto/VRAM antes de relanzar
     else:
         logger.info("A1111 no estaba corriendo -- arrancándolo antes de generar video-IA")
 
