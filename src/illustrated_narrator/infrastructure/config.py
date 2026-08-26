@@ -60,6 +60,12 @@ class Settings:
     mascot_voice_threshold: float
     facebook_page_id: str | None
     facebook_page_access_token: str | None
+    # Access token de TikTok (Content Posting API) -- se obtiene y renueva
+    # con tools/tiktok_auth.py, no acá. Mientras la app no esté auditada por
+    # TikTok, privacy_level tiene que ser SELF_ONLY (privado) o la API
+    # rechaza la publicación -- ver tiktok_publisher.py.
+    tiktok_access_token: str | None
+    tiktok_privacy_level: str
     # Último recurso: video-IA (AnimateLCM sobre A1111, mismo servidor que
     # a1111_base_url) cuando un plano se queda sin NINGÚN medio real tras
     # agotar búsqueda + país + continente. 0 = desactivado (default --
@@ -141,6 +147,8 @@ def load_settings() -> Settings:
         mascot_voice_threshold=float(os.getenv("NARR_MASCOTA_VOICE_THRESHOLD", "0.06")),
         facebook_page_id=os.getenv("NARR_FACEBOOK_PAGE_ID", "").strip() or None,
         facebook_page_access_token=os.getenv("NARR_FACEBOOK_PAGE_ACCESS_TOKEN", "").strip() or None,
+        tiktok_access_token=os.getenv("NARR_TIKTOK_ACCESS_TOKEN", "").strip() or None,
+        tiktok_privacy_level=os.getenv("NARR_TIKTOK_PRIVACY_LEVEL", "SELF_ONLY").strip(),
         video_fallback_max_planos=int(os.getenv("NARR_VIDEO_FALLBACK_MAX_PLANOS", "0")),
         # 2.0s (16 frames a 8fps) es lo único validado en esta GPU real
         # (AMD RX 5500 XT, --lowvram): 4s/32 frames se quedó sin VRAM en una

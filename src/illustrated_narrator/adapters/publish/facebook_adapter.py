@@ -17,7 +17,12 @@ from illustrated_narrator.ports.publisher import PublishResult, VideoPublisherPo
 logger = logging.getLogger(__name__)
 
 _TIMEOUT = 300  # video puede tardar en subir; timeout generoso
-_API_VERSION = "v21.0"
+# v21.0 tenía ~2 años (Meta sostiene cada versión ~2 años antes de darla de
+# baja) -- confirmado con una llamada real (debug_token) que el token
+# configurado sigue vigente y con los scopes correctos (pages_manage_posts),
+# pero se sube la versión por las dudas de que v21.0 esté cerca de su
+# ventana de baja.
+_API_VERSION = "v22.0"
 
 
 class FacebookPagePublisher(VideoPublisherPort):

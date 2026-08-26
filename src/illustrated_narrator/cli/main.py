@@ -6,6 +6,7 @@ from illustrated_narrator.domain.entities.project import NarrationProject
 from illustrated_narrator.infrastructure.config import load_settings
 from illustrated_narrator.infrastructure.container import Container
 from illustrated_narrator.infrastructure.logging_config import setup_logging
+from illustrated_narrator.infrastructure.pid_lock import LockedError, PidLock
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -48,14 +49,24 @@ def generate(
         typer.echo(f"Falta {project.script_path} — coloca ahí el guion.json.")
         raise typer.Exit(code=1)
 
+    lock = PidLock(project.lock_path)
     try:
-        report = container.generate_narration_video.execute(project)
-    except FileNotFoundError as exc:
+        lock.acquire()
+    except LockedError as exc:
         typer.echo(str(exc))
         raise typer.Exit(code=1) from exc
-    except RuntimeError as exc:
-        typer.echo(str(exc))
-        raise typer.Exit(code=1) from exc
+
+    try:
+        try:
+            report = container.generate_narration_video.execute(project)
+        except FileNotFoundError as exc:
+            typer.echo(str(exc))
+            raise typer.Exit(code=1) from exc
+        except RuntimeError as exc:
+            typer.echo(str(exc))
+            raise typer.Exit(code=1) from exc
+    finally:
+        lock.release()
 
     if report.alignment:
         typer.echo(
@@ -162,6 +173,42 @@ def publish(
     typer.echo(f"Publicado. ID: {result.post_id}")
     if result.url:
         typer.echo(f"URL: {result.url}")
+
+
+@app.command()
+def publish_tiktok(
+    slug: str = typer.Argument(help="Nombre de la carpeta en projects/<slug>/"),
+    title: str = typer.Option("", "--title", help="Caption del video (opcional; si falta, usa meta.titulo)"),
+) -> None:
+    """Sube projects/<slug>/final.mp4 a TikTok (Content Posting API).
+    Requiere NARR_TIKTOK_ACCESS_TOKEN en .env -- ver tools/tiktok_auth.py
+    para obtenerlo. Mientras la app no esté auditada por TikTok, el video
+    queda en modo privado (NARR_TIKTOK_PRIVACY_LEVEL=SELF_ONLY, el default) --
+    ver README para el proceso de auditoría."""
+    from illustrated_narrator.domain.services.script_loader import load_guion
+
+    container = _container()
+    project = _project(slug)
+    if not project.final_video_path.exists():
+        typer.echo(f"Falta {project.final_video_path} — corre `generate {slug}` primero.")
+        raise typer.Exit(code=1)
+    if not container.tiktok_publisher.is_available():
+        typer.echo("Falta configurar NARR_TIKTOK_ACCESS_TOKEN en .env (ver tools/tiktok_auth.py).")
+        raise typer.Exit(code=1)
+
+    caption = title
+    if not caption and project.script_path.exists():
+        guion = load_guion(project.script_path)
+        caption = guion.meta.titulo
+
+    typer.echo(f"Publicando {project.final_video_path} en TikTok (privacy={container.settings.tiktok_privacy_level})…")
+    try:
+        result = container.tiktok_publisher.publish(project.final_video_path, title=caption, description=caption)
+    except RuntimeError as exc:
+        typer.echo(f"FALLÓ: {exc}")
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Publicado. publish_id: {result.post_id}")
 
 
 @app.command()

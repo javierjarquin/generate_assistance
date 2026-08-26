@@ -12,6 +12,7 @@ from illustrated_narrator.adapters.media.pexels_video_adapter import PexelsVideo
 from illustrated_narrator.adapters.media.wikimedia_adapter import WikimediaCommonsAdapter
 from illustrated_narrator.adapters.media.wikipedia_article_adapter import WikipediaArticleAdapter
 from illustrated_narrator.adapters.publish.facebook_adapter import FacebookPagePublisher
+from illustrated_narrator.adapters.publish.tiktok_publisher import TikTokPublisher
 from illustrated_narrator.adapters.transcription.faster_whisper_adapter import FasterWhisperTranscriber
 from illustrated_narrator.adapters.video.animatediff_a1111_adapter import AnimateDiffA1111Adapter
 from illustrated_narrator.adapters.video.ffmpeg_assembler import FFmpegAssembler
@@ -116,6 +117,12 @@ class Container:
     def video_publisher(self) -> FacebookPagePublisher:
         return FacebookPagePublisher(
             self.settings.facebook_page_id, self.settings.facebook_page_access_token
+        )
+
+    @cached_property
+    def tiktok_publisher(self) -> TikTokPublisher:
+        return TikTokPublisher(
+            self.settings.tiktok_access_token, privacy_level=self.settings.tiktok_privacy_level
         )
 
     @cached_property

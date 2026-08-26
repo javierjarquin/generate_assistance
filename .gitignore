@@ -7,6 +7,8 @@ dist/
 
 # Configuracion local y proyectos generados
 .env
+# Tokens de OAuth (TikTok, etc.) -- nunca versionar credenciales reales
+credentials/
 projects/*
 # Excepcion: guion.json de Capitulo1 como demo para probar el pipeline
 # (el resto del proyecto -- audio, imagenes, clips, final.mp4 -- sigue

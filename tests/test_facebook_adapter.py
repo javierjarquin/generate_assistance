@@ -43,7 +43,7 @@ def test_publish_sends_video_and_returns_result(tmp_path: Path) -> None:
     assert result.post_id == "999888777"
     assert result.url == "https://www.facebook.com/123456/videos/999888777"
     assert session.last_call is not None
-    assert session.last_call["url"] == "https://graph-video.facebook.com/v21.0/123456/videos"
+    assert session.last_call["url"] == "https://graph-video.facebook.com/v22.0/123456/videos"
     assert session.last_call["data"]["access_token"] == "page-token"
     assert session.last_call["data"]["description"] == "Un dato curioso"
     assert session.last_call["data"]["title"] == "Mi video"
