@@ -7,6 +7,15 @@ que dijiste, genera una ilustración por plano (Stable Diffusion vía
 AUTOMATIC1111, o carteles placeholder para pruebas), anima cada imagen con
 efecto Ken Burns, y ensambla todo con crossfades, subtítulos y tu audio.
 
+Se usa solo o como pieza de un pipeline de 3 proyectos (cada uno instalable
+por separado):
+[dato-mata-gato-bot](https://github.com/javierjarquin/dato-mata-gato-bot)
+(orquestador/bot de Telegram) →
+[tts-kokoro](https://github.com/javierjarquin/tts-kokoro) (narración TTS) →
+**illustrated-narrator** (esto, ensamblado del video final). La narración
+(`narracion.wav`) la puede grabar cualquier persona a mano, o generarla
+tts-kokoro — este proyecto no distingue el origen.
+
 ## Requisitos
 
 - Python 3.12 o 3.13, [Poetry](https://python-poetry.org/) y FFmpeg
