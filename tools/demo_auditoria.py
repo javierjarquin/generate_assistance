@@ -190,15 +190,23 @@ def main() -> None:
     )
 
     print("\n" + "*" * _ANCHO)
-    print("  LISTO — podés cortar la grabación")
+    print("  LISTO")
     print("*" * _ANCHO)
     print(
-        "\n  Antes de subirlo, revisá que el video:\n"
+        "\n  Arriba tiene que verse la línea 'Publicado. publish_id: ...'.\n"
+        "  ESA es la prueba de que la integración funciona: dejala unos\n"
+        "  segundos en pantalla antes de cortar la grabación.\n"
+        "\n  Después, revisá que el video:\n"
         "    - dure lo suficiente para leer cada pantalla\n"
-        "    - pese menos de 50 MB (recortá o bajá la calidad si no)\n"
+        "    - pese menos de 50 MB\n"
         "    - esté en mp4 o mov\n"
         "    - muestre el flujo COMPLETO, sin cortes ni saltos\n"
     )
+    # Sin esta pausa la ventana se cierra apenas termina el script y se
+    # lleva el resultado: la grabación quedaba cortada justo antes de
+    # 'Publicado. publish_id', que es lo único que el revisor necesita ver
+    # como prueba (pasó en dos tomas reales).
+    input("  [Enter recién cuando hayas cortado la grabación] ")
 
 
 if __name__ == "__main__":
