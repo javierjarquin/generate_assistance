@@ -42,6 +42,58 @@ def paso(numero: int, titulo: str, detalle: str = "") -> None:
     input("\n  [Enter para continuar] ")
 
 
+def _canjear_code(code: str) -> None:
+    """Canjea el código por un access_token y lo deja listo para el paso 5.
+
+    Va acá y no en tiktok_auth.py porque durante la grabación hay que revocar
+    el acceso previo (si no, TikTok saltea la pantalla de permisos por estar
+    ya autorizada), y eso invalida el token que hubiera en .env: el demo
+    tiene que reponerlo en el momento o el paso siguiente falla.
+    """
+    import json
+    import urllib.parse as _up
+
+    import requests
+
+    resp = requests.post(
+        "https://open.tiktokapis.com/v2/oauth/token/",
+        data={
+            "client_key": os.getenv("NARR_TIKTOK_CLIENT_KEY"),
+            "client_secret": os.getenv("NARR_TIKTOK_CLIENT_SECRET"),
+            "code": _up.unquote(code),
+            "grant_type": "authorization_code",
+            "redirect_uri": os.getenv("NARR_TIKTOK_REDIRECT_URI"),
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        timeout=30,
+    )
+    body = resp.json()
+    if "access_token" not in body:
+        print(f"\n  No se pudo canjear el código ({resp.status_code}): {body}")
+        print("  Se sigue con el token que hubiera en .env.")
+        return
+
+    creds = RAIZ / "credentials"
+    creds.mkdir(exist_ok=True)
+    (creds / "tiktok_token.json").write_text(json.dumps(body, indent=2), encoding="utf-8")
+
+    token = body["access_token"]
+    env = RAIZ / ".env"
+    texto = env.read_text(encoding="utf-8")
+    linea = f"NARR_TIKTOK_ACCESS_TOKEN={token}"
+    if "NARR_TIKTOK_ACCESS_TOKEN=" in texto:
+        texto = "\n".join(
+            linea if l.startswith("NARR_TIKTOK_ACCESS_TOKEN=") else l
+            for l in texto.splitlines()
+        )
+    else:
+        texto += f"\n{linea}\n"
+    env.write_text(texto, encoding="utf-8")
+
+    os.environ["NARR_TIKTOK_ACCESS_TOKEN"] = token
+    print(f"\n  Token obtenido. Scopes: {body.get('scope')}")
+
+
 def main() -> None:
     slug = sys.argv[1] if len(sys.argv) > 1 else "guion-campo-algodonero"
 
@@ -49,7 +101,19 @@ def main() -> None:
     print("  DEMO PARA LA AUDITORÍA DE TIKTOK")
     print("*" * _ANCHO)
     print(
-        "\n  Poné a grabar la pantalla AHORA (Win+G, o OBS) y recién ahí\n"
+        "\n  ANTES DE GRABAR — revocá el acceso de la app en TikTok:\n"
+        "    Perfil > Menú > Configuración y privacidad > Seguridad\n"
+        "    > Aplicaciones conectadas (Manage app permissions)\n"
+        "    y quitá 'datomatagato'.\n"
+        "\n"
+        "  Si no lo hacés, TikTok saltea la pantalla de permisos por estar\n"
+        "  ya autorizada, y el revisor NO va a ver el consentimiento: es\n"
+        "  motivo de rechazo.\n"
+    )
+    input("  [Enter cuando ya revocaste el acceso] ")
+
+    print(
+        "\n  Ahora poné a grabar la pantalla (Win+G, o OBS) y recién ahí\n"
         "  apretá Enter. Grabá todo de una sola pasada, sin cortes:\n"
         "  el revisor rechaza los demos con el flujo incompleto.\n"
     )
@@ -97,6 +161,17 @@ def main() -> None:
         """,
     )
     webbrowser.open(auth_url)
+
+    print(
+        "\n  Copiá el código que muestra la página de callback y pegalo acá.\n"
+        "  (Se canjea por el token en el momento: así el demo muestra el\n"
+        "  flujo completo de punta a punta, sin cortes.)\n"
+    )
+    code = input("  Código: ").strip()
+    if code:
+        _canjear_code(code)
+    else:
+        print("\n  Sin código: se sigue con el token que ya estaba en .env.")
 
     paso(
         5,
