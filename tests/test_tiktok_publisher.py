@@ -135,3 +135,62 @@ def test_chunk_upload_fallido_lanza(tmp_path: Path) -> None:
 
     with pytest.raises(RuntimeError, match="chunk 1/1"):
         publisher.publish(video, title="", description="")
+
+
+# --- creator_info: base de la pantalla de confirmación que exige la auditoría ---
+
+_CREATOR_OK = {
+    "data": {
+        "creator_username": "datomatagato",
+        "creator_nickname": "Dato Mata Gato",
+        "creator_avatar_url": "https://cdn/avatar.jpg",
+        "privacy_level_options": ["PUBLIC_TO_EVERYONE", "SELF_ONLY"],
+        "comment_disabled": False,
+        "duet_disabled": True,
+        "stitch_disabled": False,
+        "max_video_post_duration_sec": 600,
+    },
+    "error": {"code": "ok"},
+}
+
+
+def test_creator_info_parsea_la_configuracion_de_la_cuenta() -> None:
+    session = _FakeSession(_FakeResponse(200, _CREATOR_OK))
+    publisher = TikTokPublisher(access_token="tok", session=session)
+
+    info = publisher.query_creator_info()
+
+    assert info.username == "datomatagato"
+    assert info.nickname == "Dato Mata Gato"
+    assert info.privacy_level_options == ("PUBLIC_TO_EVERYONE", "SELF_ONLY")
+    assert info.duet_disabled is True
+    assert info.comment_disabled is False
+    assert info.max_video_post_duration_sec == 600
+    assert session.post_calls[0]["url"].endswith("/post/publish/creator_info/query/")
+
+
+def test_creator_info_valida_el_nivel_de_privacidad() -> None:
+    session = _FakeSession(_FakeResponse(200, _CREATOR_OK))
+    info = TikTokPublisher(access_token="tok", session=session).query_creator_info()
+
+    assert info.permite_privacidad("SELF_ONLY") is True
+    assert info.permite_privacidad("PUBLIC_TO_EVERYONE") is True
+    # Cuenta privada: ofrecer esto sería ignorar la config del creador, que
+    # es una de las causas de rechazo de la auditoría.
+    assert info.permite_privacidad("MUTUAL_FOLLOW_FRIENDS") is False
+
+
+def test_creator_info_sin_token_lanza() -> None:
+    publisher = TikTokPublisher(access_token=None)
+    with pytest.raises(RuntimeError, match="NARR_TIKTOK_ACCESS_TOKEN"):
+        publisher.query_creator_info()
+
+
+def test_creator_info_propaga_el_error_de_tiktok() -> None:
+    session = _FakeSession(
+        _FakeResponse(401, {"error": {"code": "access_token_invalid", "message": "expired"}})
+    )
+    publisher = TikTokPublisher(access_token="vencido", session=session)
+
+    with pytest.raises(RuntimeError, match="access_token_invalid"):
+        publisher.query_creator_info()

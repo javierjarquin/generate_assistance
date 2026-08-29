@@ -201,14 +201,98 @@ def publish_tiktok(
         guion = load_guion(project.script_path)
         caption = guion.meta.titulo
 
-    typer.echo(f"Publicando {project.final_video_path} en TikTok (privacy={container.settings.tiktok_privacy_level})…")
+    publisher = container.tiktok_publisher
+    nivel = container.settings.tiktok_privacy_level
+
+    # Pantalla de revisión previa exigida por la auditoría de TikTok: se arma
+    # con creator_info y respeta la configuración real de la cuenta. Publicar
+    # sin mostrar esto (o ignorando lo que devuelve) es causa de rechazo.
     try:
-        result = container.tiktok_publisher.publish(project.final_video_path, title=caption, description=caption)
+        info = publisher.query_creator_info()
+    except RuntimeError as exc:
+        typer.echo(f"FALLÓ al consultar la cuenta: {exc}")
+        raise typer.Exit(code=1) from exc
+
+    duracion = _duracion_video_seg(project.final_video_path)
+
+    typer.echo("")
+    typer.echo("─── Revisá antes de publicar ───────────────────────────")
+    typer.echo(f"  Cuenta      : {info.nickname} (@{info.username})")
+    typer.echo(f"  Video       : {project.final_video_path.name}")
+    if duracion is not None:
+        limite = f" (máximo permitido: {info.max_video_post_duration_sec}s)"
+        typer.echo(f"  Duración    : {duracion:.1f}s{limite}")
+    typer.echo(f"  Caption     : {caption}")
+    typer.echo(f"  Privacidad  : {nivel}")
+    typer.echo(f"  Disponibles : {', '.join(info.privacy_level_options) or '(ninguna)'}")
+    typer.echo(
+        "  Interacción : "
+        f"comentarios {'deshabilitados' if info.comment_disabled else 'habilitados'}, "
+        f"dueto {'deshabilitado' if info.duet_disabled else 'habilitado'}, "
+        f"stitch {'deshabilitado' if info.stitch_disabled else 'habilitado'}"
+    )
+    typer.echo("────────────────────────────────────────────────────────")
+
+    if not info.permite_privacidad(nivel):
+        typer.echo(
+            f"\nLa cuenta no permite '{nivel}'. Opciones válidas: "
+            f"{', '.join(info.privacy_level_options)}.\n"
+            "Ajustá NARR_TIKTOK_PRIVACY_LEVEL en .env."
+        )
+        raise typer.Exit(code=1)
+
+    if duracion is not None and info.max_video_post_duration_sec and (
+        duracion > info.max_video_post_duration_sec
+    ):
+        typer.echo(
+            f"\nEl video dura {duracion:.1f}s y la cuenta permite hasta "
+            f"{info.max_video_post_duration_sec}s. No se publica."
+        )
+        raise typer.Exit(code=1)
+
+    if not typer.confirm("\n¿Publicar con estos datos?", default=False):
+        typer.echo("Cancelado. No se subió nada.")
+        raise typer.Exit(code=0)
+
+    typer.echo(f"\nPublicando {project.final_video_path} en TikTok (privacy={nivel})…")
+    try:
+        result = publisher.publish(project.final_video_path, title=caption, description=caption)
     except RuntimeError as exc:
         typer.echo(f"FALLÓ: {exc}")
         raise typer.Exit(code=1) from exc
 
     typer.echo(f"Publicado. publish_id: {result.post_id}")
+
+
+def _duracion_video_seg(path) -> float | None:
+    """Duración con ffprobe, o None si no se puede determinar -- la
+    validación contra max_video_post_duration_sec se saltea en ese caso en
+    vez de bloquear la publicación."""
+    import subprocess
+
+    from illustrated_narrator.infrastructure.ffmpeg_locator import resolve_ffmpeg
+
+    # ffprobe vive junto a ffmpeg: se deriva del binario ya resuelto en vez
+    # de asumir que está suelto en el PATH. Se reemplaza SOLO el nombre del
+    # ejecutable, no la ruta entera: la carpeta del build también contiene
+    # "ffmpeg" (…/ffmpeg-8.1.2-full_build/bin/ffmpeg.EXE) y un replace
+    # ingenuo rompía el directorio además del binario.
+    from pathlib import Path as _Path
+
+    _ffmpeg = _Path(resolve_ffmpeg())
+    ffprobe = str(_ffmpeg.with_name(_ffmpeg.name.replace("ffmpeg", "ffprobe")))
+    try:
+        proc = subprocess.run(
+            [
+                ffprobe, "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1", str(path),
+            ],
+            capture_output=True, text=True, timeout=30,
+        )
+        return float(proc.stdout.strip())
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
 
 
 @app.command()

@@ -23,6 +23,7 @@ documentación oficial (developers.tiktok.com, agosto 2026):
 
 import logging
 import math
+from dataclasses import dataclass
 from pathlib import Path
 
 import requests
@@ -30,6 +31,30 @@ import requests
 from illustrated_narrator.ports.publisher import PublishResult, VideoPublisherPort
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class CreatorInfo:
+    """Respuesta de /v2/post/publish/creator_info/query/.
+
+    La auditoría de TikTok exige que la pantalla de confirmación se arme a
+    partir de esto y RESPETE la configuración del creador: ofrecer una
+    opción de privacidad que no esté en `privacy_level_options`, o permitir
+    comentarios cuando el creador los tiene deshabilitados, es una de las
+    causas de rechazo más comunes.
+    """
+
+    username: str
+    nickname: str
+    avatar_url: str
+    privacy_level_options: tuple[str, ...]
+    comment_disabled: bool
+    duet_disabled: bool
+    stitch_disabled: bool
+    max_video_post_duration_sec: int
+
+    def permite_privacidad(self, nivel: str) -> bool:
+        return nivel in self.privacy_level_options
 
 _TIMEOUT = 300
 _API_BASE = "https://open.tiktokapis.com/v2"
@@ -56,6 +81,49 @@ class TikTokPublisher(VideoPublisherPort):
 
     def is_available(self) -> bool:
         return bool(self._access_token)
+
+    def _headers(self) -> dict[str, str]:
+        return {
+            "Authorization": f"Bearer {self._access_token}",
+            "Content-Type": "application/json; charset=UTF-8",
+        }
+
+    def query_creator_info(self) -> CreatorInfo:
+        """Consulta la configuración actual del creador. Se usa para armar la
+        pantalla de confirmación y para validar el nivel de privacidad ANTES
+        de subir nada -- requisito de la auditoría de TikTok."""
+        if not self.is_available():
+            raise RuntimeError("Falta NARR_TIKTOK_ACCESS_TOKEN en .env (ver tools/tiktok_auth.py)")
+        try:
+            resp = self._http.post(
+                f"{_API_BASE}/post/publish/creator_info/query/",
+                headers=self._headers(), timeout=_TIMEOUT,
+            )
+        except requests.RequestException as exc:
+            raise RuntimeError(f"TikTok: falló creator_info ({exc})") from exc
+
+        try:
+            body = resp.json()
+        except ValueError:
+            raise RuntimeError(
+                f"TikTok: creator_info devolvió {resp.status_code} sin JSON: {resp.text[:500]}"
+            )
+
+        error = body.get("error") or {}
+        if resp.status_code != 200 or error.get("code") not in (None, "ok"):
+            raise RuntimeError(f"TikTok: creator_info falló ({resp.status_code}): {error}")
+
+        data = body.get("data") or {}
+        return CreatorInfo(
+            username=data.get("creator_username", ""),
+            nickname=data.get("creator_nickname", ""),
+            avatar_url=data.get("creator_avatar_url", ""),
+            privacy_level_options=tuple(data.get("privacy_level_options") or ()),
+            comment_disabled=bool(data.get("comment_disabled")),
+            duet_disabled=bool(data.get("duet_disabled")),
+            stitch_disabled=bool(data.get("stitch_disabled")),
+            max_video_post_duration_sec=int(data.get("max_video_post_duration_sec") or 0),
+        )
 
     def publish(self, video_path: Path, title: str, description: str) -> PublishResult:
         if not self.is_available():
@@ -96,14 +164,10 @@ class TikTokPublisher(VideoPublisherPort):
                 "total_chunk_count": total_chunks,
             },
         }
-        headers = {
-            "Authorization": f"Bearer {self._access_token}",
-            "Content-Type": "application/json; charset=UTF-8",
-        }
         try:
             resp = self._http.post(
                 f"{_API_BASE}/post/publish/video/init/", json=payload,
-                headers=headers, timeout=_TIMEOUT,
+                headers=self._headers(), timeout=_TIMEOUT,
             )
         except requests.RequestException as exc:
             raise RuntimeError(f"TikTok: falló init ({exc})") from exc
