@@ -224,7 +224,13 @@ class TikTokPublisher(VideoPublisherPort):
                     raise RuntimeError(
                         f"TikTok: falló subir chunk {i + 1}/{total_chunks} ({exc})"
                     ) from exc
-                if resp.status_code not in (200, 201):
+                # 206 (Partial Content) es la respuesta de ÉXITO de TikTok
+                # para un chunk intermedio: acusa recibo del fragmento y
+                # queda esperando el resto. El último devuelve 201/200.
+                # Tratar 206 como error cortaba la subida en el primer chunk
+                # de todo video que necesitara partirse (confirmado en una
+                # subida real: "chunk 1/2 falló (206)").
+                if resp.status_code not in (200, 201, 206):
                     raise RuntimeError(
                         f"TikTok: chunk {i + 1}/{total_chunks} falló ({resp.status_code}): {resp.text[:500]}"
                     )

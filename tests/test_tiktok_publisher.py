@@ -222,3 +222,19 @@ def test_creator_info_propaga_el_error_de_tiktok() -> None:
 
     with pytest.raises(RuntimeError, match="access_token_invalid"):
         publisher.query_creator_info()
+
+
+def test_chunk_intermedio_con_206_no_es_error(tmp_path: Path) -> None:
+    # 206 (Partial Content) es la respuesta de EXITO de TikTok para un chunk
+    # intermedio. Tratarla como error cortaba la subida en el primer chunk de
+    # todo video que necesitara partirse (visto en una subida real).
+    video = tmp_path / "final.mp4"
+    video_size = 137_555_863
+    with video.open("wb") as f:
+        f.seek(video_size - 1)
+        f.write(b"\0")
+    session = _FakeSession(_OK_INIT, put_response=_FakeResponse(206))
+
+    TikTokPublisher("token", session=session).publish(video, title="x", description="")
+
+    assert len(session.put_calls) == 2
