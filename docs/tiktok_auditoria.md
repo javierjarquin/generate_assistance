@@ -51,8 +51,46 @@ es lo que se audita):
 > una pantalla de confirmación construida con `creator_info`, que respeta las
 > opciones de privacidad e interacción configuradas por el creador.
 
-**Productos y scopes**: agregar *Content Posting API*, activar **Direct
-Post**, y pedir `video.publish` + `user.info.basic`.
+**Productos y scopes** — el orden importa:
+
+1. Agregar **Login Kit** primero. Sin él, *Content Posting API* aparece en
+   gris con la leyenda «Requires Login Kit».
+2. Recién entonces agregar **Content Posting API** y activar **Direct Post**.
+3. Pedir únicamente los scopes `video.publish` y `user.info.basic`.
+
+El **redirect URI se configura dentro de Login Kit**, no en Content Posting
+API:
+`https://javierjarquin.github.io/dato-mata-gato-site/auth/` (con la barra
+final).
+
+No agregar *Share Kit* ni *Webhooks*: no se usan, y pedir productos o scopes
+de más es causa frecuente de rechazo.
+
+### Producción vs sandbox — el orden importa
+
+Toda la configuración de arriba va en la **app principal (producción)**: es la
+que se envía a revisión. El **sandbox** es un entorno de prueba aparte, que se
+crea DESPUÉS y que puede **clonar la configuración de producción** (no hay que
+volver a tipear nada).
+
+1. App principal → cargar todo → **Save**
+2. Crear el sandbox → clonar la config de producción
+3. Sandbox → *Target users* → agregar la cuenta del canal (pide iniciar
+   sesión y aceptar los términos de desarrollador)
+4. Probar el flujo y grabar el demo contra el sandbox
+5. **Submit** de la app principal
+
+> **Guardar con Save antes de navegar a cualquier otra pantalla.** El portal
+> avisa «This form has unsaved changes» y se pierde lo no guardado al irse
+> (pasó una vez: se perdió toda la config al entrar al sandbox).
+
+Limitación conocida del sandbox: no da acceso al Content Posting API para
+videos públicos y **las publicaciones nunca se publican de verdad**. Es lo
+esperado para el demo.
+
+Sin confirmar en la documentación oficial: si el sandbox usa sus propias
+credenciales o comparte las de la app. Se resuelve empíricamente al correr
+el OAuth — si el token no corresponde al entorno, falla con error explícito.
 
 ## Paso 2 — Verificar la propiedad de la URL
 

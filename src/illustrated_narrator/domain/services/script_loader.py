@@ -23,7 +23,7 @@ class GuionValidationError(Exception):
 
 def load_guion(path: Path) -> Guion:
     raw = json.loads(path.read_text(encoding="utf-8"))
-    meta = _parse_meta(raw.get("meta", {}))
+    meta = _parse_meta(_meta_raw(raw))
     planos_raw = raw.get("planos")
     if not planos_raw:
         raise GuionValidationError(f"{path}: sin 'planos[]' o esta vacio")
@@ -38,6 +38,21 @@ def load_guion(path: Path) -> Guion:
         planos.append(plano)
 
     return Guion(meta=meta, planos=planos)
+
+
+_CAMPOS_META = ("serie", "capitulo", "titulo", "subtitulo", "idioma", "gancho", "mascota", "pais")
+
+
+def _meta_raw(raw: dict) -> dict:
+    """Los metadatos pueden venir dentro de `meta` o sueltos en la raíz del
+    guion. Los guiones de Dato Mata Gato traen `titulo` en la raíz y no tienen
+    objeto `meta`, así que leer solo `raw["meta"]` dejaba el título VACÍO --
+    y con eso `narrator publish` publicaba en Facebook sin descripción
+    (detectado en una corrida real, antes del primer disparo del job diario).
+    Lo que esté en `meta` gana, porque es la forma explícita."""
+    anidado = raw.get("meta") or {}
+    en_raiz = {k: raw[k] for k in _CAMPOS_META if k in raw}
+    return {**en_raiz, **anidado}
 
 
 def _parse_meta(raw: dict) -> GuionMeta:

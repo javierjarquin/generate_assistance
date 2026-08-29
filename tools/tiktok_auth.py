@@ -40,7 +40,10 @@ load_dotenv()
 
 _TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/"
 _AUTH_URL = "https://www.tiktok.com/v2/auth/authorize/"
-_SCOPE = "video.publish"
+# user.info.basic no es opcional: la pantalla de confirmación previa se arma
+# con creator_info, y la auditoría de TikTok exige que esa pantalla respete la
+# configuración real del creador. Sin este scope, creator_info falla.
+_SCOPE = "video.publish,user.info.basic"
 
 CREDENTIALS_DIR = Path(__file__).resolve().parent.parent / "credentials"
 TOKEN_PATH = CREDENTIALS_DIR / "tiktok_token.json"
@@ -77,9 +80,9 @@ def authorize_interactive() -> None:
     print("1. Abrí esta URL en el navegador y logueate con la cuenta de TikTok del canal:\n")
     print(auth_url)
     print(
-        "\n2. Después de aceptar los permisos, el navegador te va a redirigir a tu "
-        "redirect_uri (probablemente muestre un error 404 -- es esperable, no hay "
-        "servidor de verdad ahí). Copiá el valor del parámetro 'code' de esa URL."
+        "\n2. Después de aceptar los permisos, el navegador te redirige al "
+        "redirect_uri, que muestra el código de autorización en pantalla listo "
+        "para copiar."
     )
     code = input("\n3. Pegá acá el código (solo el valor de code=...): ").strip()
     code = urllib.parse.unquote(code)
