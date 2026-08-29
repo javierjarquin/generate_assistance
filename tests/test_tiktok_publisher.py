@@ -75,33 +75,61 @@ def test_publish_video_chico_va_en_un_solo_chunk(tmp_path: Path) -> None:
     assert session.put_calls[0]["headers"]["Content-Range"] == "bytes 0-999/1000"
 
 
-def test_publish_video_grande_se_parte_en_varios_chunks_bajo_64mb(tmp_path: Path) -> None:
-    # 130MB -> no puede ir en un solo chunk (máximo de TikTok: 64MB) --
-    # confirma que se parte y que NINGÚN chunk (incluido el último) supera
-    # el límite documentado.
+def _rangos(session: "_FakeSession") -> list[tuple[int, int]]:
+    """(primer_byte, ultimo_byte) de cada Content-Range enviado."""
+    out = []
+    for call in session.put_calls:
+        rango = call["headers"]["Content-Range"].replace("bytes ", "")
+        inicio, resto = rango.split("-")
+        out.append((int(inicio), int(resto.split("/")[0])))
+    return out
+
+
+def test_publish_video_grande_respeta_la_formula_de_chunks_de_tiktok(tmp_path: Path) -> None:
+    # Regla real de TikTok: total_chunk_count = floor(video_size/chunk_size),
+    # y el ÚLTIMO chunk absorbe los bytes sobrantes (puede pasar chunk_size,
+    # hasta 128MB). Antes se declaraba ceil() y la API rechazaba la subida con
+    # "The total chunk count is invalid" -- reproducido con un video real de
+    # 131MB: el código mandaba 3 y TikTok esperaba 2.
     video = tmp_path / "final.mp4"
-    video_size = 130_000_000
+    video_size = 137_555_863  # tamaño real de guion-campo-algodonero
     with video.open("wb") as f:
         f.seek(video_size - 1)
         f.write(b"\0")
     session = _FakeSession(_OK_INIT)
-    publisher = TikTokPublisher("token", session=session)
 
-    publisher.publish(video, title="x", description="")
+    TikTokPublisher("token", session=session).publish(video, title="x", description="")
 
-    init_body = session.post_calls[0]["json"]
-    chunk_size = init_body["source_info"]["chunk_size"]
-    total_chunks = init_body["source_info"]["total_chunk_count"]
-    assert chunk_size <= 64_000_000
+    source = session.post_calls[0]["json"]["source_info"]
+    chunk_size = source["chunk_size"]
+    total_chunks = source["total_chunk_count"]
+
+    assert total_chunks == video_size // chunk_size
     assert total_chunks > 1
+    assert 5_000_000 <= chunk_size <= 64_000_000
     assert len(session.put_calls) == total_chunks
-    # el último chunk (el que más riesgo tiene de pasarse) también respeta el límite
-    last_range = session.put_calls[-1]["headers"]["Content-Range"]
-    last_start, rest = last_range.replace("bytes ", "").split("-")
-    last_end = rest.split("/")[0]
-    assert (int(last_end) - int(last_start) + 1) <= 64_000_000
-    # los chunks cubren el archivo completo sin huecos ni superposición
-    assert last_end == str(video_size - 1)
+
+    rangos = _rangos(session)
+    # Cubren el archivo entero, sin huecos ni superposición.
+    assert rangos[0][0] == 0
+    assert rangos[-1][1] == video_size - 1
+    for (_, fin_previo), (inicio, _) in zip(rangos, rangos[1:]):
+        assert inicio == fin_previo + 1
+    # El último chunk se pasa de chunk_size (absorbe la cola) pero no de 128MB.
+    ultimo = rangos[-1][1] - rangos[-1][0] + 1
+    assert ultimo > chunk_size
+    assert ultimo <= 128_000_000
+
+
+def test_chunk_plan_coincide_con_floor_para_varios_tamanos() -> None:
+    for size in (4_000_000, 57_000_000, 57_000_001, 114_000_001, 137_555_863, 500_000_000):
+        chunk_size, total = TikTokPublisher._chunk_plan(size)
+        assert 0 < chunk_size <= 64_000_000, size
+        if size <= chunk_size:
+            assert total == 1, size
+        else:
+            assert total == size // chunk_size, size
+            assert size - (total - 1) * chunk_size <= 128_000_000, size
 
 
 def test_publish_respeta_privacy_level_configurado(tmp_path: Path) -> None:

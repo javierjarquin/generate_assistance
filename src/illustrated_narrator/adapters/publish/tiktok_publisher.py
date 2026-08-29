@@ -141,13 +141,22 @@ class TikTokPublisher(VideoPublisherPort):
 
     @staticmethod
     def _chunk_plan(video_size: int) -> tuple[int, int]:
-        """(chunk_size, total_chunks) -- división por techo: todos los
-        chunks, incluido el último, quedan <= _CHUNK_SIZE (<=64MB exigido
-        por TikTok), sin necesitar que el último absorba el resto."""
+        """(chunk_size, total_chunks) según la regla real de TikTok:
+
+            total_chunk_count = floor(video_size / chunk_size)
+
+        y el ÚLTIMO chunk absorbe los bytes sobrantes (puede superar
+        chunk_size, hasta 128MB).
+
+        Antes acá se hacía división por techo para que ningún chunk pasara
+        el máximo. Eso daba un total_chunk_count mayor al que TikTok calcula
+        y la API lo rechazaba con `invalid_params: The total chunk count is
+        invalid` -- confirmado en una subida real de 131MB: el código
+        declaraba 3 chunks y TikTok esperaba 2.
+        """
         if video_size <= _CHUNK_SIZE:
             return video_size, 1
-        total_chunks = math.ceil(video_size / _CHUNK_SIZE)
-        return math.ceil(video_size / total_chunks), total_chunks
+        return _CHUNK_SIZE, video_size // _CHUNK_SIZE
 
     def _init_post(
         self, caption: str, video_size: int, chunk_size: int, total_chunks: int
@@ -195,7 +204,13 @@ class TikTokPublisher(VideoPublisherPort):
         with video_path.open("rb") as fh:
             for i in range(total_chunks):
                 start = i * chunk_size
-                end = min(start + chunk_size, video_size) - 1
+                # El ÚLTIMO chunk llega hasta el final del archivo: con
+                # total_chunk_count = floor(size/chunk_size), los bytes
+                # sobrantes son parte del último chunk (TikTok lo permite
+                # hasta 128MB). Cortarlo en chunk_size dejaba sin enviar la
+                # cola del video.
+                es_ultimo = i == total_chunks - 1
+                end = (video_size if es_ultimo else start + chunk_size) - 1
                 fh.seek(start)
                 chunk = fh.read(end - start + 1)
                 headers = {
