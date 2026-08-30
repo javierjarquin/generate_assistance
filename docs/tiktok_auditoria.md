@@ -19,10 +19,35 @@ retroactivamente. Por eso la auditoría no es opcional.
 | `query_creator_info()` | ✅ construido y con tests |
 | Pantalla de confirmación previa | ✅ `narrator publish-tiktok` |
 | Flujo OAuth | ✅ `tools/tiktok_auth.py` |
-| App registrada en el portal | ⬜ **lo hace el titular** |
-| Credenciales en `.env` | ⬜ **lo hace el titular** |
-| Auditoría aprobada | ⬜ pendiente de envío |
+| App registrada en el portal | ✅ `datomatagato` (app id 7679237271136028690) |
+| Sandbox + target user | ✅ `@gatomatadato` |
+| Credenciales en `.env` | ✅ sandbox activo; producción comentada |
+| Publicación real probada | ✅ `publish_id v_pub_file~v2-1.7679624894195419143` |
+| Video demo grabado | ✅ 16.7 MB, 109s, toma única |
+| **Auditoría** | 🕐 **EN REVISIÓN** (enviada 29/08/2026) |
 | TikTok enganchado al job diario | ⬜ después de la aprobación |
+
+### Mientras dure la revisión
+
+- **La cuenta `@gatomatadato` debe seguir en PRIVADO.** Es requisito de TikTok
+  para publicar por API sin auditoría aprobada; ponerla en público hace fallar
+  la publicación con `unaudited_client_can_only_post_to_private_accounts`.
+- **Pendiente de seguridad:** regenerar el `client_secret` de producción en el
+  portal. El actual se expuso en un chat; hay que rotarlo y actualizar el
+  `.env` (las líneas de producción están comentadas al final del bloque
+  TikTok).
+- Facebook sigue publicando solo, sin depender de esto.
+
+### Cuando aprueben
+
+1. En `.env`: descomentar las credenciales de producción y comentar las de
+   sandbox.
+2. `NARR_TIKTOK_PRIVACY_LEVEL=PUBLIC_TO_EVERYONE`.
+3. Volver la cuenta a pública.
+4. Re-autorizar con `tools/tiktok_auth.py` (el token de sandbox no sirve en
+   producción).
+5. Enganchar TikTok al job diario en `dato-mata-gato-bot/daily_publish.py`,
+   junto a Facebook.
 
 ## Paso 1 — Registrar la app
 
