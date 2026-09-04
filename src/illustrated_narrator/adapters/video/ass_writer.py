@@ -35,6 +35,12 @@ def _is_function_word(word: str) -> bool:
     return word.strip(".,;:!¡¿?").lower() in _FUNCTION_WORDS
 
 
+# Fin del gancho de apertura (el titulo grande de los primeros segundos).
+# `texto_grande` no puede empezar antes: ambos usan el estilo Titulo y se
+# dibujarian encimados.
+_GANCHO_FIN_SEG = 2.60
+
+
 def _wrap(text: str, max_chars: int = 20) -> str:
     """Parte una frase larga (gancho) en líneas equilibradas con \\N."""
     words = text.split()
@@ -68,6 +74,7 @@ Style: Caption,{font},{cap_size},{accent},&H00FFFFFF,&H00202020,&H00000000,-1,0,
 Style: Rotulo,{font},{rot_size},&H00FFFFFF,&H00FFFFFF,&H00202020,&H00000000,-1,0,0,0,100,100,0,0,1,3,1,8,60,60,70,1
 Style: Titulo,{font},{title_size},&H00FFFFFF,&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,0,0,1,{title_outline},4,5,80,80,{title_margin},1
 Style: Marca,{font},{marca_size},{accent},&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,2,0,1,{title_outline},3,2,80,80,{marca_margin},1
+Style: Contador,{font},{contador_size},{accent},&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,0,0,1,{title_outline},4,2,80,80,{contador_margin},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -126,6 +133,54 @@ def _chunk_dialogue(chunk: list[TranscriptWord], time_offset_seconds: float = 0.
     return f"Dialogue: 0,{_format_ts(start)},{_format_ts(end)},Caption,,0,0,0,,{text}\n"
 
 
+# Pausa mínima para dibujar cuenta regresiva. Por debajo de esto el hueco es
+# una pausa de respiración normal entre planos, no un silencio deliberado.
+_PAUSA_MIN_CONTADOR = 2.0
+_MAX_CUENTA = 5
+
+
+def _cuenta_regresiva(
+    plano: Plano, siguiente_inicio: dict, time_offset_seconds: float
+) -> list[str]:
+    """Números grandes contando hacia atrás durante el silencio posterior a
+    un plano.
+
+    Un silencio a secas no se lee como "pensá la respuesta", se lee como que
+    el video se colgó. El contador le da estructura a la espera y avisa
+    exactamente cuánto falta.
+
+    Se dispara solo por la duración del hueco (>= 2s), sin campo nuevo en el
+    guion: los huecos de respiración entre planos normales son de décimas,
+    así que solo aparece donde hubo una pausa puesta a propósito.
+    """
+    if plano.fin_real_seg is None:
+        return []
+    inicio_siguiente = siguiente_inicio.get(plano.id)
+    if inicio_siguiente is None:
+        return []
+
+    hueco = inicio_siguiente - plano.fin_real_seg
+    if hueco < _PAUSA_MIN_CONTADOR:
+        return []
+
+    # Un número por segundo, terminando justo cuando entra el plano siguiente
+    # (la respuesta). Se cuenta desde el entero que quepa en el hueco.
+    total = min(int(hueco), _MAX_CUENTA)
+    eventos = []
+    for i in range(total):
+        numero = total - i
+        desde = inicio_siguiente - numero
+        hasta = desde + 1.0
+        eventos.append(
+            f"Dialogue: 1,{_format_ts(desde + time_offset_seconds)},"
+            f"{_format_ts(hasta + time_offset_seconds)},Contador,,0,0,0,,"
+            # Pop de entrada por número: entra grande y se asienta, para que
+            # cada segundo se sienta como un golpe y no como texto estático.
+            f"{{\\fad(80,80)\\fscx130\\fscy130\\t(0,180,\\fscx100\\fscy100)}}{numero}\n"
+        )
+    return eventos
+
+
 def write_ass(
     planos: list[Plano],
     dest: Path,
@@ -159,6 +214,11 @@ def write_ass(
             title_margin=int(h * 0.40),
             marca_size=int(h * 0.070) if not vertical else int(h * 0.045),
             marca_margin=int(h * 0.22),
+            # Cuenta regresiva: número grande, abajo. No choca con la pregunta
+            # (estilo Titulo, al centro) ni con los subtítulos, porque durante
+            # la pausa no hay voz y por lo tanto no hay captions.
+            contador_size=int(h * 0.13) if not vertical else int(h * 0.085),
+            contador_margin=int(h * 0.16),
         )
     ]
 
@@ -181,7 +241,7 @@ def write_ass(
         raw = gancho.upper().replace("\n", " ")
         texto = _wrap(raw, max_chars=18) if len(raw) > 20 else raw
         start = _format_ts(0.15 + time_offset_seconds)
-        end = _format_ts(2.60 + time_offset_seconds)
+        end = _format_ts(_GANCHO_FIN_SEG + time_offset_seconds)
         lines.append(
             f"Dialogue: 1,{start},{end},Titulo,,0,0,0,,"
             f"{{\\fad(200,300)\\fscx60\\fscy60\\t(0,220,\\fscx100\\fscy100)}}{texto}\n"
@@ -209,6 +269,16 @@ def write_ass(
             f"{{\\fad(250,300)\\fscx60\\fscy60\\t(0,220,\\fscx100\\fscy100)}}{cta}\n"
         )
 
+    # Inicio del plano siguiente, para que `texto_grande` siga visible durante
+    # la pausa de silencio que hay después de una pregunta.
+    ordenados = [p for p in planos if p.inicio_real_seg is not None]
+    ordenados.sort(key=lambda p: p.inicio_real_seg)
+    siguiente_inicio = {
+        p.id: ordenados[i + 1].inicio_real_seg
+        for i, p in enumerate(ordenados)
+        if i + 1 < len(ordenados)
+    }
+
     for plano in planos:
         if plano.inicio_real_seg is None or plano.fin_real_seg is None:
             continue
@@ -221,6 +291,38 @@ def write_ass(
             text = plano.texto_en_pantalla.replace("\n", "\\N")
             lines.append(
                 f"Dialogue: 0,{start},{end},Rotulo,,0,0,0,,{{\\fad(200,200)}}{text}\n"
+            )
+        # Antes del bloque de texto_grande: ese tiene un `continue` para un
+        # caso borde y se llevaría la cuenta regresiva con él.
+        lines.extend(_cuenta_regresiva(plano, siguiente_inicio, time_offset_seconds))
+
+        if plano.texto_grande:
+            # Estilo Titulo (grande y centrado), el mismo del CTA. Se usa
+            # cuando el texto ES el contenido -- la pregunta de un video de
+            # trivia sobre la foto -- y no un rótulo secundario.
+            #
+            # Dura hasta el INICIO del plano siguiente, no hasta fin_real_seg:
+            # en trivia hay un silencio deliberado después de la pregunta
+            # para que el espectador piense, y si el texto se cortara al
+            # terminar la voz la pregunta desaparecería justo cuando más
+            # falta hace leerla.
+            #
+            # Arranca después del gancho de apertura: los dos usan el estilo
+            # Titulo (grande y centrado), así que si el primer plano trae
+            # texto_grande los dos se dibujan encimados y quedan ilegibles
+            # -- visto en una corrida real de trivia.
+            inicio_visible = max(plano.inicio_real_seg, _GANCHO_FIN_SEG if gancho else 0.0)
+            fin_visible = siguiente_inicio.get(plano.id, plano.fin_real_seg)
+            if fin_visible <= inicio_visible:
+                continue
+            start = _format_ts(inicio_visible + time_offset_seconds)
+            end = _format_ts(fin_visible + time_offset_seconds)
+            # 18 como el gancho de apertura, que usa el MISMO estilo Titulo:
+            # con 22 el texto se salía por los dos bordes del lienzo vertical
+            # (visto en una corrida real).
+            text = _wrap(plano.texto_grande, max_chars=18).replace("\n", "\\N")
+            lines.append(
+                f"Dialogue: 1,{start},{end},Titulo,,0,0,0,,{{\\fad(250,200)}}{text}\n"
             )
 
     dest.parent.mkdir(parents=True, exist_ok=True)

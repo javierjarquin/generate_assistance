@@ -62,6 +62,11 @@ class Plano:
     narracion: str
     visual: VisualSpec
     texto_en_pantalla: str | None = None
+    # Texto GRANDE centrado sobre la imagen (estilo Titulo), para cuando el
+    # texto ES el contenido y no un rótulo: la pregunta de un video de
+    # trivia, por ejemplo. `texto_en_pantalla` sigue siendo el rótulo chico
+    # de arriba; los dos pueden convivir en un mismo plano.
+    texto_grande: str | None = None
     # Fuerza la expresión de la mascota en este plano (mascota.expresion del
     # guion). None = se infiere de la narración (ver mascot_director).
     mascota_expresion: str | None = None

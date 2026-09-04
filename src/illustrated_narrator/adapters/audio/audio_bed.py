@@ -21,6 +21,30 @@ from illustrated_narrator.domain.services.sfx_taxonomy import sfx_kind as _sfx_k
 logger = logging.getLogger(__name__)
 
 
+
+# SFX percusivos: su carácter está en el ataque, así que no llevan el
+# fundido de entrada largo que sí necesitan las texturas continuas.
+_PERCUSIVOS = frozenset({"tick", "bell"})
+
+# Pausa mínima para considerar que hubo un silencio deliberado (mismo umbral
+# que la cuenta regresiva en ass_writer).
+_PAUSA_MIN_SILENCIO = 2.0
+
+
+def _ventana_de_silencio(plano, siguiente_inicio: dict):
+    """(inicio, fin) del silencio que sigue a un plano, o (None, None) si no
+    hubo pausa deliberada -- los huecos de respiración entre planos normales
+    son de décimas y no llevan tic-tac."""
+    if plano.fin_real_seg is None:
+        return None, None
+    inicio_siguiente = siguiente_inicio.get(plano.id)
+    if inicio_siguiente is None:
+        return None, None
+    if inicio_siguiente - plano.fin_real_seg < _PAUSA_MIN_SILENCIO:
+        return None, None
+    return plano.fin_real_seg, inicio_siguiente
+
+
 class AudioBedBuilder:
     def __init__(self, ffmpeg_path: str = "ffmpeg", music_volume: float = 0.22) -> None:
         self._ffmpeg = ffmpeg_path
@@ -102,6 +126,15 @@ class AudioBedBuilder:
             # burbujas: ruido blanco agudo pulsado
             "bubbles": f"anoisesrc=colour=white:amplitude=0.22:duration={d},"
                        "highpass=f=2200,tremolo=f=11:d=0.9,lowpass=f=6000",
+            # tic-tac: un golpe por segundo, alternando tono (tic/tac) para que
+            # se sienta un reloj y no un pitido repetido. exp(-38*mod(t,1)) da
+            # el decaimiento seco; entre golpes queda silencio real.
+            # Acompaña la cuenta regresiva de las preguntas.
+            "tick": f"aevalsrc='0.5*sin(2*PI*(1200+300*mod(floor(t)\\,2))*t)"
+                    f"*exp(-38*mod(t\\,1))':s=48000:d={d}",
+            # campana: golpe con dos armónicos y cola larga, para la respuesta
+            "bell": f"aevalsrc='0.45*(sin(2*PI*880*t)+0.5*sin(2*PI*1760*t))"
+                    f"*exp(-3.2*t)':s=48000:d={d}",
         }
         self._run(["-f", "lavfi", "-i", recipes[kind], str(dest)])
         return dest
@@ -145,6 +178,18 @@ class AudioBedBuilder:
         labels.append("[m]")
         idx += 1
 
+        # Inicio del plano siguiente: el tic-tac va en el SILENCIO posterior a
+        # una pregunta, no encima de la voz.
+        ordenados = sorted(
+            (p for p in planos if p.inicio_real_seg is not None),
+            key=lambda p: p.inicio_real_seg,
+        )
+        siguiente_inicio = {
+            p.id: ordenados[i + 1].inicio_real_seg
+            for i, p in enumerate(ordenados)
+            if i + 1 < len(ordenados)
+        }
+
         for plano in planos:
             if not plano.audio.sfx or plano.inicio_real_seg is None:
                 continue
@@ -152,15 +197,32 @@ class AudioBedBuilder:
             if kind is None:
                 logger.info("SFX sin generador para '%s' (plano %s)", plano.audio.sfx, plano.id)
                 continue
-            sfx_duration = min(
-                (plano.fin_real_seg or plano.inicio_real_seg + 4) - plano.inicio_real_seg + 1.0,
-                12.0,
-            )
+
+            if kind == "tick":
+                # El tic-tac acompaña la cuenta regresiva: arranca cuando
+                # termina la pregunta y corta justo cuando entra la respuesta.
+                # Puesto desde el inicio del plano taparía la propia pregunta.
+                inicio_sfx, fin_sfx = _ventana_de_silencio(plano, siguiente_inicio)
+                if inicio_sfx is None:
+                    continue
+                sfx_duration = fin_sfx - inicio_sfx
+            else:
+                inicio_sfx = plano.inicio_real_seg
+                sfx_duration = min(
+                    (plano.fin_real_seg or plano.inicio_real_seg + 4) - plano.inicio_real_seg + 1.0,
+                    12.0,
+                )
+
             src = self._sfx_source(kind, sfx_duration, cache_dir, assets_dir)
-            delay_ms = int(plano.inicio_real_seg * 1000)
+            delay_ms = int(inicio_sfx * 1000)
             inputs += ["-i", str(src)]
             filters.append(
-                f"[{idx}:a]volume=0.9,afade=t=in:d=0.4,adelay={delay_ms}|{delay_ms},"
+                # El fundido de entrada largo sirve para texturas continuas
+                # (olas, viento), pero en un sonido percusivo se come el ataque
+                # del primer golpe: el tic que acompaña al "3" de la cuenta
+                # regresiva salía apagado. Para esos, fundido casi nulo.
+                f"[{idx}:a]volume=0.9,afade=t=in:d={0.02 if kind in _PERCUSIVOS else 0.4},"
+                f"adelay={delay_ms}|{delay_ms},"
                 f"apad=whole_dur={duration:.2f}[s{idx}]"
             )
             labels.append(f"[s{idx}]")

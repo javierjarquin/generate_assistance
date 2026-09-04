@@ -10,6 +10,10 @@ SFX_KEYWORDS = {
     "terremoto": "rumble", "retumb": "rumble", "derrumb": "rumble", "temblor": "rumble",
     "viento": "wind", "niebla": "wind", "brisa": "wind",
     "burbuja": "bubbles", "submarino": "bubbles", "buceo": "bubbles",
+    # Formato de preguntas: el tic-tac acompaña la cuenta regresiva del
+    # silencio, y la campana marca la respuesta.
+    "reloj": "tick", "tic": "tick", "cuenta regresiva": "tick", "contador": "tick",
+    "campana": "bell", "campanada": "bell", "timbre": "bell",
 }
 
 

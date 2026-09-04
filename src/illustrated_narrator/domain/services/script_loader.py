@@ -142,6 +142,7 @@ def _parse_plano(raw: dict, index: int) -> Plano:
         narracion=raw["narracion"],
         visual=visual,
         texto_en_pantalla=raw.get("texto_en_pantalla"),
+        texto_grande=raw.get("texto_grande"),
         mascota_expresion=expresion,
         audio=audio,
         inicio_aprox=raw.get("inicio_aprox"),
