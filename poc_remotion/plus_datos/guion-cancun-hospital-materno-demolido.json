@@ -1,0 +1,41 @@
+{
+  "_nota": "POC CapituloPlus (13/10/2026). Datos sacados del guion verificado (fichas f1 y f2 y narración de p00, p02, p04). En producción los escribiría Claude en el guion.",
+  "contador": {
+    "plano": "p00",
+    "numero": 40,
+    "antes": "HASTA",
+    "despues": "BEBÉS AL DÍA"
+  },
+  "mapa": {
+    "plano": "p02",
+    "consulta": "Supermanzana 65",
+    "etiqueta": "SUPERMANZANA 65 · CANCÚN",
+    "desde": 0.0,
+    "dur": 3.6,
+    "centro": [
+      -86.8262925,
+      21.1769428
+    ]
+  },
+  "contradiccion": {
+    "plano": "p04",
+    "arriba": {
+      "titulo": "LO QUE PROMETIERON",
+      "renglones": [
+        "Hospital Materno Infantil",
+        "104 camas · 3 quirófanos",
+        "Casi 640 millones de pesos"
+      ]
+    },
+    "abajo": {
+      "titulo": "LO QUE HAY HOY",
+      "renglones": [
+        "Un terreno con escombro",
+        "Sin fecha de apertura"
+      ]
+    },
+    "abajo_en": "anuncios",
+    "resaltar": "Sin fecha de apertura",
+    "fuente": "Gobierno de Quintana Roo, 23/09/2026 · Ayuntamiento vía Noticaribe, 12/10/2026"
+  }
+}

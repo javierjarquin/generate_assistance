@@ -1,0 +1,40 @@
+{
+  "_nota": "POC CapituloPlus (13/10/2026). Datos sacados del guion verificado (ficha f1 y narración de p00, p02, p03). En producción los escribiría Claude en el guion.",
+  "contador": {
+    "plano": "p00",
+    "numero": 44,
+    "antes": "",
+    "despues": "LOTES SIN PERMISO"
+  },
+  "mapa": {
+    "plano": "p02",
+    "consulta": "Supermanzana 106",
+    "etiqueta": "SUPERMANZANA 106 · CANCÚN",
+    "desde": 0.0,
+    "dur": 3.6,
+    "centro": [
+      -86.8542577,
+      21.1907921
+    ]
+  },
+  "contradiccion": {
+    "plano": "p03",
+    "arriba": {
+      "titulo": "LO QUE SE ANUNCIABA",
+      "renglones": [
+        "44 lotes en Facebook",
+        "Dos privadas: Azteca y Tolteca"
+      ]
+    },
+    "abajo": {
+      "titulo": "LO QUE TENÍAN",
+      "renglones": [
+        "Ninguna licencia de fraccionamiento",
+        "Clausura del municipio"
+      ]
+    },
+    "abajo_en": "sin",
+    "resaltar": "Ninguna licencia de fraccionamiento",
+    "fuente": "Ayuntamiento de Benito Juárez, vía Marcrix Noticias, 09/10/2026"
+  }
+}
