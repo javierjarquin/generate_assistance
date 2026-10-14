@@ -22,6 +22,7 @@ import { Karaoke } from "./Karaoke";
 import { Contador, Contradiccion, FichaAnimada } from "./plus/Tarjetas";
 import { Destello } from "./plus/Destello";
 import { Mapa } from "./plus/Mapa";
+import { TomaMedio } from "./plus/Medios";
 import type { Plano, PlusProps } from "./types";
 
 const tramo = (planos: Plano[], i: number, fps: number, total: number) => {
@@ -47,18 +48,25 @@ const Tomas: React.FC<{
   readonly plano: Plano;
   readonly duracion: number;
   readonly fichas: PlusProps["fichas"][string] | undefined;
+  readonly medios: NonNullable<PlusProps["medios"]>[string] | undefined;
   readonly navy: string;
   readonly gold: string;
-}> = ({ plano, duracion, fichas, navy, gold }) => {
+}> = ({ plano, duracion, fichas, medios, navy, gold }) => {
   const { fps } = useVideoConfig();
   const porToma = duracion / Math.max(1, plano.shots.length);
   return (
     <AbsoluteFill>
       {plano.shots.map((src, i) => {
         const ficha = fichas?.[String(i)];
+        const medio = medios?.[String(i)];
         return (
-          <Sequence key={src} name={ficha ? `ficha ${src}` : src} from={Math.round(i * porToma)} premountFor={fps} layout="absolute-fill">
-            {ficha ? (
+          <Sequence key={src} name={medio ? `${medio.tipo} ${medio.src}` : ficha ? `ficha ${src}` : src}
+            from={Math.round(i * porToma)} premountFor={fps} layout="absolute-fill">
+            {medio ? (
+              <Entrada primero={i === 0}>
+                <TomaMedio medio={medio} indice={i} duracion={Math.round(porToma) + FUNDIDO} />
+              </Entrada>
+            ) : ficha ? (
               <Entrada primero={i === 0}>
                 <FichaAnimada ficha={ficha} navy={navy} gold={gold} />
               </Entrada>
@@ -114,7 +122,8 @@ export const CapituloPlus: React.FC<PlusProps> = (props) => {
                 />
               ) : (
                 <>
-                  <Tomas plano={plano} duracion={duracion} fichas={props.fichas[plano.id]} navy={navy} gold={gold} />
+                  <Tomas plano={plano} duracion={duracion} fichas={props.fichas[plano.id]}
+                    medios={props.medios?.[plano.id]} navy={navy} gold={gold} />
                   <AbsoluteFill style={{ background: `linear-gradient(to bottom, transparent 52%, ${navy}cc 100%)` }} />
                   {contador || mapa ? null : <Titulo texto={plano.texto} navy={navy} gold={gold} />}
                   {contador ? (

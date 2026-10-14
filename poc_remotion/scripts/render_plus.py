@@ -15,6 +15,7 @@ desde esta red (13/10/2026).
 
 import json
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -155,6 +156,73 @@ def fichas_por_toma(slug: str, props: dict) -> dict:
     return out
 
 
+def piezas_por_toma(slug: str, planos: list[dict]) -> dict[str, list[str]]:
+    """plano -> pieza de evidencia de cada toma (cycle de la evidencia del plano,
+    como la reparte evidencia._asignar)."""
+    base = ANDROID_IN / slug
+    guion = json.loads((base / "guion.json").read_text(encoding="utf-8"))
+    hechas = json.loads((base / "evidencia" / "manifest.json").read_text(encoding="utf-8"))
+    listas = [e["id"] for e in guion.get("evidencia", []) if e["id"] in hechas]
+    ultimas, out = listas[:3], {}
+    for p in guion["planos"]:
+        if p.get("seccion") == "identidad_cierre":
+            continue
+        propias = [e for e in (p.get("visual") or {}).get("evidencia", []) if e in hechas] or ultimas or listas
+        ultimas = propias
+        orden = list(islice(cycle(propias), 5))
+        pl = next((x for x in planos if x["id"] == p["id"]), None)
+        if pl:
+            out[p["id"]] = [orden[int(re.search(r"_(\d+)\.png$", s).group(1)) - 1] for s in pl["shots"]]
+    return out
+
+
+def medios_por_toma(slug: str, props: dict) -> dict:
+    """Evidencia en movimiento (14/10/2026): reparte lo que juntó multimedia.py.
+
+    Nota de prensa: la 1a vez que sale, la nota animada (baja al dato y lo
+    resalta); la 2a, su foto; la 3a, la otra foto; después, archivo. Una pieza
+    repetida dentro del mismo plano se cambia por una toma de archivo. Así el
+    mismo titular no sale cuatro veces igual (Javier: "muy planos, solo texto").
+    """
+    man_ruta = ANDROID_IN / slug / "multimedia" / "manifest.json"
+    if not man_ruta.exists():
+        return {}
+    man = json.loads(man_ruta.read_text(encoding="utf-8"))
+    origen = man_ruta.parent
+    destino = POC / "public" / slug / "media"
+    destino.mkdir(parents=True, exist_ok=True)
+
+    def copiar(nombre: str) -> str:
+        shutil.copy2(origen / nombre, destino / nombre)
+        return f"{slug}/media/{nombre}"
+
+    archivo = list(man.get("archivo", []))
+    vistas: dict[str, int] = {}
+    out: dict = {}
+    for plano, piezas in piezas_por_toma(slug, props["planos"]).items():
+        en_plano: set = set()
+        for i, pid in enumerate(piezas):
+            nota = man["notas"].get(pid)
+            medio = None
+            if nota:
+                k = vistas.get(pid, 0)
+                vistas[pid] = k + 1
+                if k == 0 and nota.get("captura"):
+                    medio = {"tipo": "nota", "src": copiar(nota["captura"]), "credito": nota["credito"],
+                             "alto": nota.get("alto"), "caja": nota.get("caja")}
+                elif 1 <= k <= len(nota.get("fotos", [])):
+                    medio = {"tipo": "foto", "src": copiar(nota["fotos"][k - 1]), "credito": nota["credito"]}
+                elif nota.get("videos"):
+                    medio = {"tipo": "video", "src": copiar(nota["videos"][0]), "credito": f"Video: {nota['credito']}"}
+            if medio is None and pid in en_plano and archivo:
+                a = archivo.pop(0)
+                medio = {"tipo": "video", "src": copiar(a["src"]), "credito": a["credito"]}
+            en_plano.add(pid)
+            if medio:
+                out.setdefault(plano, {})[str(i)] = medio
+    return out
+
+
 def marcar_enfasis(props: dict) -> int:
     claves = {}
     for p in props["planos"]:
@@ -206,6 +274,7 @@ def armar_plus(slug: str) -> Path:
     tema = slug.split("-")[1] if slug.count("-") >= 2 else ""
 
     props["fichas"] = _parte("fichas animadas", lambda: fichas_por_toma(slug, props)) or {}
+    props["medios"] = _parte("evidencia en movimiento", lambda: medios_por_toma(slug, props)) or {}
     enf = _parte("palabras en rojo", lambda: marcar_enfasis(props)) or 0
     props["destellos"] = [p["start"] for p in props["planos"][1:] if p["seccion"] == "contexto"]
 
@@ -245,7 +314,9 @@ def armar_plus(slug: str) -> Path:
 
     ruta.write_text(json.dumps(props, ensure_ascii=False, indent=2), encoding="utf-8")
     fichas = sum(len(v) for v in props["fichas"].values())
-    print(f"plus: {fichas} fichas animadas, {enf} palabras en rojo, {len(props['destellos'])} destellos, "
+    tipos = [m["tipo"] for v in props["medios"].values() for m in v.values()]
+    print(f"plus: {fichas} fichas animadas, {enf} palabras en rojo, "
+          f"{tipos.count('nota')} notas animadas, {tipos.count('foto')} fotos, {tipos.count('video')} videos, {len(props['destellos'])} destellos, "
           f"contador={'sí' if props['contador'] else 'no'}, mapa={'sí' if props['mapa'] else 'no'}, "
           f"contradicción={'sí' if props['contradiccion'] else 'no'}")
     return ruta

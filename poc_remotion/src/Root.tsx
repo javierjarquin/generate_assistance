@@ -1,6 +1,12 @@
 import { CalculateMetadataFunction, Composition } from "remotion";
 import { Capitulo } from "./Capitulo";
 import { CapituloPlus } from "./CapituloPlus";
+import { Portada, type PortadaProps } from "./plus/Portada";
+
+const portadaVacia: PortadaProps = {
+  variante: "dato", fondo: null, nota: null, antes: "", numero: "0", despues: "", logo: null,
+  palette: { navy: "#0B1F3A", gold: "#D4A537" },
+};
 import type { CapituloProps, PlusProps } from "./types";
 
 const FPS = 30;
@@ -40,6 +46,16 @@ export const RemotionRoot: React.FC = () => {
         height={1920}
         defaultProps={vacio}
         calculateMetadata={calculateMetadata}
+      />
+      {/* POC 14/10/2026: portada para TikTok (scripts/portada.py, imagen fija). */}
+      <Composition
+        id="Portada"
+        component={Portada}
+        durationInFrames={1}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        defaultProps={portadaVacia}
       />
       {/* POC 13/10/2026: valor visual para retención (scripts/render_plus.py). */}
       <Composition

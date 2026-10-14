@@ -20,6 +20,15 @@ export type FichaDatos = {
 
 export type Bloque = { readonly titulo: string; readonly renglones: string[] };
 
+// Evidencia en movimiento (14/10/2026, scripts/multimedia.py).
+export type Medio = {
+  readonly tipo: "nota" | "foto" | "video";
+  readonly src: string; // relativa a public/
+  readonly credito: string;
+  readonly alto?: number; // nota: alto de la captura en px
+  readonly caja?: { x: number; y: number; w: number; h: number } | null; // nota: párrafo del dato
+};
+
 export type PlusProps = CapituloProps & {
   // Toma (índice como texto) -> ficha que se dibuja animada en vez de su imagen.
   readonly fichas: Record<string, Record<string, FichaDatos>>;
@@ -34,6 +43,8 @@ export type PlusProps = CapituloProps & {
     fuente: string;
   } | null;
   readonly destellos: number[]; // segundos de los cortes con destello
+  // Toma (índice como texto) -> nota animada, foto o video que la reemplaza.
+  readonly medios?: Record<string, Record<string, Medio>>;
 };
 
 export type Plano = {
