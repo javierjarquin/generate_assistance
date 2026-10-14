@@ -37,15 +37,24 @@ def plano_txt(t: str) -> str:
     return re.sub(r"[^a-z0-9ñ ]", "", "".join(c for c in t if unicodedata.category(c) != "Mn"))
 
 
-def geocodificar(consulta: str, cerca=CANCUN) -> list[float]:
+def geocodificar(consulta: str, cerca=CANCUN, radio: float = 0.5) -> list[float]:
     q = urllib.parse.urlencode({"q": consulta, "limit": 1, "lat": cerca[0], "lon": cerca[1]})
     req = urllib.request.Request(f"https://photon.komoot.io/api/?{q}", headers={"User-Agent": "DatoMataGato-poc/1.0"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        feats = json.load(r)["features"]
+    # Photon es público y gratis: a veces tarda o se satura (14/10/2026 se cortó
+    # a los 30 s y el video salió sin mapa). Tres intentos antes de omitirlo.
+    for intento in range(3):
+        try:
+            with urllib.request.urlopen(req, timeout=40) as r:
+                feats = json.load(r)["features"]
+            break
+        except (OSError, ValueError):
+            if intento == 2:
+                raise
+            time.sleep(5 * (intento + 1))
     if not feats:
         raise ValueError(f"Photon no encontró {consulta!r}")
     lon, lat = feats[0]["geometry"]["coordinates"]
-    if abs(lat - cerca[0]) > 0.5 or abs(lon - cerca[1]) > 0.5:
+    if abs(lat - cerca[0]) > radio or abs(lon - cerca[1]) > radio:
         raise ValueError(f"{consulta!r} cayó lejos ({lat}, {lon}): no se usa")
     return [lon, lat]
 
@@ -161,7 +170,10 @@ def marcar_enfasis(props: dict) -> int:
 
 
 # Cerca de dónde buscar el lugar del mapa, por tema del slug (guion-<tema>-...).
-CENTROS = {"cancun": CANCUN, "cdmx": (19.43, -99.13)}
+# (centro, radio en grados). Cancún abarca la Riviera Maya: Playa del Carmen
+# queda a ~0.53° y Tulum a ~0.96° (con 0.5 se perdió el mapa de la Quinta
+# Avenida, 14/10/2026). Más allá ya es otro estado: se omite.
+CENTROS = {"cancun": (CANCUN, 1.1), "cdmx": ((19.43, -99.13), 0.5)}
 
 
 def datos_plus(slug: str) -> dict:
@@ -212,7 +224,7 @@ def armar_plus(slug: str) -> Path:
         centro = m.get("centro")
         if not centro:
             if tema in CENTROS:
-                centro = geocodificar(m["consulta"], CENTROS[tema])
+                centro = geocodificar(m["consulta"], *CENTROS[tema])
             else:
                 raise ValueError(f"sin ciudad de referencia para el tema {tema!r}")
         return {"plano": m["plano"], "centro": centro, "etiqueta": m.get("etiqueta") or m["consulta"].upper(),

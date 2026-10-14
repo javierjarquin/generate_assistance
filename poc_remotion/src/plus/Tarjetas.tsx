@@ -37,7 +37,19 @@ const Renglon: React.FC<{ readonly texto: string; readonly i: number; readonly d
   const { fps } = useVideoConfig();
   const e = spring({ frame: frame - desde - i * 5, fps, config: { damping: 18, stiffness: 140 } });
   return (
-    <div style={{ opacity: e, translate: `${interpolate(e, [0, 1], [-60, 0])}px 0px` }}>{texto}</div>
+    // rough-notation envuelve el texto en un span con white-space: pre (no corta
+    // la línea): aquí se devuelve el corte normal y un ancho máximo, si no el
+    // renglón largo se sale del cuadro ("…nuevos en diez añ", 14/10/2026).
+    <div
+      style={{
+        opacity: e,
+        translate: `${interpolate(e, [0, 1], [-60, 0])}px 0px`,
+        whiteSpace: "normal",
+        maxWidth: 820,
+      }}
+    >
+      {texto}
+    </div>
   );
 };
 
