@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Actualizado el 15/10/2026 contra el código. El detalle histórico de cada regla (bugs, pruebas, fechas) está en `docs/historial_decisiones.md`: ábrelo solo si una regla de aquí no te alcanza.
+Actualizado el 14/10/2026 contra el código. El detalle histórico de cada regla (bugs, pruebas, fechas) está en `docs/historial_decisiones.md`: ábrelo solo si una regla de aquí no te alcanza.
 
 ## Qué es este proyecto
 

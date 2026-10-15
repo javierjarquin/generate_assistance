@@ -1,6 +1,6 @@
 # Historial de decisiones y bugs del narrador
 
-Movido desde CLAUDE.md el 15/10/2026 para que CLAUDE.md pese menos: se relee en
+Movido desde CLAUDE.md el 14/10/2026 para que CLAUDE.md pese menos: se relee en
 cada paso de las sesiones que abre el bot. Aquí está el detalle completo (texto
 original, sin cambios); CLAUDE.md conserva la regla corta de cada punto.
 
