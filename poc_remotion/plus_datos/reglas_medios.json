@@ -1,0 +1,19 @@
+{
+  "_nota": "Qué material de cada medio se puede usar (decisión de Javier, 14/10/2026: opción b). verde = fotos y videos con crédito (licencia Creative Commons o comunicación oficial); amarillo = solo fotos, breves, con crédito, como cita de actualidad (LFDA art. 148-II, si el medio no lo prohíbe expresamente); rojo = nada. Lo que no está aquí cuenta como amarillo. Revisado el 14/10/2026 en la portada de cada sitio.",
+  "medios": {
+    "noticaribe.com.mx": {"nivel": "verde", "credito": "Noticaribe (CC BY)"},
+    "qroo.gob.mx": {"nivel": "verde", "credito": "Gobierno de Quintana Roo"},
+    "cancun.gob.mx": {"nivel": "verde", "credito": "Ayuntamiento de Benito Juárez"},
+    "sedetus.gob.mx": {"nivel": "verde", "credito": "SEDETUS Quintana Roo"},
+    "24horasqroo.mx": {"nivel": "amarillo", "credito": "24 Horas Quintana Roo"},
+    "sipse.com": {"nivel": "amarillo", "credito": "Novedades Quintana Roo"},
+    "lajornadamaya.mx": {"nivel": "amarillo", "credito": "La Jornada Maya"},
+    "lucesdelsiglo.com": {"nivel": "amarillo", "credito": "Luces del Siglo"},
+    "eluniversal.com.mx": {"nivel": "amarillo", "credito": "El Universal"},
+    "poresto.com": {"nivel": "amarillo", "credito": "PorEsto"},
+    "reportur.com": {"nivel": "amarillo", "credito": "Reportur"},
+    "elmomentoqroo.mx": {"nivel": "amarillo", "credito": "El Momento Quintana Roo"}
+  },
+  "fotos_por_nota": 2,
+  "segundos_video": 5
+}

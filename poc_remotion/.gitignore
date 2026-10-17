@@ -1,0 +1,10 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# Ignore the output video from Git but not videos you import into src/.
+out
+
+# Copias de cada capítulo que arma scripts/render_capitulo.py (audio e imágenes)
+public/guion-*
