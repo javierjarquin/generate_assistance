@@ -1,0 +1,23 @@
+{
+  "name": "tradiciones-3d",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "lint": "tsc"
+  },
+  "dependencies": {
+    "@react-three/fiber": "9.3.0",
+    "@remotion/cli": "4.0.535",
+    "@remotion/media": "^4.0.535",
+    "@remotion/three": "4.0.535",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.535",
+    "three": "0.178.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "@types/three": "0.178.1",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,9 @@
+node_modules/
+out/
+# Lo que render.py copia de cada video (voz y props): se borra al terminar
+public/*
+# La biblioteca de modelos sí va (scripts/biblioteca.py)
+!public/modelos/
+
+# Zips de Kenney que baja scripts/biblioteca.py
+.cache/
