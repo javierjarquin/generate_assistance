@@ -1,0 +1,1553 @@
+{
+ "escenas": [
+  {
+   "id": "pregunta",
+   "texto": "¿Por qué ponemos flor de cempasúchil para guiar a los muertos?",
+   "visual": [
+    {
+     "objeto": "Flor",
+     "gira": 0.35,
+     "brillo": 0.15
+    }
+   ],
+   "camara": "acerca",
+   "claves": [
+    "cempasúchil",
+    "muertos"
+   ]
+  },
+  {
+   "id": "respuesta",
+   "texto": "Porque, según la tradición, el camino se sigue con dos cosas: su color, que parece un pedazo de sol, y su olor, tan fuerte que no se pierde.",
+   "visual": [
+    {
+     "objeto": "Sol",
+     "fuerza": {
+      "de": 0,
+      "a": 1,
+      "desde": 0,
+      "hasta": 0.25,
+      "regresa": [
+       0.55,
+       0.7
+      ]
+     }
+    },
+    {
+     "objeto": "Flor",
+     "giro": 1.4,
+     "gira": 0.3,
+     "brillo": {
+      "de": 0.15,
+      "a": 0.75,
+      "desde": 0,
+      "hasta": 0.25,
+      "regresa": [
+       0.55,
+       0.7
+      ]
+     }
+    },
+    {
+     "objeto": "Particulas",
+     "fuerza": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.55,
+      "hasta": 0.7
+     }
+    }
+   ],
+   "camara": "frente",
+   "etiquetas": [
+    {
+     "titulo": "COLOR DE SOL",
+     "desde": 0.22,
+     "hasta": 0.55
+    },
+    {
+     "titulo": "OLOR QUE NO SE PIERDE",
+     "desde": 0.62,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "sol",
+    "olor",
+    "color"
+   ]
+  },
+  {
+   "id": "nombre",
+   "texto": "Su nombre viene del náhuatl, cempoalxóchitl: veinte flores. Y veinte también quería decir muchas. Porque cada flor, en realidad, son muchas florecitas juntas.",
+   "visual": [
+    {
+     "objeto": "Flor",
+     "giro": 2.6,
+     "gira": 0.25,
+     "brillo": 0.2,
+     "explota": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.55,
+      "hasta": 0.85
+     }
+    }
+   ],
+   "camara": "aleja",
+   "etiquetas": [
+    {
+     "titulo": "CEMPŌHUALXŌCHITL",
+     "subtitulo": "cempōhualli: veinte, muchas · xōchitl: flor",
+     "desde": 0.08,
+     "hasta": 0.5
+    },
+    {
+     "titulo": "MUCHAS FLORECITAS EN UNA",
+     "desde": 0.6,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "náhuatl",
+    "veinte",
+    "muchas",
+    "florecitas"
+   ]
+  },
+  {
+   "id": "mexicas",
+   "texto": "Los mexicas ya les daban flores a sus muertos, pero en verano. En la veintena Tlaxochimaco, se dan las flores, también llamada la pequeña fiesta de los muertos.",
+   "visual": [
+    {
+     "objeto": "Calendario",
+     "giro": {
+      "de": -1.6,
+      "a": 1.4,
+      "desde": 0,
+      "hasta": 0.5
+     },
+     "marca": {
+      "de": 0,
+      "a": 0.8,
+      "desde": 0.45,
+      "hasta": 0.6
+     }
+    },
+    {
+     "objeto": "Flor",
+     "escala": 0.42,
+     "gira": 0.4,
+     "brillo": 0.4,
+     "tallo": false
+    },
+    {
+     "objeto": "Corona",
+     "cantidad": 6
+    }
+   ],
+   "camara": "plano",
+   "etiquetas": [
+    {
+     "titulo": "TLAXOCHIMACO",
+     "subtitulo": "«se dan las flores» · verano",
+     "desde": 0.4,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "verano",
+    "tlaxochimaco",
+    "flores"
+   ]
+  },
+  {
+   "id": "noviembre",
+   "texto": "Con los españoles, el recuerdo de los muertos se pasó al uno y dos de noviembre. Cambiaron la fecha, y la flor llegó puntual: florece al terminar las lluvias, a finales de octubre.",
+   "visual": [
+    {
+     "objeto": "Piso"
+    },
+    {
+     "objeto": "Lluvia",
+     "fuerza": {
+      "de": 1,
+      "a": 0,
+      "desde": 0.35,
+      "hasta": 0.55
+     }
+    },
+    {
+     "objeto": "Campo",
+     "crece": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.25,
+      "hasta": 0.75
+     }
+    }
+   ],
+   "camara": "campo",
+   "etiquetas": [
+    {
+     "titulo": "1 Y 2 DE NOVIEMBRE",
+     "desde": 0.08,
+     "hasta": 0.45
+    },
+    {
+     "titulo": "FLORECE AL TERMINAR LAS LLUVIAS",
+     "desde": 0.55,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "noviembre",
+    "puntual",
+    "lluvias",
+    "octubre"
+   ]
+  },
+  {
+   "id": "yema",
+   "texto": "Y ese naranja es tan fuerte, que hoy se le saca a la flor un pigmento, la luteína, y se le da a las gallinas para que la yema salga más amarilla.",
+   "visual": [
+    {
+     "objeto": "Huevo",
+     "pinta": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.3,
+      "hasta": 0.85
+     }
+    },
+    {
+     "objeto": "Flor",
+     "escala": 0.3,
+     "posicion": [
+      -0.35,
+      1.5,
+      -0.6
+     ],
+     "gira": 0.4,
+     "brillo": 0.4,
+     "tallo": false
+    }
+   ],
+   "camara": "arriba",
+   "etiquetas": [
+    {
+     "titulo": "LUTEÍNA",
+     "subtitulo": "el pigmento del cempasúchil",
+     "desde": 0.3,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "luteína",
+    "amarilla",
+    "naranja"
+   ]
+  },
+  {
+   "id": "plagas",
+   "texto": "En el campo, dicen que ahuyenta plagas. Y algo de cierto hay: sus raíces sueltan una sustancia que frena a unos gusanitos que dañan los cultivos.",
+   "visual": [
+    {
+     "objeto": "Raices",
+     "sustancia": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.45,
+      "hasta": 0.75
+     }
+    },
+    {
+     "objeto": "Flor",
+     "escala": 0.55,
+     "posicion": [
+      0,
+      0.59,
+      0
+     ],
+     "gira": 0.3,
+     "brillo": 0.2
+    }
+   ],
+   "camara": "cerca",
+   "etiquetas": [
+    {
+     "titulo": "DICEN QUE AHUYENTA PLAGAS",
+     "desde": 0.05,
+     "hasta": 0.42
+    },
+    {
+     "titulo": "ALFA-TERTIENILO",
+     "subtitulo": "lo sueltan sus raíces · frena a los nematodos",
+     "desde": 0.5,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "plagas",
+    "raíces",
+    "gusanitos"
+   ]
+  },
+  {
+   "id": "camino",
+   "texto": "Por eso se deshoja, pétalo por pétalo. Color para que lo vean, olor para que lo sigan.",
+   "visual": [
+    {
+     "objeto": "Piso"
+    },
+    {
+     "objeto": "Flor",
+     "gira": 0.3,
+     "brillo": 0.25,
+     "deshoje": {
+      "de": 0,
+      "a": 1,
+      "desde": 0,
+      "hasta": 0.95
+     }
+    }
+   ],
+   "camara": "suelo",
+   "etiquetas": [
+    {
+     "titulo": "COLOR PARA VERLO",
+     "subtitulo": "olor para seguirlo",
+     "desde": 0.55,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "pétalo",
+    "vean",
+    "sigan"
+   ]
+  },
+  {
+   "id": "presente",
+   "texto": "Y por eso cada noviembre pintas de naranja el camino de tu puerta a la ofrenda.",
+   "visual": [
+    {
+     "objeto": "Piso"
+    },
+    {
+     "objeto": "Camino",
+     "brillo": 0.2
+    },
+    {
+     "objeto": "Ofrenda"
+    }
+   ],
+   "camara": "recorre",
+   "claves": [
+    "naranja",
+    "ofrenda"
+   ]
+  },
+  {
+   "id": "cierre",
+   "texto": "Mándaselo a quien cada año hace el caminito de pétalos.",
+   "visual": [
+    {
+     "objeto": "Piso"
+    },
+    {
+     "objeto": "Camino",
+     "brillo": {
+      "de": 0.25,
+      "a": 0.75
+     }
+    },
+    {
+     "objeto": "Ofrenda"
+    }
+   ],
+   "camara": "eleva",
+   "claves": [
+    "pétalos"
+   ]
+  }
+ ],
+ "tiempos": {
+  "duracion": 74.64,
+  "escenas": [
+   {
+    "id": "pregunta",
+    "ini": 0.0,
+    "fin": 3.09
+   },
+   {
+    "id": "respuesta",
+    "ini": 3.44,
+    "fin": 11.64
+   },
+   {
+    "id": "nombre",
+    "ini": 11.99,
+    "fin": 21.71
+   },
+   {
+    "id": "mexicas",
+    "ini": 22.06,
+    "fin": 31.66
+   },
+   {
+    "id": "noviembre",
+    "ini": 32.01,
+    "fin": 42.52
+   },
+   {
+    "id": "yema",
+    "ini": 42.87,
+    "fin": 51.26
+   },
+   {
+    "id": "plagas",
+    "ini": 51.61,
+    "fin": 60.33
+   },
+   {
+    "id": "camino",
+    "ini": 60.68,
+    "fin": 65.82
+   },
+   {
+    "id": "presente",
+    "ini": 66.17,
+    "fin": 70.62
+   },
+   {
+    "id": "cierre",
+    "ini": 70.97,
+    "fin": 74.29
+   }
+  ]
+ },
+ "palabras": [
+  {
+   "t": 0.0,
+   "f": 0.3,
+   "w": "¿Por"
+  },
+  {
+   "t": 0.3,
+   "f": 0.44,
+   "w": "qué"
+  },
+  {
+   "t": 0.44,
+   "f": 0.8,
+   "w": "ponemos"
+  },
+  {
+   "t": 0.8,
+   "f": 1.02,
+   "w": "flor"
+  },
+  {
+   "t": 1.02,
+   "f": 1.22,
+   "w": "de"
+  },
+  {
+   "t": 1.22,
+   "f": 1.84,
+   "w": "cempasúchil"
+  },
+  {
+   "t": 1.84,
+   "f": 2.02,
+   "w": "para"
+  },
+  {
+   "t": 2.02,
+   "f": 2.3,
+   "w": "guiar"
+  },
+  {
+   "t": 2.3,
+   "f": 2.38,
+   "w": "a"
+  },
+  {
+   "t": 2.38,
+   "f": 2.54,
+   "w": "los"
+  },
+  {
+   "t": 2.54,
+   "f": 2.88,
+   "w": "muertos?"
+  },
+  {
+   "t": 3.54,
+   "f": 3.82,
+   "w": "Porque,"
+  },
+  {
+   "t": 3.82,
+   "f": 4.16,
+   "w": "según"
+  },
+  {
+   "t": 4.16,
+   "f": 4.36,
+   "w": "la"
+  },
+  {
+   "t": 4.36,
+   "f": 4.8,
+   "w": "tradición,"
+  },
+  {
+   "t": 5.18,
+   "f": 5.24,
+   "w": "el"
+  },
+  {
+   "t": 5.24,
+   "f": 5.5,
+   "w": "camino"
+  },
+  {
+   "t": 5.5,
+   "f": 5.72,
+   "w": "se"
+  },
+  {
+   "t": 5.72,
+   "f": 5.96,
+   "w": "sigue"
+  },
+  {
+   "t": 5.96,
+   "f": 6.16,
+   "w": "con"
+  },
+  {
+   "t": 6.16,
+   "f": 6.34,
+   "w": "2"
+  },
+  {
+   "t": 6.34,
+   "f": 6.68,
+   "w": "cosas:"
+  },
+  {
+   "t": 7.06,
+   "f": 7.3,
+   "w": "su"
+  },
+  {
+   "t": 7.3,
+   "f": 7.6,
+   "w": "color,"
+  },
+  {
+   "t": 7.92,
+   "f": 8.0,
+   "w": "que"
+  },
+  {
+   "t": 8.0,
+   "f": 8.28,
+   "w": "parece"
+  },
+  {
+   "t": 8.28,
+   "f": 8.48,
+   "w": "un"
+  },
+  {
+   "t": 8.48,
+   "f": 8.8,
+   "w": "pedazo"
+  },
+  {
+   "t": 8.8,
+   "f": 8.96,
+   "w": "de"
+  },
+  {
+   "t": 8.96,
+   "f": 9.2,
+   "w": "sol,"
+  },
+  {
+   "t": 9.2,
+   "f": 9.54,
+   "w": "y"
+  },
+  {
+   "t": 9.54,
+   "f": 9.7,
+   "w": "su"
+  },
+  {
+   "t": 9.7,
+   "f": 9.98,
+   "w": "olor,"
+  },
+  {
+   "t": 10.12,
+   "f": 10.34,
+   "w": "tan"
+  },
+  {
+   "t": 10.34,
+   "f": 10.62,
+   "w": "fuerte"
+  },
+  {
+   "t": 10.62,
+   "f": 10.84,
+   "w": "que"
+  },
+  {
+   "t": 10.84,
+   "f": 10.96,
+   "w": "no"
+  },
+  {
+   "t": 10.96,
+   "f": 11.08,
+   "w": "se"
+  },
+  {
+   "t": 11.08,
+   "f": 11.44,
+   "w": "pierde."
+  },
+  {
+   "t": 12.06,
+   "f": 12.32,
+   "w": "Su"
+  },
+  {
+   "t": 12.32,
+   "f": 12.6,
+   "w": "nombre"
+  },
+  {
+   "t": 12.6,
+   "f": 12.86,
+   "w": "viene"
+  },
+  {
+   "t": 12.86,
+   "f": 13.06,
+   "w": "del"
+  },
+  {
+   "t": 13.06,
+   "f": 13.82,
+   "w": "náhuatl,"
+  },
+  {
+   "t": 13.82,
+   "f": 14.58,
+   "w": "cempōhualxōchitl:"
+  },
+  {
+   "t": 14.92,
+   "f": 15.2,
+   "w": "veinte"
+  },
+  {
+   "t": 15.2,
+   "f": 15.58,
+   "w": "flores."
+  },
+  {
+   "t": 16.04,
+   "f": 16.24,
+   "w": "Y"
+  },
+  {
+   "t": 16.24,
+   "f": 16.5,
+   "w": "veinte"
+  },
+  {
+   "t": 16.5,
+   "f": 16.78,
+   "w": "también"
+  },
+  {
+   "t": 16.78,
+   "f": 17.16,
+   "w": "quería"
+  },
+  {
+   "t": 17.16,
+   "f": 17.42,
+   "w": "decir"
+  },
+  {
+   "t": 17.42,
+   "f": 17.76,
+   "w": "muchas."
+  },
+  {
+   "t": 18.22,
+   "f": 18.46,
+   "w": "Porque"
+  },
+  {
+   "t": 18.46,
+   "f": 18.72,
+   "w": "cada"
+  },
+  {
+   "t": 18.72,
+   "f": 19.0,
+   "w": "flor,"
+  },
+  {
+   "t": 19.0,
+   "f": 19.18,
+   "w": "en"
+  },
+  {
+   "t": 19.18,
+   "f": 19.58,
+   "w": "realidad,"
+  },
+  {
+   "t": 19.58,
+   "f": 20.12,
+   "w": "son"
+  },
+  {
+   "t": 20.12,
+   "f": 20.52,
+   "w": "muchas"
+  },
+  {
+   "t": 20.52,
+   "f": 21.08,
+   "w": "florecitas"
+  },
+  {
+   "t": 21.08,
+   "f": 21.56,
+   "w": "juntas."
+  },
+  {
+   "t": 22.12,
+   "f": 22.44,
+   "w": "Los"
+  },
+  {
+   "t": 22.44,
+   "f": 22.82,
+   "w": "mexicas"
+  },
+  {
+   "t": 22.82,
+   "f": 23.08,
+   "w": "ya"
+  },
+  {
+   "t": 23.08,
+   "f": 23.24,
+   "w": "les"
+  },
+  {
+   "t": 23.24,
+   "f": 23.48,
+   "w": "daban"
+  },
+  {
+   "t": 23.48,
+   "f": 23.8,
+   "w": "flores"
+  },
+  {
+   "t": 23.8,
+   "f": 23.96,
+   "w": "a"
+  },
+  {
+   "t": 23.96,
+   "f": 24.1,
+   "w": "sus"
+  },
+  {
+   "t": 24.1,
+   "f": 24.46,
+   "w": "muertos,"
+  },
+  {
+   "t": 24.46,
+   "f": 24.78,
+   "w": "pero"
+  },
+  {
+   "t": 24.78,
+   "f": 25.0,
+   "w": "en"
+  },
+  {
+   "t": 25.0,
+   "f": 25.36,
+   "w": "verano."
+  },
+  {
+   "t": 25.36,
+   "f": 26.04,
+   "w": "En"
+  },
+  {
+   "t": 26.04,
+   "f": 26.14,
+   "w": "la"
+  },
+  {
+   "t": 26.14,
+   "f": 26.56,
+   "w": "veintena"
+  },
+  {
+   "t": 26.56,
+   "f": 27.4,
+   "w": "Tlaxochimaco,"
+  },
+  {
+   "t": 27.4,
+   "f": 27.98,
+   "w": "se"
+  },
+  {
+   "t": 27.98,
+   "f": 28.14,
+   "w": "dan"
+  },
+  {
+   "t": 28.14,
+   "f": 28.34,
+   "w": "las"
+  },
+  {
+   "t": 28.34,
+   "f": 28.66,
+   "w": "flores,"
+  },
+  {
+   "t": 29.02,
+   "f": 29.4,
+   "w": "también"
+  },
+  {
+   "t": 29.4,
+   "f": 29.86,
+   "w": "llamada"
+  },
+  {
+   "t": 29.86,
+   "f": 30.0,
+   "w": "la"
+  },
+  {
+   "t": 30.0,
+   "f": 30.26,
+   "w": "pequeña"
+  },
+  {
+   "t": 30.26,
+   "f": 30.74,
+   "w": "fiesta"
+  },
+  {
+   "t": 30.74,
+   "f": 30.92,
+   "w": "de"
+  },
+  {
+   "t": 30.92,
+   "f": 31.08,
+   "w": "los"
+  },
+  {
+   "t": 31.08,
+   "f": 31.44,
+   "w": "muertos."
+  },
+  {
+   "t": 32.06,
+   "f": 32.3,
+   "w": "Con"
+  },
+  {
+   "t": 32.3,
+   "f": 32.44,
+   "w": "los"
+  },
+  {
+   "t": 32.44,
+   "f": 32.94,
+   "w": "españoles,"
+  },
+  {
+   "t": 32.94,
+   "f": 33.5,
+   "w": "el"
+  },
+  {
+   "t": 33.5,
+   "f": 33.84,
+   "w": "recuerdo"
+  },
+  {
+   "t": 33.84,
+   "f": 33.98,
+   "w": "de"
+  },
+  {
+   "t": 33.98,
+   "f": 34.12,
+   "w": "los"
+  },
+  {
+   "t": 34.12,
+   "f": 34.42,
+   "w": "muertos"
+  },
+  {
+   "t": 34.42,
+   "f": 34.64,
+   "w": "se"
+  },
+  {
+   "t": 34.64,
+   "f": 34.8,
+   "w": "pasó"
+  },
+  {
+   "t": 34.8,
+   "f": 35.0,
+   "w": "al"
+  },
+  {
+   "t": 35.0,
+   "f": 35.14,
+   "w": "1"
+  },
+  {
+   "t": 35.14,
+   "f": 35.3,
+   "w": "y"
+  },
+  {
+   "t": 35.3,
+   "f": 35.46,
+   "w": "2"
+  },
+  {
+   "t": 35.46,
+   "f": 35.58,
+   "w": "de"
+  },
+  {
+   "t": 35.58,
+   "f": 36.04,
+   "w": "noviembre."
+  },
+  {
+   "t": 36.54,
+   "f": 37.02,
+   "w": "Cambiaron"
+  },
+  {
+   "t": 37.02,
+   "f": 37.16,
+   "w": "la"
+  },
+  {
+   "t": 37.16,
+   "f": 37.48,
+   "w": "fecha,"
+  },
+  {
+   "t": 37.48,
+   "f": 37.98,
+   "w": "y"
+  },
+  {
+   "t": 37.98,
+   "f": 38.12,
+   "w": "la"
+  },
+  {
+   "t": 38.12,
+   "f": 38.26,
+   "w": "flor"
+  },
+  {
+   "t": 38.26,
+   "f": 38.48,
+   "w": "llegó"
+  },
+  {
+   "t": 38.48,
+   "f": 39.0,
+   "w": "puntual:"
+  },
+  {
+   "t": 39.4,
+   "f": 39.88,
+   "w": "florece"
+  },
+  {
+   "t": 39.88,
+   "f": 40.04,
+   "w": "al"
+  },
+  {
+   "t": 40.04,
+   "f": 40.36,
+   "w": "terminar"
+  },
+  {
+   "t": 40.36,
+   "f": 40.66,
+   "w": "las"
+  },
+  {
+   "t": 40.66,
+   "f": 41.04,
+   "w": "lluvias,"
+  },
+  {
+   "t": 41.04,
+   "f": 41.52,
+   "w": "a"
+  },
+  {
+   "t": 41.52,
+   "f": 41.92,
+   "w": "finales"
+  },
+  {
+   "t": 41.92,
+   "f": 42.0,
+   "w": "de"
+  },
+  {
+   "t": 42.0,
+   "f": 42.42,
+   "w": "octubre."
+  },
+  {
+   "t": 42.98,
+   "f": 43.18,
+   "w": "Y"
+  },
+  {
+   "t": 43.18,
+   "f": 43.34,
+   "w": "ese"
+  },
+  {
+   "t": 43.34,
+   "f": 43.74,
+   "w": "naranja"
+  },
+  {
+   "t": 43.74,
+   "f": 43.98,
+   "w": "es"
+  },
+  {
+   "t": 43.98,
+   "f": 44.08,
+   "w": "tan"
+  },
+  {
+   "t": 44.08,
+   "f": 44.38,
+   "w": "fuerte,"
+  },
+  {
+   "t": 44.38,
+   "f": 45.02,
+   "w": "que"
+  },
+  {
+   "t": 45.02,
+   "f": 45.18,
+   "w": "hoy"
+  },
+  {
+   "t": 45.18,
+   "f": 45.32,
+   "w": "se"
+  },
+  {
+   "t": 45.32,
+   "f": 45.42,
+   "w": "le"
+  },
+  {
+   "t": 45.42,
+   "f": 45.74,
+   "w": "saca"
+  },
+  {
+   "t": 45.74,
+   "f": 45.84,
+   "w": "a"
+  },
+  {
+   "t": 45.84,
+   "f": 45.92,
+   "w": "la"
+  },
+  {
+   "t": 45.92,
+   "f": 46.1,
+   "w": "flor"
+  },
+  {
+   "t": 46.1,
+   "f": 46.28,
+   "w": "un"
+  },
+  {
+   "t": 46.28,
+   "f": 46.88,
+   "w": "pigmento,"
+  },
+  {
+   "t": 47.12,
+   "f": 47.3,
+   "w": "la"
+  },
+  {
+   "t": 47.3,
+   "f": 47.76,
+   "w": "luteína,"
+  },
+  {
+   "t": 48.24,
+   "f": 48.32,
+   "w": "y"
+  },
+  {
+   "t": 48.32,
+   "f": 48.44,
+   "w": "se"
+  },
+  {
+   "t": 48.44,
+   "f": 48.54,
+   "w": "le"
+  },
+  {
+   "t": 48.54,
+   "f": 48.68,
+   "w": "da"
+  },
+  {
+   "t": 48.68,
+   "f": 48.8,
+   "w": "a"
+  },
+  {
+   "t": 48.8,
+   "f": 48.94,
+   "w": "las"
+  },
+  {
+   "t": 48.94,
+   "f": 49.3,
+   "w": "gallinas"
+  },
+  {
+   "t": 49.3,
+   "f": 49.56,
+   "w": "para"
+  },
+  {
+   "t": 49.56,
+   "f": 49.7,
+   "w": "que"
+  },
+  {
+   "t": 49.7,
+   "f": 49.82,
+   "w": "la"
+  },
+  {
+   "t": 49.82,
+   "f": 50.04,
+   "w": "yema"
+  },
+  {
+   "t": 50.04,
+   "f": 50.42,
+   "w": "salga"
+  },
+  {
+   "t": 50.42,
+   "f": 50.62,
+   "w": "más"
+  },
+  {
+   "t": 50.62,
+   "f": 51.08,
+   "w": "amarilla."
+  },
+  {
+   "t": 51.08,
+   "f": 51.94,
+   "w": "En"
+  },
+  {
+   "t": 51.94,
+   "f": 52.06,
+   "w": "el"
+  },
+  {
+   "t": 52.06,
+   "f": 52.36,
+   "w": "campo,"
+  },
+  {
+   "t": 52.36,
+   "f": 52.76,
+   "w": "dicen"
+  },
+  {
+   "t": 52.76,
+   "f": 52.98,
+   "w": "que"
+  },
+  {
+   "t": 52.98,
+   "f": 53.38,
+   "w": "ahuyenta"
+  },
+  {
+   "t": 53.38,
+   "f": 53.92,
+   "w": "plagas."
+  },
+  {
+   "t": 53.92,
+   "f": 54.44,
+   "w": "Y"
+  },
+  {
+   "t": 54.44,
+   "f": 54.68,
+   "w": "algo"
+  },
+  {
+   "t": 54.68,
+   "f": 54.82,
+   "w": "de"
+  },
+  {
+   "t": 54.82,
+   "f": 55.06,
+   "w": "cierto"
+  },
+  {
+   "t": 55.06,
+   "f": 55.34,
+   "w": "hay:"
+  },
+  {
+   "t": 55.84,
+   "f": 56.06,
+   "w": "sus"
+  },
+  {
+   "t": 56.06,
+   "f": 56.52,
+   "w": "raíces"
+  },
+  {
+   "t": 56.52,
+   "f": 56.94,
+   "w": "sueltan"
+  },
+  {
+   "t": 56.94,
+   "f": 57.12,
+   "w": "una"
+  },
+  {
+   "t": 57.12,
+   "f": 57.64,
+   "w": "sustancia"
+  },
+  {
+   "t": 57.64,
+   "f": 57.8,
+   "w": "que"
+  },
+  {
+   "t": 57.8,
+   "f": 58.14,
+   "w": "frena"
+  },
+  {
+   "t": 58.14,
+   "f": 58.28,
+   "w": "a"
+  },
+  {
+   "t": 58.28,
+   "f": 58.42,
+   "w": "unos"
+  },
+  {
+   "t": 58.42,
+   "f": 59.02,
+   "w": "gusanitos"
+  },
+  {
+   "t": 59.02,
+   "f": 59.2,
+   "w": "que"
+  },
+  {
+   "t": 59.2,
+   "f": 59.5,
+   "w": "dañan"
+  },
+  {
+   "t": 59.5,
+   "f": 59.66,
+   "w": "los"
+  },
+  {
+   "t": 59.66,
+   "f": 60.18,
+   "w": "cultivos."
+  },
+  {
+   "t": 60.74,
+   "f": 60.98,
+   "w": "Por"
+  },
+  {
+   "t": 60.98,
+   "f": 61.18,
+   "w": "eso"
+  },
+  {
+   "t": 61.18,
+   "f": 61.34,
+   "w": "se"
+  },
+  {
+   "t": 61.34,
+   "f": 61.78,
+   "w": "deshoja,"
+  },
+  {
+   "t": 61.78,
+   "f": 62.26,
+   "w": "pétalo"
+  },
+  {
+   "t": 62.26,
+   "f": 62.46,
+   "w": "por"
+  },
+  {
+   "t": 62.46,
+   "f": 62.84,
+   "w": "pétalo."
+  },
+  {
+   "t": 63.4,
+   "f": 63.6,
+   "w": "Color"
+  },
+  {
+   "t": 63.6,
+   "f": 63.88,
+   "w": "para"
+  },
+  {
+   "t": 63.88,
+   "f": 64.02,
+   "w": "que"
+  },
+  {
+   "t": 64.02,
+   "f": 64.14,
+   "w": "lo"
+  },
+  {
+   "t": 64.14,
+   "f": 64.5,
+   "w": "vean,"
+  },
+  {
+   "t": 64.72,
+   "f": 64.94,
+   "w": "olor"
+  },
+  {
+   "t": 64.94,
+   "f": 65.12,
+   "w": "para"
+  },
+  {
+   "t": 65.12,
+   "f": 65.26,
+   "w": "que"
+  },
+  {
+   "t": 65.26,
+   "f": 65.38,
+   "w": "lo"
+  },
+  {
+   "t": 65.38,
+   "f": 65.68,
+   "w": "sigan."
+  },
+  {
+   "t": 66.36,
+   "f": 66.46,
+   "w": "Y"
+  },
+  {
+   "t": 66.46,
+   "f": 66.58,
+   "w": "por"
+  },
+  {
+   "t": 66.58,
+   "f": 66.8,
+   "w": "eso"
+  },
+  {
+   "t": 66.8,
+   "f": 66.98,
+   "w": "cada"
+  },
+  {
+   "t": 66.98,
+   "f": 67.52,
+   "w": "noviembre"
+  },
+  {
+   "t": 67.52,
+   "f": 68.02,
+   "w": "pintas"
+  },
+  {
+   "t": 68.02,
+   "f": 68.12,
+   "w": "de"
+  },
+  {
+   "t": 68.12,
+   "f": 68.52,
+   "w": "naranja"
+  },
+  {
+   "t": 68.52,
+   "f": 68.7,
+   "w": "el"
+  },
+  {
+   "t": 68.7,
+   "f": 68.9,
+   "w": "camino"
+  },
+  {
+   "t": 68.9,
+   "f": 69.12,
+   "w": "de"
+  },
+  {
+   "t": 69.12,
+   "f": 69.24,
+   "w": "tu"
+  },
+  {
+   "t": 69.24,
+   "f": 69.56,
+   "w": "puerta"
+  },
+  {
+   "t": 69.56,
+   "f": 69.82,
+   "w": "a"
+  },
+  {
+   "t": 69.82,
+   "f": 69.9,
+   "w": "la"
+  },
+  {
+   "t": 69.9,
+   "f": 70.4,
+   "w": "ofrenda."
+  },
+  {
+   "t": 71.22,
+   "f": 71.72,
+   "w": "Mándaselo"
+  },
+  {
+   "t": 71.72,
+   "f": 71.92,
+   "w": "a"
+  },
+  {
+   "t": 71.92,
+   "f": 72.04,
+   "w": "quien"
+  },
+  {
+   "t": 72.04,
+   "f": 72.34,
+   "w": "cada"
+  },
+  {
+   "t": 72.34,
+   "f": 72.62,
+   "w": "año"
+  },
+  {
+   "t": 72.62,
+   "f": 72.88,
+   "w": "hace"
+  },
+  {
+   "t": 72.88,
+   "f": 73.02,
+   "w": "el"
+  },
+  {
+   "t": 73.02,
+   "f": 73.46,
+   "w": "caminito"
+  },
+  {
+   "t": 73.46,
+   "f": 73.54,
+   "w": "de"
+  },
+  {
+   "t": 73.54,
+   "f": 74.02,
+   "w": "pétalos."
+  }
+ ],
+ "audio": null
+}
