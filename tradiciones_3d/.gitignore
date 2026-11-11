@@ -7,3 +7,5 @@ public/*
 
 # Zips de Kenney que baja scripts/biblioteca.py
 .cache/
+# Piloto de escenas: copias de la narración y de la evidencia (las arma scripts/piloto_escenas.py)
+public/piloto/

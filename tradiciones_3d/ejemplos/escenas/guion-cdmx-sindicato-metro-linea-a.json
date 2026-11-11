@@ -1,0 +1,1986 @@
+{
+ "ambiente": "anden",
+ "escenas": {
+  "p00": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1A1C20",
+     "posicion": [
+      0,
+      -0.62,
+      0
+     ]
+    },
+    {
+     "objeto": "Anden",
+     "largo": 16,
+     "fondo": 3,
+     "alto": 0.6
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#BFC5CC",
+     "tamano": [
+      16,
+      3.2,
+      0.2
+     ],
+     "posicion": [
+      0,
+      1.5,
+      -1.65
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#2E7D4F",
+     "tamano": [
+      16,
+      0.12,
+      0.02
+     ],
+     "posicion": [
+      0,
+      0.9,
+      -1.54
+     ]
+    },
+    {
+     "objeto": "Vias",
+     "largo": 30,
+     "escala": 1.6,
+     "posicion": [
+      0,
+      -0.6,
+      2.3
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      -6,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      -3,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      0,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      3,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      6,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Multitud",
+     "n": 18,
+     "ancho": 5,
+     "fondo": 2,
+     "semilla": "p00"
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 1.5,
+     "posicion": {
+      "de": [
+       -12,
+       -0.6,
+       2.3
+      ],
+      "a": [
+       -0.5,
+       -0.6,
+       2.3
+      ],
+      "desde": 0,
+      "hasta": 0.7
+     },
+     "apagado": 0
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      1.2,
+      2.2,
+      9.0
+     ],
+     "mira": [
+      0,
+      0.5,
+      0
+     ]
+    },
+    "hasta": {
+     "pos": [
+      0.6,
+      1.9,
+      8.0
+     ],
+     "mira": [
+      0,
+      0.5,
+      0
+     ]
+    }
+   },
+   "etiquetas": [
+    {
+     "titulo": "11 trenes",
+     "subtitulo": "para 226 mil pasajeros al día",
+     "desde": 0.05,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "sindicato"
+   ]
+  },
+  "p01": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1A1C20",
+     "posicion": [
+      0,
+      -0.62,
+      0
+     ]
+    },
+    {
+     "objeto": "Anden",
+     "largo": 16,
+     "fondo": 3,
+     "alto": 0.6
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#BFC5CC",
+     "tamano": [
+      16,
+      3.2,
+      0.2
+     ],
+     "posicion": [
+      0,
+      1.5,
+      -1.65
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#2E7D4F",
+     "tamano": [
+      16,
+      0.12,
+      0.02
+     ],
+     "posicion": [
+      0,
+      0.9,
+      -1.54
+     ]
+    },
+    {
+     "objeto": "Vias",
+     "largo": 30,
+     "escala": 1.6,
+     "posicion": [
+      0,
+      -0.6,
+      2.3
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      -6,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      -3,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      0,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      3,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      6,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-female-b",
+     "animacion": "idle",
+     "giro": 0.5,
+     "posicion": [
+      0.2,
+      0,
+      1.0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 1.5,
+     "posicion": {
+      "de": [
+       0.5,
+       -0.6,
+       2.3
+      ],
+      "a": [
+       14,
+       -0.6,
+       2.3
+      ],
+      "desde": 0.45,
+      "hasta": 0.9
+     },
+     "apagado": 0
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      -3.8,
+      1.4,
+      0.2
+     ],
+     "mira": [
+      0.6,
+      0.4,
+      1.2
+     ]
+    },
+    "hasta": {
+     "pos": [
+      -3.0,
+      1.2,
+      0.4
+     ],
+     "mira": [
+      0.6,
+      0.45,
+      1.2
+     ]
+    }
+   },
+   "etiquetas": [
+    {
+     "titulo": "Línea A",
+     "subtitulo": "Iztapalapa, Ciudad de México",
+     "desde": 0.04,
+     "hasta": 0.5
+    },
+    {
+     "titulo": "¿Ya te dejó tirado?",
+     "desde": 0.6,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "tirado"
+   ]
+  },
+  "p02": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1A1C20",
+     "posicion": [
+      0,
+      -0.62,
+      0
+     ]
+    },
+    {
+     "objeto": "Anden",
+     "largo": 16,
+     "fondo": 3,
+     "alto": 0.6
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#BFC5CC",
+     "tamano": [
+      16,
+      3.2,
+      0.2
+     ],
+     "posicion": [
+      0,
+      1.5,
+      -1.65
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#2E7D4F",
+     "tamano": [
+      16,
+      0.12,
+      0.02
+     ],
+     "posicion": [
+      0,
+      0.9,
+      -1.54
+     ]
+    },
+    {
+     "objeto": "Vias",
+     "largo": 30,
+     "escala": 1.6,
+     "posicion": [
+      0,
+      -0.6,
+      2.3
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      -6,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      -3,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      0,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      3,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      6,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 1.5,
+     "posicion": {
+      "de": [
+       -6,
+       -0.6,
+       2.3
+      ],
+      "a": [
+       3,
+       -0.6,
+       2.3
+      ],
+      "desde": 0,
+      "hasta": 1
+     },
+     "apagado": 0
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      2.0,
+      -0.1,
+      5.6
+     ],
+     "mira": [
+      0,
+      -0.3,
+      2.3
+     ]
+    },
+    "hasta": {
+     "pos": [
+      1.5,
+      -0.2,
+      5.1
+     ],
+     "mira": [
+      0,
+      -0.25,
+      2.3
+     ]
+    }
+   },
+   "etiquetas": [
+    {
+     "titulo": "1991",
+     "subtitulo": "de Pantitlán a La Paz",
+     "desde": 0.04,
+     "hasta": 0.5
+    },
+    {
+     "titulo": "Rueda sobre acero",
+     "subtitulo": "la única línea así",
+     "desde": 0.55,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "acero"
+   ]
+  },
+  "p03": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#2B2E33"
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      -2.2,
+      0,
+      0.0
+     ],
+     "apagado": 0,
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      -1.1,
+      0,
+      0.0
+     ],
+     "apagado": 0,
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      0.0,
+      0,
+      0.0
+     ],
+     "apagado": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.36,
+      "hasta": 0.45
+     },
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-cone",
+     "alto": 0.2,
+     "posicion": [
+      0.35,
+      0,
+      1.4
+     ],
+     "escala": {
+      "de": 0.001,
+      "a": 1,
+      "desde": 0.42,
+      "hasta": 0.5
+     }
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      1.1,
+      0,
+      0.0
+     ],
+     "apagado": 0,
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      2.2,
+      0,
+      0.0
+     ],
+     "apagado": 0,
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      -2.2,
+      0,
+      -3.0
+     ],
+     "apagado": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.32999999999999996,
+      "hasta": 0.45
+     },
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-cone",
+     "alto": 0.2,
+     "posicion": [
+      -1.85,
+      0,
+      -1.6
+     ],
+     "escala": {
+      "de": 0.001,
+      "a": 1,
+      "desde": 0.42,
+      "hasta": 0.5
+     }
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      -1.1,
+      0,
+      -3.0
+     ],
+     "apagado": 0,
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      0.0,
+      0,
+      -3.0
+     ],
+     "apagado": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.39,
+      "hasta": 0.45
+     },
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-cone",
+     "alto": 0.2,
+     "posicion": [
+      0.35,
+      0,
+      -1.6
+     ],
+     "escala": {
+      "de": 0.001,
+      "a": 1,
+      "desde": 0.42,
+      "hasta": 0.5
+     }
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      1.1,
+      0,
+      -3.0
+     ],
+     "apagado": 0,
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      2.2,
+      0,
+      -3.0
+     ],
+     "apagado": 0,
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      -2.2,
+      0,
+      -6.0
+     ],
+     "apagado": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.36,
+      "hasta": 0.45
+     },
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-cone",
+     "alto": 0.2,
+     "posicion": [
+      -1.85,
+      0,
+      -4.6
+     ],
+     "escala": {
+      "de": 0.001,
+      "a": 1,
+      "desde": 0.42,
+      "hasta": 0.5
+     }
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      -1.1,
+      0,
+      -6.0
+     ],
+     "apagado": 0,
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      0.0,
+      0,
+      -6.0
+     ],
+     "apagado": 0,
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      1.1,
+      0,
+      -6.0
+     ],
+     "apagado": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.32999999999999996,
+      "hasta": 0.45
+     },
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-cone",
+     "alto": 0.2,
+     "posicion": [
+      1.4500000000000002,
+      0,
+      -4.6
+     ],
+     "escala": {
+      "de": 0.001,
+      "a": 1,
+      "desde": 0.42,
+      "hasta": 0.5
+     }
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      2.2,
+      0,
+      -6.0
+     ],
+     "apagado": 0,
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      -2.2,
+      0,
+      -9.0
+     ],
+     "apagado": 0,
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 0.6,
+     "posicion": [
+      -1.1,
+      0,
+      -9.0
+     ],
+     "apagado": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.3,
+      "hasta": 0.45
+     },
+     "rotacion": [
+      0,
+      1.5707963267948966,
+      0
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-cone",
+     "alto": 0.2,
+     "posicion": [
+      -0.7500000000000001,
+      0,
+      -7.6
+     ],
+     "escala": {
+      "de": 0.001,
+      "a": 1,
+      "desde": 0.42,
+      "hasta": 0.5
+     }
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-worker",
+     "animacion": "idle",
+     "posicion": [
+      -0.6,
+      0,
+      2.6
+     ]
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-worker",
+     "animacion": "interact-right",
+     "giro": -0.4,
+     "posicion": [
+      0.7,
+      0,
+      2.3
+     ]
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      0,
+      6.5,
+      7.5
+     ],
+     "mira": [
+      0,
+      0,
+      -3.5
+     ]
+    },
+    "hasta": {
+     "pos": [
+      0,
+      8.0,
+      6.5
+     ],
+     "mira": [
+      0,
+      0,
+      -4.5
+     ]
+    }
+   },
+   "etiquetas": [
+    {
+     "titulo": "11 de 17",
+     "subtitulo": "trenes andando, dicen los trabajadores",
+     "desde": 0.35,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "once",
+    "diecisiete"
+   ]
+  },
+  "p04": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1C1F26"
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/building-skyscraper-a",
+     "alto": 5.0,
+     "posicion": [
+      0,
+      0,
+      -4
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/low-detail-building-b",
+     "alto": 4.0,
+     "posicion": [
+      -2.8,
+      0,
+      -5.5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/low-detail-building-e",
+     "alto": 3.4,
+     "posicion": [
+      2.8,
+      0,
+      -5.5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/light-square",
+     "alto": 1.9,
+     "posicion": [
+      -1.1,
+      0,
+      -1
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/light-square",
+     "alto": 1.9,
+     "posicion": [
+      1.1,
+      0,
+      -1
+     ]
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-worker",
+     "animacion": "walk",
+     "giro": 3.141592653589793,
+     "posicion": {
+      "de": [
+       0,
+       0,
+       2.8
+      ],
+      "a": [
+       0,
+       0,
+       -1.4
+      ],
+      "desde": 0,
+      "hasta": 0.95
+     }
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      0,
+      1.3,
+      6.2
+     ],
+     "mira": [
+      0,
+      1.5,
+      -2
+     ]
+    },
+    "hasta": {
+     "pos": [
+      0,
+      1.6,
+      5.2
+     ],
+     "mira": [
+      0,
+      2.0,
+      -3
+     ]
+    }
+   },
+   "evidencia": {
+    "e": "e2",
+    "desde": 0.42,
+    "hasta": 0.96
+   },
+   "etiquetas": [
+    {
+     "titulo": "4 de noviembre",
+     "subtitulo": "oficio a la Jefatura de Gobierno",
+     "desde": 0.04,
+     "hasta": 0.4
+    }
+   ],
+   "claves": [
+    "oficio",
+    "Brugada"
+   ]
+  },
+  "p05": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1A1C20",
+     "posicion": [
+      0,
+      -0.62,
+      0
+     ]
+    },
+    {
+     "objeto": "Anden",
+     "largo": 16,
+     "fondo": 3,
+     "alto": 0.6
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#BFC5CC",
+     "tamano": [
+      16,
+      3.2,
+      0.2
+     ],
+     "posicion": [
+      0,
+      1.5,
+      -1.65
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#2E7D4F",
+     "tamano": [
+      16,
+      0.12,
+      0.02
+     ],
+     "posicion": [
+      0,
+      0.9,
+      -1.54
+     ]
+    },
+    {
+     "objeto": "Vias",
+     "largo": 30,
+     "escala": 1.6,
+     "posicion": [
+      0,
+      -0.6,
+      2.3
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      -6,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      -3,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      0,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      3,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      6,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 1.5,
+     "posicion": [
+      0.5,
+      -0.6,
+      2.3
+     ],
+     "apagado": 0.75
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-barrier",
+     "alto": 0.42,
+     "giro": 1.5707963267948966,
+     "posicion": [
+      0.4,
+      0,
+      0.9
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-cone",
+     "alto": 0.22,
+     "posicion": [
+      0.4,
+      0,
+      1.3
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-cone",
+     "alto": 0.22,
+     "posicion": [
+      0.4,
+      0,
+      0.3
+     ]
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-worker",
+     "animacion": "emote-no",
+     "giro": -1.2,
+     "posicion": [
+      1.3,
+      0,
+      0.6
+     ]
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      -3.6,
+      1.5,
+      0.3
+     ],
+     "mira": [
+      0.5,
+      0.3,
+      1.2
+     ]
+    },
+    "hasta": {
+     "pos": [
+      -2.8,
+      1.3,
+      0.5
+     ],
+     "mira": [
+      0.5,
+      0.3,
+      1.2
+     ]
+    }
+   },
+   "etiquetas": [
+    {
+     "titulo": "Podría suspender",
+     "subtitulo": "el servicio donde no haya seguridad",
+     "desde": 0.04,
+     "hasta": 0.5
+    },
+    {
+     "titulo": "Fernando Espino",
+     "subtitulo": "dirigente del sindicato",
+     "desde": 0.56,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "suspender"
+   ]
+  },
+  "p06": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1A1C20"
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#7A8696",
+     "tamano": [
+      0.9,
+      0.41,
+      0.9
+     ],
+     "posicion": [
+      -0.7,
+      0.205,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#F26B1D",
+     "brillo": 0.15,
+     "tamano": {
+      "de": [
+       0.9,
+       0.05,
+       0.9
+      ],
+      "a": [
+       0.9,
+       2.8,
+       0.9
+      ],
+      "desde": 0.42,
+      "hasta": 0.7
+     },
+     "posicion": {
+      "de": [
+       0.7,
+       0.025,
+       0
+      ],
+      "a": [
+       0.7,
+       1.4,
+       0
+      ],
+      "desde": 0.42,
+      "hasta": 0.7
+     }
+    },
+    {
+     "objeto": "Multitud",
+     "n": 2,
+     "ancho": 0.6,
+     "fondo": 0.5,
+     "alto": 0.5,
+     "semilla": "p06a",
+     "posicion": [
+      -0.7,
+      0.41,
+      0
+     ]
+    },
+    {
+     "objeto": "Multitud",
+     "n": 9,
+     "ancho": 0.75,
+     "fondo": 0.6,
+     "alto": 0.5,
+     "semilla": "p06b",
+     "posicion": {
+      "de": [
+       0.7,
+       0.05,
+       0
+      ],
+      "a": [
+       0.7,
+       2.8,
+       0
+      ],
+      "desde": 0.42,
+      "hasta": 0.7
+     },
+     "aparece": {
+      "de": 0.2,
+      "a": 1,
+      "desde": 0.42,
+      "hasta": 0.75
+     }
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      0,
+      1.6,
+      10.4
+     ],
+     "mira": [
+      0,
+      1.0,
+      0
+     ]
+    },
+    "hasta": {
+     "pos": [
+      0,
+      1.7,
+      9.8
+     ],
+     "mira": [
+      0,
+      1.05,
+      0
+     ]
+    }
+   },
+   "etiquetas": [
+    {
+     "titulo": "13 millones",
+     "subtitulo": "en su primer año",
+     "desde": 0.04,
+     "hasta": 0.4
+    },
+    {
+     "titulo": "88 millones",
+     "subtitulo": "en 2022 · El Universal",
+     "desde": 0.45,
+     "hasta": 0.8
+    },
+    {
+     "titulo": "Y menos trenes",
+     "desde": 0.82,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "ochenta",
+    "millones"
+   ]
+  },
+  "p07": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1A1C20",
+     "posicion": [
+      0,
+      -0.62,
+      0
+     ]
+    },
+    {
+     "objeto": "Anden",
+     "largo": 16,
+     "fondo": 3,
+     "alto": 0.6
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#BFC5CC",
+     "tamano": [
+      16,
+      3.2,
+      0.2
+     ],
+     "posicion": [
+      0,
+      1.5,
+      -1.65
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#2E7D4F",
+     "tamano": [
+      16,
+      0.12,
+      0.02
+     ],
+     "posicion": [
+      0,
+      0.9,
+      -1.54
+     ]
+    },
+    {
+     "objeto": "Vias",
+     "largo": 30,
+     "escala": 1.6,
+     "posicion": [
+      0,
+      -0.6,
+      2.3
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      -6,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      -3,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      0,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      3,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      6,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Multitud",
+     "n": 34,
+     "ancho": 8,
+     "fondo": 2.4,
+     "semilla": "p07"
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      0,
+      1.2,
+      6.8
+     ],
+     "mira": [
+      0,
+      0.6,
+      0
+     ]
+    },
+    "hasta": {
+     "pos": [
+      0,
+      5.5,
+      6.5
+     ],
+     "mira": [
+      0,
+      0,
+      -0.5
+     ]
+    },
+    "entre": [
+     0,
+     0.6
+    ]
+   },
+   "evidencia": {
+    "e": "e1",
+    "desde": 0.5,
+    "hasta": 0.97
+   },
+   "etiquetas": [
+    {
+     "titulo": "226 mil",
+     "subtitulo": "personas cada día",
+     "desde": 0.04,
+     "hasta": 0.46
+    }
+   ],
+   "claves": [
+    "firma"
+   ]
+  },
+  "p08": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1A1C20",
+     "posicion": [
+      0,
+      -0.62,
+      0
+     ]
+    },
+    {
+     "objeto": "Anden",
+     "largo": 16,
+     "fondo": 3,
+     "alto": 0.6
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#BFC5CC",
+     "tamano": [
+      16,
+      3.2,
+      0.2
+     ],
+     "posicion": [
+      0,
+      1.5,
+      -1.65
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#2E7D4F",
+     "tamano": [
+      16,
+      0.12,
+      0.02
+     ],
+     "posicion": [
+      0,
+      0.9,
+      -1.54
+     ]
+    },
+    {
+     "objeto": "Vias",
+     "largo": 30,
+     "escala": 1.6,
+     "posicion": [
+      0,
+      -0.6,
+      2.3
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      -6,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      -3,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      0,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      3,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Forma",
+     "forma": "caja",
+     "color": "#FFFFFF",
+     "brillo": 1,
+     "tamano": [
+      1.8,
+      0.05,
+      0.18
+     ],
+     "posicion": [
+      6,
+      2.7,
+      0
+     ]
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-male-c",
+     "animacion": "idle",
+     "giro": 0.5,
+     "posicion": [
+      0.2,
+      0,
+      1.0
+     ]
+    },
+    {
+     "objeto": "Vagon",
+     "largo": 4,
+     "escala": 1.5,
+     "posicion": {
+      "de": [
+       0.5,
+       -0.6,
+       2.3
+      ],
+      "a": [
+       14,
+       -0.6,
+       2.3
+      ],
+      "desde": 0,
+      "hasta": 0.6
+     },
+     "apagado": 0
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      -3.0,
+      1.2,
+      0.4
+     ],
+     "mira": [
+      0.6,
+      0.45,
+      1.2
+     ]
+    },
+    "hasta": {
+     "pos": [
+      -4.2,
+      1.7,
+      0.1
+     ],
+     "mira": [
+      0.6,
+      0.4,
+      1.2
+     ]
+    }
+   },
+   "etiquetas": [
+    {
+     "titulo": "¿En qué línea?",
+     "subtitulo": "te dejaron tirado",
+     "desde": 0.1,
+     "hasta": 1
+    }
+   ]
+  }
+ }
+}

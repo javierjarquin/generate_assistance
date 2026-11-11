@@ -72,6 +72,48 @@ ELEGIDOS = {
 }
 
 
+# Piloto de escenas 3D para casos y cercanía (11/11/2026): ciudad, autos, muebles y
+# personajes con animación. Van en su propio índice (indice_escenas.json) para no
+# agrandar el catálogo que ve el bot de tradiciones. paquete -> (carpeta, modelos).
+ESCENAS = {
+    "city-kit-commercial": ("ciudad", {
+        "building-a": "edificio de 4 pisos", "building-c": "edificio con local", "building-e": "edificio de oficinas",
+        "building-g": "edificio de departamentos", "building-skyscraper-a": "torre de gobierno",
+        "building-skyscraper-c": "torre alta", "low-detail-building-b": "edificio de fondo",
+        "low-detail-building-e": "edificio de fondo", "low-detail-building-wide-a": "cuadra de fondo",
+        "detail-awning": "toldo",
+    }),
+    "city-kit-suburban": ("colonia", {
+        "building-type-a": "casa", "building-type-c": "casa de dos pisos", "building-type-f": "casa con cochera",
+        "fence": "barda", "tree-large": "árbol grande", "tree-small": "árbol chico", "planter": "jardinera",
+    }),
+    "city-kit-roads": ("calles", {
+        "road-straight": "tramo de calle", "road-crossroad": "cruce de calles", "road-end": "fin de calle",
+        "construction-barrier": "barrera", "construction-cone": "cono", "construction-light": "luz de obra",
+        "light-square": "poste de luz", "traffic-light": "semáforo", "dumpster": "contenedor de basura",
+        "road-sign-warning": "señal de alerta", "sign-highway": "letrero de carretera",
+    }),
+    "car-kit": ("autos", {
+        "police": "patrulla", "sedan": "auto", "taxi": "taxi", "van": "camioneta", "suv": "camioneta suv",
+        "ambulance": "ambulancia", "delivery": "camión de reparto", "truck": "camión",
+    }),
+    "furniture-kit": ("muebles", {
+        "desk": "escritorio", "chair": "silla", "chairDesk": "silla de oficina", "computerScreen": "monitor",
+        "table": "mesa", "loungeSofa": "sillón", "televisionVintage": "televisión vieja",
+        "televisionModern": "televisión", "books": "libros", "bookcaseClosed": "archivero",
+        "cardboardBoxOpen": "caja abierta", "cardboardBoxClosed": "caja cerrada", "lampRoundTable": "lámpara",
+        "doorway": "puerta", "wall": "pared", "wallWindow": "pared con ventana", "bedSingle": "cama",
+        "rugRectangle": "tapete", "radio": "radio", "trashcan": "bote de basura", "pottedPlant": "maceta",
+    }),
+    "mini-characters": ("personajes", {
+        **{f"character-male-{x}": "hombre" for x in "abcdefg"},
+        **{f"character-female-{x}": "mujer" for x in "abcdef"},
+        "character-worker": "trabajador", "character-soldier": "policía o soldado",
+        "item-luggage": "maleta", "item-luggage-upright": "maleta de pie",
+    }),
+}
+
+
 def _bajar(paquete: str) -> Path:
     """El zip del paquete, desde la caché o de Kenney (la liga firmada de su botón Download)."""
     zip_ = CACHE / f"kenney_{paquete}.zip"
@@ -109,6 +151,26 @@ def main() -> int:
         "Modelos de Kenney (https://kenney.nl), licencia Creative Commons CC0 1.0:\n"
         "https://creativecommons.org/publicdomain/zero/1.0/\n", encoding="utf-8")
     print(f"{len(indice)} modelos en {MODELOS}")
+
+    escenas = {}
+    for paquete, (corto, modelos) in ESCENAS.items():
+        destino = MODELOS / corto
+        destino.mkdir(parents=True, exist_ok=True)
+        z = zipfile.ZipFile(_bajar(paquete))
+        glb = {n.rsplit("/", 1)[-1][:-4]: n for n in z.namelist() if n.lower().endswith(".glb")}
+        # Los muebles no traen textura: el color va en el material.
+        textura = next((n for n in z.namelist() if n.lower().endswith("textures/colormap.png") and "glb" in n.lower()), None)
+        if textura:
+            (destino / "Textures").mkdir(exist_ok=True)
+            (destino / "Textures" / "colormap.png").write_bytes(z.read(textura))
+        for nombre, que in modelos.items():
+            if nombre not in glb:
+                print(f"no está en {paquete}: {nombre}")
+                continue
+            (destino / f"{nombre}.glb").write_bytes(z.read(glb[nombre]))
+            escenas[f"{corto}/{nombre}"] = que
+    (MODELOS / "indice_escenas.json").write_text(json.dumps(escenas, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"{len(escenas)} modelos de escenas (piloto)")
     return 0
 
 

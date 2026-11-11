@@ -422,7 +422,8 @@ function cargar(modelo: string): Promise<THREE.Object3D> {
 
 /** Un modelo de la biblioteca, escalado para medir `alto`, centrado y apoyado en
  *  y = 0. brillo: se ilumina con sus propios colores. */
-export function Modelo({ modelo, alto = 1, brillo = 0, giro = 0 }: { modelo: string; alto?: number; brillo?: number; giro?: number }) {
+/** ancho (piloto de escenas): escala por el lado más largo en planta, para piezas planas (una calle, un tapete). */
+export function Modelo({ modelo, alto = 1, ancho, brillo = 0, giro = 0 }: { modelo: string; alto?: number; ancho?: number; brillo?: number; giro?: number }) {
   const [escena, setEscena] = useState<THREE.Object3D | null>(null);
   const [espera] = useState(() => delayRender(`modelo ${modelo}`));
   const advance = useThree((s) => s.advance);
@@ -436,7 +437,7 @@ export function Modelo({ modelo, alto = 1, brillo = 0, giro = 0 }: { modelo: str
       const caja = new THREE.Box3().setFromObject(copia);
       const tam = caja.getSize(new THREE.Vector3());
       const centro = caja.getCenter(new THREE.Vector3());
-      const s = alto / Math.max(tam.y, 1e-3);
+      const s = ancho ? ancho / Math.max(tam.x, tam.z, 1e-3) : alto / Math.max(tam.y, 1e-3);
       copia.scale.setScalar(s);
       copia.position.set(-centro.x * s, -caja.min.y * s, -centro.z * s);
       setEscena(copia);
@@ -444,7 +445,7 @@ export function Modelo({ modelo, alto = 1, brillo = 0, giro = 0 }: { modelo: str
       console.error(`modelo ${modelo}:`, e);
       continueRender(espera);
     });
-  }, [modelo, alto, espera]);
+  }, [modelo, alto, ancho, espera]);
   useEffect(() => {
     if (!escena) return;
     // ThreeCanvas no redibuja solo: sin advance, el cuadro sale sin el modelo.

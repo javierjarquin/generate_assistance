@@ -2,7 +2,8 @@ import { Audio } from "@remotion/media";
 import { ThreeCanvas } from "@remotion/three";
 import type { ComponentType } from "react";
 import { useMemo } from "react";
-import { AbsoluteFill, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import * as E from "./Escenas";
 import * as O from "./Objetos";
 import { clamp01, lerp, suave } from "./Objetos";
 
@@ -16,13 +17,28 @@ export type Visual = { objeto: string; posicion?: unknown; escala?: unknown; rot
 type Toma = { pos: number[]; mira: number[] };
 export type CamaraLibre = Toma | { desde: Toma; hasta: Toma; entre?: [number, number] };
 export type Etiqueta = { titulo: string; subtitulo?: string; desde: number; hasta: number };
-export type Escena = { id: string; texto: string; visual: Visual[]; camara?: string | CamaraLibre; etiquetas?: Etiqueta[]; claves?: string[] };
+/** Evidencia real dentro de una escena (piloto 11/11/2026): la captura con su crédito, como sello. */
+export type Evidencia = { img: string; credito: string; desde?: number; hasta?: number };
+export type Escena = { id: string; texto: string; visual: Visual[]; camara?: string | CamaraLibre; etiquetas?: Etiqueta[]; claves?: string[];
+  evidencia?: Evidencia; ambiente?: string };
 export type Palabra = { t: number; f: number; w: string };
 export type TradicionProps = {
   escenas: Escena[];
   tiempos: { duracion: number; escenas: { id: string; ini: number; fin: number }[] };
   palabras: Palabra[];
   audio: string | null;
+  /** Piloto de escenas: luz por defecto y marca "Recreación" en cada plano reconstruido. */
+  ambiente?: string;
+  recreacion?: boolean;
+};
+
+// La luz de cada mundo. "calido" es la de tradiciones (la de siempre).
+type Ambiente = { fondo: string; niebla: [number, number]; amb: [number, string]; sol: [number, string]; relleno: [number, string] };
+const AMBIENTES: Record<string, Ambiente> = {
+  calido: { fondo: "#0B0705", niebla: [7, 16], amb: [0.55, "#FFE6C7"], sol: [2.4, "#FFE2B0"], relleno: [0.6, "#FF8A3D"] },
+  noche: { fondo: "#060A14", niebla: [9, 26], amb: [0.75, "#9FB6E8"], sol: [1.5, "#C9D8FF"], relleno: [0.9, "#FFB15C"] },
+  anden: { fondo: "#0D1015", niebla: [10, 28], amb: [1.0, "#E8F0FF"], sol: [2.0, "#FFFFFF"], relleno: [0.5, "#9EC5FF"] },
+  oficina: { fondo: "#120F0C", niebla: [8, 20], amb: [0.7, "#FFE9CC"], sol: [2.2, "#FFF1D6"], relleno: [0.5, "#7FA8FF"] },
 };
 
 // Lo que cada objeto recibe además de sus props: el tiempo de la escena.
@@ -32,6 +48,9 @@ const OBJETOS: Record<string, { c: ComponentType<any>; t?: boolean }> = {
   Campo: { c: O.Campo }, Huevo: { c: O.Huevo, t: true }, Raices: { c: O.Raices, t: true }, Camino: { c: O.Camino },
   Ofrenda: { c: O.Ofrenda, t: true }, Velas: { c: O.Velas, t: true }, PapelPicado: { c: O.PapelPicado, t: true }, Piso: { c: O.Piso },
   Modelo: { c: O.Modelo },
+  // Piloto de escenas (11/11/2026)
+  Personaje: { c: E.Personaje, t: true }, Multitud: { c: E.Multitud, t: true }, Vagon: { c: E.Vagon }, Vias: { c: E.Vias },
+  Anden: { c: E.Anden }, Suelo: { c: E.Suelo }, Luz: { c: E.Luz, t: true },
 };
 const DEL_GRUPO = new Set(["objeto", "posicion", "escala", "rotacion", "gira"]);
 
@@ -120,6 +139,36 @@ function Letrero({ etiquetas, p }: { etiquetas?: Etiqueta[]; p: number }) {
   );
 }
 
+/** La captura real (nota, documento) como sello con su crédito: la evidencia no se reconstruye. */
+function Sello({ ev, p }: { ev?: Evidencia; p: number }) {
+  if (!ev) return null;
+  const desde = ev.desde ?? 0.35;
+  const hasta = ev.hasta ?? 0.95;
+  if (p < desde || p >= hasta) return null;
+  const op = Math.min(suave((p - desde) / 0.06), suave((hasta - p) / 0.05));
+  return (
+    <div style={{ position: "absolute", left: 90, right: 90, top: 640, display: "flex", flexDirection: "column", alignItems: "center",
+      opacity: op, transform: `translateY(${(1 - op) * 40}px) rotate(${-2 + op * 1}deg)` }}>
+      <div style={{ background: "#FFFFFF", padding: 10, borderRadius: 10, boxShadow: "0 18px 50px rgba(0,0,0,.65)", maxWidth: 800 }}>
+        <Img src={staticFile(ev.img)} style={{ display: "block", maxWidth: 780, maxHeight: 640, objectFit: "contain" }} />
+      </div>
+      <div style={{ marginTop: 12, fontFamily: "Arial, sans-serif", fontWeight: 700, fontSize: 30, color: "#FFD60A",
+        textShadow: "0 2px 10px rgba(0,0,0,.9)", background: "rgba(5,8,15,.7)", padding: "6px 16px", borderRadius: 10 }}>
+        FUENTE: {ev.credito.toUpperCase()}
+      </div>
+    </div>
+  );
+}
+
+/** Marca de las escenas reconstruidas, para que nadie las tome por evidencia. */
+function Recreacion() {
+  return (
+    <div style={{ position: "absolute", top: 200, left: 64, fontFamily: "Arial, sans-serif", fontWeight: 800, fontSize: 28,
+      letterSpacing: 4, color: "rgba(255,255,255,.85)", background: "rgba(5,8,15,.55)", border: "2px solid rgba(255,255,255,.35)",
+      borderRadius: 8, padding: "6px 14px" }}>RECREACIÓN</div>
+  );
+}
+
 const limpia = (w: string) => w.toLowerCase().replace(/[¿?¡!.,:;«»"]/g, "");
 
 /** Frases de hasta 3 palabras, cortando en la puntuación y en las pausas. */
@@ -158,7 +207,7 @@ function Subtitulos({ t, lista, claves }: { t: number; lista: Palabra[][]; clave
   );
 }
 
-export function Tradicion({ escenas, tiempos, palabras, audio }: TradicionProps) {
+export function Tradicion({ escenas, tiempos, palabras, audio, ambiente, recreacion }: TradicionProps) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const t = frame / fps;
@@ -170,16 +219,19 @@ export function Tradicion({ escenas, tiempos, palabras, audio }: TradicionProps)
   const fin = marcas[i + 1]?.ini ?? tiempos.duracion + 1;
   const p = clamp01((t - marcas[i].ini) / (fin - marcas[i].ini));
   const e = escenas.find((x) => x.id === marcas[i].id) ?? escenas[i];
+  const a = AMBIENTES[e.ambiente ?? ambiente ?? "calido"] ?? AMBIENTES.calido;
   return (
-    <AbsoluteFill style={{ backgroundColor: "#0B0705" }}>
-      <ThreeCanvas width={width} height={height} camera={{ fov: 40, near: 0.1, far: 60 }}>
-        <color attach="background" args={["#0B0705"]} />
-        <fog attach="fog" args={["#0B0705", 7, 16]} />
-        <ambientLight intensity={0.55} color="#FFE6C7" />
-        <directionalLight position={[2.5, 5, 4]} intensity={2.4} color="#FFE2B0" />
-        <directionalLight position={[-3, 1, -2]} intensity={0.6} color="#FF8A3D" />
+    <AbsoluteFill style={{ backgroundColor: a.fondo }}>
+      <ThreeCanvas width={width} height={height} camera={{ fov: 40, near: 0.1, far: 80 }}>
+        <color attach="background" args={[a.fondo]} />
+        <fog attach="fog" args={[a.fondo, a.niebla[0], a.niebla[1]]} />
+        <ambientLight intensity={a.amb[0]} color={a.amb[1]} />
+        <directionalLight position={[2.5, 5, 4]} intensity={a.sol[0]} color={a.sol[1]} />
+        <directionalLight position={[-3, 1, -2]} intensity={a.relleno[0]} color={a.relleno[1]} />
         <Mundo e={e} p={p} t={t - marcas[i].ini} />
       </ThreeCanvas>
+      {recreacion && <Recreacion />}
+      <Sello ev={e.evidencia} p={p} />
       <Letrero etiquetas={e.etiquetas} p={p} />
       <Subtitulos t={t} lista={lista} claves={claves} />
       {audio && <Audio src={staticFile(audio)} />}

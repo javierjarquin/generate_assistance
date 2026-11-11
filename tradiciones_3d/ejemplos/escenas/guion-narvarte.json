@@ -1,0 +1,1120 @@
+{
+ "ambiente": "noche",
+ "escenas": {
+  "p00": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1C1F26"
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/building-g",
+     "alto": 3.4,
+     "posicion": [
+      0,
+      0,
+      -2.2
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/low-detail-building-b",
+     "alto": 4.2,
+     "posicion": [
+      -2.6,
+      0,
+      -5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/low-detail-building-e",
+     "alto": 3.6,
+     "posicion": [
+      2.6,
+      0,
+      -5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "autos/police",
+     "alto": 0.7,
+     "giro": 0.5,
+     "posicion": [
+      -0.65,
+      0,
+      0.9
+     ]
+    },
+    {
+     "objeto": "Luz",
+     "color": "#FF2B2B",
+     "fuerza": 4,
+     "distancia": 5,
+     "parpadeo": 2,
+     "posicion": [
+      -0.8,
+      0.8,
+      1.1
+     ]
+    },
+    {
+     "objeto": "Luz",
+     "color": "#2B6BFF",
+     "fuerza": 4,
+     "distancia": 5,
+     "parpadeo": 2.6,
+     "posicion": [
+      -0.45,
+      0.8,
+      1.1
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/light-square",
+     "alto": 1.9,
+     "posicion": [
+      1.0,
+      0,
+      0.5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-cone",
+     "alto": 0.22,
+     "posicion": [
+      0.35,
+      0,
+      1.5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-cone",
+     "alto": 0.22,
+     "posicion": [
+      0.75,
+      0,
+      1.3
+     ]
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      0,
+      1.6,
+      9.2
+     ],
+     "mira": [
+      0,
+      1.3,
+      -1
+     ]
+    },
+    "hasta": {
+     "pos": [
+      0,
+      1.25,
+      7.4
+     ],
+     "mira": [
+      0,
+      1.2,
+      -1
+     ]
+    }
+   },
+   "etiquetas": [
+    {
+     "titulo": "Colonia Narvarte",
+     "subtitulo": "CDMX · 31 de julio de 2015",
+     "desde": 0.08,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "robo"
+   ]
+  },
+  "p01": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1C1F26"
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-male-b",
+     "animacion": "walk",
+     "giro": 1.5708,
+     "posicion": {
+      "de": [
+       -1.8,
+       0,
+       0
+      ],
+      "a": [
+       1.9,
+       0,
+       0
+      ],
+      "desde": 0,
+      "hasta": 0.62
+     }
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "personajes/item-luggage",
+     "alto": 0.28,
+     "posicion": {
+      "de": [
+       -2.05,
+       0,
+       0.12
+      ],
+      "a": [
+       1.65,
+       0,
+       0.12
+      ],
+      "desde": 0,
+      "hasta": 0.62
+     }
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-male-e",
+     "animacion": "idle",
+     "giro": 0.9,
+     "posicion": [
+      -1.7,
+      0,
+      -1.3
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/light-square",
+     "alto": 1.9,
+     "posicion": [
+      -2.0,
+      0,
+      -1.5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "colonia/tree-large",
+     "alto": 1.6,
+     "posicion": [
+      -0.6,
+      0,
+      -2.4
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/low-detail-building-b",
+     "alto": 4.0,
+     "posicion": [
+      1.6,
+      0,
+      -3.5
+     ],
+     "escala": {
+      "de": 0.001,
+      "a": 1,
+      "desde": 0.5,
+      "hasta": 0.66
+     }
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/low-detail-building-wide-a",
+     "alto": 3.2,
+     "posicion": [
+      3.2,
+      0,
+      -4
+     ],
+     "escala": {
+      "de": 0.001,
+      "a": 1,
+      "desde": 0.55,
+      "hasta": 0.7
+     }
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/building-g",
+     "alto": 3.0,
+     "posicion": [
+      2.4,
+      0,
+      -1.8
+     ],
+     "escala": {
+      "de": 0.001,
+      "a": 1,
+      "desde": 0.6,
+      "hasta": 0.74
+     }
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      -1.0,
+      1.15,
+      5.0
+     ],
+     "mira": [
+      -1.0,
+      0.7,
+      0
+     ]
+    },
+    "hasta": {
+     "pos": [
+      1.4,
+      1.35,
+      5.6
+     ],
+     "mira": [
+      1.6,
+      0.9,
+      -0.5
+     ]
+    }
+   },
+   "etiquetas": [
+    {
+     "titulo": "Rubén Espinosa",
+     "subtitulo": "fotoperiodista · se fue de Veracruz",
+     "desde": 0.04,
+     "hasta": 0.48
+    },
+    {
+     "titulo": "Ciudad de México",
+     "subtitulo": "buscaba estar a salvo",
+     "desde": 0.52,
+     "hasta": 0.76
+    },
+    {
+     "titulo": "Mes y medio después",
+     "desde": 0.8,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "vigilaban",
+    "Narvarte"
+   ]
+  },
+  "p02": {
+   "ambiente": "calido",
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1A120C"
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "muebles/table",
+     "alto": 0.5,
+     "posicion": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "objeto": "Luz",
+     "color": "#FFB45C",
+     "fuerza": {
+      "de": 1,
+      "a": 4,
+      "desde": 0,
+      "hasta": 0.86
+     },
+     "distancia": 4,
+     "posicion": [
+      0,
+      1.0,
+      0.6
+     ]
+    },
+    {
+     "objeto": "Velas",
+     "cantidad": 1,
+     "posicion": [
+      -0.56,
+      0.7,
+      0
+     ],
+     "fuerza": 1
+    },
+    {
+     "objeto": "Velas",
+     "cantidad": 1,
+     "posicion": [
+      -0.28,
+      0.7,
+      0
+     ],
+     "fuerza": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.04,
+      "hasta": 0.08
+     }
+    },
+    {
+     "objeto": "Velas",
+     "cantidad": 1,
+     "posicion": [
+      0,
+      0.7,
+      0
+     ],
+     "fuerza": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.4,
+      "hasta": 0.44
+     }
+    },
+    {
+     "objeto": "Velas",
+     "cantidad": 1,
+     "posicion": [
+      0.28,
+      0.7,
+      0
+     ],
+     "fuerza": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.58,
+      "hasta": 0.62
+     }
+    },
+    {
+     "objeto": "Velas",
+     "cantidad": 1,
+     "posicion": [
+      0.56,
+      0.7,
+      0
+     ],
+     "fuerza": {
+      "de": 0,
+      "a": 1,
+      "desde": 0.8,
+      "hasta": 0.8400000000000001
+     }
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      0,
+      1.5,
+      4.8
+     ],
+     "mira": [
+      0,
+      0.75,
+      0
+     ]
+    },
+    "hasta": {
+     "pos": [
+      0,
+      1.3,
+      3.9
+     ],
+     "mira": [
+      0,
+      0.8,
+      0
+     ]
+    }
+   },
+   "etiquetas": [
+    {
+     "titulo": "Nadia Vera",
+     "subtitulo": "también había dejado Veracruz",
+     "desde": 0.04,
+     "hasta": 0.38
+    },
+    {
+     "titulo": "Mile Virginia Martín",
+     "desde": 0.4,
+     "hasta": 0.57
+    },
+    {
+     "titulo": "Yesenia Quiroz",
+     "subtitulo": "18 años",
+     "desde": 0.58,
+     "hasta": 0.79
+    },
+    {
+     "titulo": "Alejandra Negrete",
+     "subtitulo": "trabajaba ahí",
+     "desde": 0.8,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "dieciocho"
+   ]
+  },
+  "p03": {
+   "ambiente": "oficina",
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#2A2420"
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "muebles/wall",
+     "alto": 2.2,
+     "posicion": [
+      0,
+      0,
+      -1.6
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "muebles/table",
+     "alto": 0.5,
+     "posicion": [
+      0,
+      0,
+      0.5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "muebles/lampRoundTable",
+     "alto": 0.35,
+     "posicion": [
+      0.45,
+      0.5,
+      0.45
+     ]
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-male-c",
+     "animacion": "emote-yes",
+     "posicion": [
+      0,
+      0,
+      -0.2
+     ],
+     "brillo": {
+      "de": 0,
+      "a": 0.25,
+      "desde": 0.15,
+      "hasta": 0.3
+     }
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-male-f",
+     "animacion": "emote-no",
+     "giro": 0.35,
+     "posicion": [
+      -1.1,
+      0,
+      -0.9
+     ],
+     "escala": {
+      "de": 0.001,
+      "a": 1,
+      "desde": 0.7,
+      "hasta": 0.76
+     }
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-male-d",
+     "animacion": "emote-no",
+     "giro": -0.35,
+     "desfase": 0.6,
+     "posicion": [
+      1.1,
+      0,
+      -0.9
+     ],
+     "escala": {
+      "de": 0.001,
+      "a": 1,
+      "desde": 0.72,
+      "hasta": 0.78
+     }
+    },
+    {
+     "objeto": "Luz",
+     "color": "#FFF1D0",
+     "fuerza": 5,
+     "distancia": 4,
+     "posicion": [
+      0,
+      2.0,
+      0.4
+     ]
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      0,
+      1.45,
+      4.8
+     ],
+     "mira": [
+      0,
+      0.7,
+      -0.3
+     ]
+    },
+    "hasta": {
+     "pos": [
+      0,
+      1.3,
+      4.0
+     ],
+     "mira": [
+      0,
+      0.7,
+      -0.3
+     ]
+    }
+   },
+   "evidencia": {
+    "e": "e4",
+    "desde": 0.02,
+    "hasta": 0.26
+   },
+   "etiquetas": [
+    {
+     "titulo": "Una sola declaración",
+     "subtitulo": "la del expolicía Abraham Torres Tranquilino",
+     "desde": 0.3,
+     "hasta": 0.68
+    },
+    {
+     "titulo": "Los otros dos detenidos",
+     "subtitulo": "dijeron otra cosa",
+     "desde": 0.72,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "robo",
+    "droga",
+    "sola"
+   ]
+  },
+  "p04": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1C1F26"
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "muebles/table",
+     "alto": 0.45,
+     "posicion": [
+      0,
+      0,
+      2.6
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "muebles/televisionVintage",
+     "alto": 0.45,
+     "posicion": [
+      0,
+      0.45,
+      2.6
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/road-straight",
+     "ancho": 2,
+     "posicion": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/road-straight",
+     "ancho": 2,
+     "posicion": [
+      0,
+      0,
+      -2
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/road-straight",
+     "ancho": 2,
+     "posicion": [
+      0,
+      0,
+      -4
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/road-straight",
+     "ancho": 2,
+     "posicion": [
+      0,
+      0,
+      -6
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-barrier",
+     "alto": 0.45,
+     "posicion": [
+      0,
+      0,
+      -4.4
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-cone",
+     "alto": 0.24,
+     "posicion": [
+      -0.55,
+      0,
+      -4.1
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-cone",
+     "alto": 0.24,
+     "posicion": [
+      0.55,
+      0,
+      -4.1
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/construction-light",
+     "alto": 0.6,
+     "posicion": [
+      0.85,
+      0,
+      -4.5
+     ],
+     "brillo": 0.8
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-female-c",
+     "animacion": "interact-right",
+     "giro": 3.4,
+     "posicion": [
+      -1.2,
+      0,
+      -1.6
+     ]
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-male-g",
+     "animacion": "interact-right",
+     "giro": 3.0,
+     "desfase": 0.4,
+     "posicion": [
+      1.2,
+      0,
+      -1.9
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/light-square",
+     "alto": 1.9,
+     "posicion": [
+      -1.3,
+      0,
+      -3.2
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/light-square",
+     "alto": 1.9,
+     "posicion": [
+      1.3,
+      0,
+      -5.4
+     ]
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      0,
+      1.1,
+      5.6
+     ],
+     "mira": [
+      0,
+      0.6,
+      2.6
+     ]
+    },
+    "hasta": {
+     "pos": [
+      0,
+      1.8,
+      1.6
+     ],
+     "mira": [
+      0,
+      0.3,
+      -4.3
+     ]
+    },
+    "entre": [
+     0.3,
+     0.7
+    ]
+   },
+   "etiquetas": [
+    {
+     "titulo": "Rompeviento TV",
+     "subtitulo": "Nadia Vera señaló al gobernador Javier Duarte",
+     "desde": 0.03,
+     "hasta": 0.36
+    },
+    {
+     "titulo": "Arturo Bermúdez",
+     "subtitulo": "secretario de Seguridad de Veracruz",
+     "desde": 0.42,
+     "hasta": 0.74
+    },
+    {
+     "titulo": "Esa línea no se investigó",
+     "desde": 0.78,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "Duarte",
+    "Bermúdez",
+    "investigó"
+   ]
+  },
+  "p05": {
+   "ambiente": "oficina",
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#2A2420"
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "muebles/wall",
+     "alto": 2.2,
+     "posicion": [
+      0,
+      0,
+      -1.4
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "muebles/bookcaseClosed",
+     "alto": 1.5,
+     "posicion": [
+      -0.9,
+      0,
+      -1.1
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "muebles/desk",
+     "alto": 0.42,
+     "posicion": [
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "muebles/lampRoundTable",
+     "alto": 0.35,
+     "posicion": [
+      0.38,
+      0.42,
+      -0.05
+     ]
+    },
+    {
+     "objeto": "Personaje",
+     "modelo": "personajes/character-female-d",
+     "animacion": "idle",
+     "posicion": [
+      0.05,
+      0,
+      -0.5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "muebles/books",
+     "alto": 0.16,
+     "posicion": [
+      -0.42,
+      0.42,
+      0.1
+     ]
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      -1.2,
+      1.7,
+      4.6
+     ],
+     "mira": [
+      0,
+      0.75,
+      -0.3
+     ]
+    },
+    "hasta": {
+     "pos": [
+      1.0,
+      1.5,
+      4.2
+     ],
+     "mira": [
+      0,
+      0.75,
+      -0.3
+     ]
+    }
+   },
+   "evidencia": {
+    "e": "e3",
+    "desde": 0.02,
+    "hasta": 0.3
+   },
+   "etiquetas": [
+    {
+     "titulo": "293 años",
+     "subtitulo": "la sentencia de Daniel Pacheco",
+     "desde": 0.34,
+     "hasta": 0.66
+    },
+    {
+     "titulo": "Anulada en 2023",
+     "subtitulo": "por un tribunal",
+     "desde": 0.7,
+     "hasta": 1
+    }
+   ],
+   "claves": [
+    "anuló"
+   ]
+  },
+  "p06": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1C1F26"
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/building-g",
+     "alto": 3.4,
+     "posicion": [
+      0,
+      0,
+      -2.2
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/low-detail-building-b",
+     "alto": 4.2,
+     "posicion": [
+      -2.6,
+      0,
+      -5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/low-detail-building-e",
+     "alto": 3.6,
+     "posicion": [
+      2.6,
+      0,
+      -5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/light-square",
+     "alto": 1.9,
+     "posicion": [
+      1.0,
+      0,
+      0.5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "muebles/cardboardBoxOpen",
+     "alto": 0.3,
+     "giro": 0.4,
+     "posicion": [
+      -0.3,
+      0,
+      1.4
+     ]
+    }
+   ],
+   "camara": {
+    "desde": {
+     "pos": [
+      0,
+      1.0,
+      4.2
+     ],
+     "mira": [
+      -0.2,
+      0.4,
+      0.5
+     ]
+    },
+    "hasta": {
+     "pos": [
+      0,
+      1.7,
+      8.6
+     ],
+     "mira": [
+      0,
+      1.2,
+      -1
+     ]
+    }
+   },
+   "etiquetas": [
+    {
+     "titulo": "Once años",
+     "subtitulo": "¿qué se llevaron de ese departamento?",
+     "desde": 0.06,
+     "hasta": 1
+    }
+   ]
+  },
+  "p07": {
+   "visual": [
+    {
+     "objeto": "Suelo",
+     "color": "#1C1F26"
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/building-g",
+     "alto": 3.4,
+     "posicion": [
+      0,
+      0,
+      -2.2
+     ],
+     "brillo": {
+      "de": 0,
+      "a": 0.25,
+      "desde": 0,
+      "hasta": 1
+     }
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/low-detail-building-b",
+     "alto": 4.2,
+     "posicion": [
+      -2.6,
+      0,
+      -5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "ciudad/low-detail-building-e",
+     "alto": 3.6,
+     "posicion": [
+      2.6,
+      0,
+      -5
+     ]
+    },
+    {
+     "objeto": "Modelo",
+     "modelo": "calles/light-square",
+     "alto": 1.9,
+     "posicion": [
+      1.0,
+      0,
+      0.5
+     ]
+    }
+   ],
+   "camara": {
+    "pos": [
+     0,
+     1.7,
+     8.6
+    ],
+    "mira": [
+     0,
+     1.2,
+     -1
+    ]
+   },
+   "etiquetas": [
+    {
+     "titulo": "¿Le crees?",
+     "subtitulo": "a la versión del robo",
+     "desde": 0.3,
+     "hasta": 1
+    }
+   ]
+  }
+ }
+}
