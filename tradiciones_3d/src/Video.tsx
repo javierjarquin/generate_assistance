@@ -22,6 +22,12 @@ export type Evidencia = { img: string; credito: string; desde?: number; hasta?: 
 export type Escena = { id: string; texto: string; visual: Visual[]; camara?: string | CamaraLibre; etiquetas?: Etiqueta[]; claves?: string[];
   evidencia?: Evidencia; ambiente?: string };
 export type Palabra = { t: number; f: number; w: string };
+/** El gato que se asoma y el cuadro crudo del render plus (06/11/2026): los
+ *  mismos props, para que un video con escenas traiga las mismas sorpresas. */
+export type Gato = { t: number; dur: number; src: string; lado: "izq" | "der"; y: number; giro: number };
+export type Crudo = { t: number; dur: number; src: string };
+/** Cierre de marca, el mismo del render plus (Grafico en poc_remotion/src/Escenas.tsx). */
+export type Cierre = { desde: number; texto: string; logo?: string | null };
 export type TradicionProps = {
   escenas: Escena[];
   tiempos: { duracion: number; escenas: { id: string; ini: number; fin: number }[] };
@@ -30,6 +36,13 @@ export type TradicionProps = {
   /** Piloto de escenas: luz por defecto y marca "Recreación" en cada plano reconstruido. */
   ambiente?: string;
   recreacion?: boolean;
+  /** Marca del canal (11/11/2026): el emblema en la esquina y el cierre. */
+  logo?: string | null;
+  cierre?: Cierre | null;
+  gato?: Gato | null;
+  crudo?: Crudo | null;
+  /** Segundos que dura el corte entre escenas (0 lo apaga). */
+  transicion?: number;
 };
 
 // La luz de cada mundo. "calido" es la de tradiciones (la de siempre).
@@ -169,6 +182,91 @@ function Recreacion() {
   );
 }
 
+const MARCA = "Arial Black, Arial, sans-serif";
+
+/** El emblema del canal en la esquina, como en el render plus. Arriba de la
+ *  marca "RECREACIÓN" (top 200) y lejos de los subtítulos (top 300). */
+function Logo({ src }: { src: string }) {
+  return <Img src={staticFile(src)} style={{ position: "absolute", top: 54, left: 40, width: 130, height: 130,
+    objectFit: "contain", opacity: 0.85 }} />;
+}
+
+/** Corte corto entre escenas: un parpadeo al color del fondo centrado en el
+ *  corte. Además tapa el primer cuadro de la escena nueva, donde los modelos
+ *  que aún cargan se ven aparecer. */
+function Transicion({ cortes, t, dur, color }: { cortes: number[]; t: number; dur: number; color: string }) {
+  if (dur <= 0) return null;
+  const op = clamp01(cortes.reduce((max, c) => Math.max(max, 1 - Math.abs(t - c) / dur), 0));
+  if (op <= 0.02) return null;
+  return <div style={{ position: "absolute", inset: 0, background: color, opacity: op }} />;
+}
+
+/** El gato del canal se asoma por un costado (06/11/2026, "encuentra al gato").
+ *  Girado 90° con la barbilla hacia el borde: de lado mide `alto` de ancho. */
+function GatoAsomado({ gato, t }: { gato: Gato; t: number }) {
+  const { width } = useVideoConfig();
+  const p = (t - gato.t) / Math.max(1e-3, gato.dur);
+  if (p < 0 || p > 1) return null;
+  const ancho = 300;
+  const alto = Math.round(ancho * 0.77);
+  const fuera = Math.min(clamp01(p / 0.15), clamp01((1 - p) / 0.15));
+  const asomo = alto * 0.7 * fuera;  // asomado enseña orejas, lentes y ojos
+  const cx = gato.lado === "izq" ? -alto / 2 + asomo : width + alto / 2 - asomo;
+  return (
+    <div style={{ position: "absolute", left: cx - ancho / 2, top: gato.y - alto / 2, width: ancho, height: alto,
+      transform: `rotate(${gato.lado === "izq" ? 90 - gato.giro : -90 + gato.giro}deg)`,
+      filter: "drop-shadow(0 6px 10px rgba(0,0,0,.55))" }}>
+      <Img src={staticFile(gato.src)} style={{ width: ancho, height: alto, objectFit: "contain" }} />
+    </div>
+  );
+}
+
+/** Medio segundo de una foto real del tema, en seco y encima de todo. */
+function CuadroCrudo({ crudo, t }: { crudo: Crudo; t: number }) {
+  if (t < crudo.t || t >= crudo.t + crudo.dur) return null;
+  return (
+    <div style={{ position: "absolute", inset: 0, background: "#000" }}>
+      <Img src={staticFile(crudo.src)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+    </div>
+  );
+}
+
+/** Cierre de marca, el mismo de los videos de hoy: fondo azul con las líneas
+ *  doradas, el emblema grande y la firma del canal. Va encima de la escena, en
+ *  la franja que dejan libres los subtítulos (arriba) y el letrero (1330). */
+function CierreMarca({ cierre, t }: { cierre: Cierre; t: number }) {
+  const { width } = useVideoConfig();
+  const p = t - cierre.desde;
+  if (p < 0) return null;
+  const entra = suave(clamp01(p / 0.5));
+  const texto = suave(clamp01((p - 0.35) / 0.5));
+  const firma = clamp01((p - 0.8) / 0.4);
+  return (
+    <AbsoluteFill style={{ background: "radial-gradient(circle at 50% 42%, #16335F 0%, #0B1F3A 62%)",
+      opacity: clamp01(p / 0.25) }}>
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <div key={i} style={{ position: "absolute", left: -200, width: width + 400, height: 6, top: 300 + i * 260,
+          background: "#D4A537", opacity: 0.12, transform: `rotate(-14deg) translateX(${-120 + i * 30 + p * 36}px)` }} />
+      ))}
+      {cierre.logo && (
+        <Img src={staticFile(cierre.logo)} style={{ position: "absolute", top: 620, left: width / 2 - 180, width: 360,
+          height: 360, objectFit: "contain", transform: `scale(${lerp(0.3, 1, entra)})`, opacity: entra }} />
+      )}
+      {cierre.texto && (
+        <div style={{ position: "absolute", top: 1030, left: 80, right: 80, textAlign: "center", fontFamily: MARCA,
+          fontWeight: 900, fontSize: cierre.texto.length > 30 ? 72 : 96, lineHeight: 1.04, color: "#D4A537",
+          textTransform: "uppercase", opacity: texto, transform: `translateY(${(1 - texto) * 50}px)` }}>
+          {cierre.texto}
+        </div>
+      )}
+      <div style={{ position: "absolute", top: 1430, width: "100%", textAlign: "center", fontFamily: MARCA,
+        fontSize: 52, color: "#FFFFFF", letterSpacing: 4, opacity: firma * 0.9 }}>
+        DATO MATA GATO
+      </div>
+    </AbsoluteFill>
+  );
+}
+
 const limpia = (w: string) => w.toLowerCase().replace(/[¿?¡!.,:;«»"]/g, "");
 
 /** Frases de hasta 3 palabras, cortando en la puntuación y en las pausas. */
@@ -188,17 +286,25 @@ function Subtitulos({ t, lista, claves }: { t: number; lista: Palabra[][]; clave
   if (!frase) return null;
   // Con fondo propio: un objeto armado con Forma puede subir hasta esta franja
   // (el papelito de la calaverita, 30/10/2026) y sin fondo no se leía.
+  // El espacio entre palabra y palabra es de verdad (11/11/2026): sin él, los
+  // <span> pegados no dan dónde partir el renglón y una frase larga
+  // ("fotoperiodista Rubén Espinosa") se salía del cuadro por la derecha.
+  const letras = frase.reduce((n, w) => n + w.w.length + 1, 0);
   return (
     <div style={{ position: "absolute", top: 300, left: 80, right: 80, textAlign: "center", fontFamily: "Arial, sans-serif",
-      fontWeight: 800, fontSize: 60, lineHeight: 1.25, textShadow: "0 3px 18px rgba(0,0,0,.85)" }}>
-      <span style={{ display: "inline-block", background: "rgba(11,7,5,.62)", borderRadius: 22, padding: "10px 14px" }}>
+      fontWeight: 800, fontSize: letras > 22 ? 50 : 60, lineHeight: 1.25, textShadow: "0 3px 18px rgba(0,0,0,.85)" }}>
+      <span style={{ display: "inline-block", maxWidth: "100%", background: "rgba(11,7,5,.62)", borderRadius: 22,
+        padding: "10px 14px" }}>
       {frase.map((w, i) => {
         const dicha = t >= w.t - 0.03;
         const clave = claves.has(limpia(w.w));
         return (
-          <span key={i} style={{ color: dicha ? (clave ? "#1A0E05" : "#FFFFFF") : "rgba(255,255,255,.35)",
-            background: dicha && clave ? "#FFB020" : "transparent", padding: "0 10px", borderRadius: 10, marginRight: 4 }}>
-            {w.w}
+          <span key={i}>
+            <span style={{ color: dicha ? (clave ? "#1A0E05" : "#FFFFFF") : "rgba(255,255,255,.35)",
+              background: dicha && clave ? "#FFB020" : "transparent", padding: "0 10px", borderRadius: 10 }}>
+              {w.w}
+            </span>
+            {i < frase.length - 1 ? " " : ""}
           </span>
         );
       })}
@@ -207,19 +313,23 @@ function Subtitulos({ t, lista, claves }: { t: number; lista: Palabra[][]; clave
   );
 }
 
-export function Tradicion({ escenas, tiempos, palabras, audio, ambiente, recreacion }: TradicionProps) {
+export function Tradicion({ escenas, tiempos, palabras, audio, ambiente, recreacion, logo, cierre, gato, crudo,
+  transicion = 0 }: TradicionProps) {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const t = frame / fps;
   const lista = useMemo(() => frases(palabras), [palabras]);
   const claves = useMemo(() => new Set(escenas.flatMap((e) => (e.claves ?? []).map(limpia))), [escenas]);
   const marcas = tiempos.escenas;
+  // Los cortes entre escenas; el primero (0) hace la entrada del video.
+  const cortes = useMemo(() => marcas.map((m) => m.ini), [marcas]);
   let i = marcas.findIndex((_, k) => t < (marcas[k + 1]?.ini ?? Infinity));
   if (i < 0) i = marcas.length - 1;
   const fin = marcas[i + 1]?.ini ?? tiempos.duracion + 1;
   const p = clamp01((t - marcas[i].ini) / (fin - marcas[i].ini));
   const e = escenas.find((x) => x.id === marcas[i].id) ?? escenas[i];
   const a = AMBIENTES[e.ambiente ?? ambiente ?? "calido"] ?? AMBIENTES.calido;
+  const enCierre = !!cierre && t >= cierre.desde;
   return (
     <AbsoluteFill style={{ backgroundColor: a.fondo }}>
       <ThreeCanvas width={width} height={height} camera={{ fov: 40, near: 0.1, far: 80 }}>
@@ -230,10 +340,17 @@ export function Tradicion({ escenas, tiempos, palabras, audio, ambiente, recreac
         <directionalLight position={[-3, 1, -2]} intensity={a.relleno[0]} color={a.relleno[1]} />
         <Mundo e={e} p={p} t={t - marcas[i].ini} />
       </ThreeCanvas>
-      {recreacion && <Recreacion />}
       <Sello ev={e.evidencia} p={p} />
       <Letrero etiquetas={e.etiquetas} p={p} />
+      <Transicion cortes={cortes} t={t} dur={transicion} color={a.fondo} />
+      {/* El cierre tapa la escena: ahí ya no hay nada reconstruido que marcar. */}
+      {cierre && <CierreMarca cierre={cierre} t={t} />}
       <Subtitulos t={t} lista={lista} claves={claves} />
+      {!enCierre && logo && <Logo src={logo} />}
+      {!enCierre && recreacion && <Recreacion />}
+      {gato && <GatoAsomado gato={gato} t={t} />}
+      {/* Encima de todo (subtítulos y logo incluidos): el cuadro va crudo. */}
+      {crudo && <CuadroCrudo crudo={crudo} t={t} />}
       {audio && <Audio src={staticFile(audio)} />}
     </AbsoluteFill>
   );

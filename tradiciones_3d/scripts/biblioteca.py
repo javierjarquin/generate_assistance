@@ -114,6 +114,32 @@ ESCENAS = {
 }
 
 
+def _caja(glb: Path) -> list[float]:
+    """Cuánto mide el modelo (x, y, z), de los min/max de sus POSITION.
+
+    El bot lo necesita para avisarle a Claude: el render escala un Modelo por
+    su ALTO, así que una pieza ancha y baja queda enorme de ancho. La barda
+    (0.48 x 0.27) con alto 1.4 quedó de 2.5 y tapó el cuadro (11/11/2026).
+    """
+    import struct
+
+    b = glb.read_bytes()
+    off, j = 12, {}
+    while off < len(b):
+        largo, tipo = struct.unpack_from("<II", b, off)
+        if tipo == 0x4E4F534A:  # JSON
+            j = json.loads(b[off + 8:off + 8 + largo].decode("utf-8"))
+            break
+        off += 8 + largo
+    lo, hi = [float("inf")] * 3, [float("-inf")] * 3
+    for malla in j.get("meshes", []):
+        for prim in malla.get("primitives", []):
+            acc = j["accessors"][prim["attributes"]["POSITION"]]
+            for k in range(3):
+                lo[k], hi[k] = min(lo[k], acc["min"][k]), max(hi[k], acc["max"][k])
+    return [round(max(hi[k] - lo[k], 1e-4), 3) for k in range(3)]
+
+
 def _bajar(paquete: str) -> Path:
     """El zip del paquete, desde la caché o de Kenney (la liga firmada de su botón Download)."""
     zip_ = CACHE / f"kenney_{paquete}.zip"
@@ -171,6 +197,10 @@ def main() -> int:
             escenas[f"{corto}/{nombre}"] = que
     (MODELOS / "indice_escenas.json").write_text(json.dumps(escenas, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"{len(escenas)} modelos de escenas (piloto)")
+    tamanos = {n: _caja(MODELOS / f"{n}.glb") for n in escenas}
+    (MODELOS / "tamanos_escenas.json").write_text(json.dumps(tamanos, ensure_ascii=False, indent=1),
+                                                  encoding="utf-8")
+    print(f"{len(tamanos)} tamaños en tamanos_escenas.json")
     return 0
 
 

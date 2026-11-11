@@ -1,0 +1,372 @@
+{
+ "ciudad/building-a": [
+  0.884,
+  1.293,
+  0.94
+ ],
+ "ciudad/building-c": [
+  0.884,
+  0.893,
+  1.09
+ ],
+ "ciudad/building-e": [
+  1.64,
+  0.893,
+  1.008
+ ],
+ "ciudad/building-g": [
+  0.97,
+  1.693,
+  0.922
+ ],
+ "ciudad/building-skyscraper-a": [
+  1.36,
+  2.88,
+  1.36
+ ],
+ "ciudad/building-skyscraper-c": [
+  1.28,
+  4.08,
+  1.388
+ ],
+ "ciudad/low-detail-building-b": [
+  0.5,
+  2.225,
+  0.5
+ ],
+ "ciudad/low-detail-building-e": [
+  0.5,
+  1.8,
+  0.5
+ ],
+ "ciudad/low-detail-building-wide-a": [
+  1.0,
+  1.1,
+  0.5
+ ],
+ "ciudad/detail-awning": [
+  0.4,
+  0.4,
+  0.148
+ ],
+ "colonia/building-type-a": [
+  1.3,
+  0.834,
+  1.028
+ ],
+ "colonia/building-type-c": [
+  1.286,
+  1.034,
+  1.028
+ ],
+ "colonia/building-type-f": [
+  1.428,
+  1.138,
+  1.406
+ ],
+ "colonia/fence": [
+  0.475,
+  0.27,
+  0.075
+ ],
+ "colonia/tree-large": [
+  0.21,
+  0.767,
+  0.243
+ ],
+ "colonia/tree-small": [
+  0.21,
+  0.567,
+  0.243
+ ],
+ "colonia/planter": [
+  0.4,
+  0.177,
+  0.3
+ ],
+ "calles/road-straight": [
+  1.0,
+  0.02,
+  1.0
+ ],
+ "calles/road-crossroad": [
+  1.0,
+  0.02,
+  1.0
+ ],
+ "calles/road-end": [
+  1.0,
+  0.02,
+  1.0
+ ],
+ "calles/construction-barrier": [
+  0.135,
+  0.13,
+  0.225
+ ],
+ "calles/construction-cone": [
+  0.075,
+  0.094,
+  0.075
+ ],
+ "calles/construction-light": [
+  0.075,
+  0.234,
+  0.075
+ ],
+ "calles/light-square": [
+  0.05,
+  0.6,
+  0.238
+ ],
+ "calles/traffic-light": [
+  0.118,
+  0.515,
+  0.09
+ ],
+ "calles/dumpster": [
+  0.377,
+  0.251,
+  0.37
+ ],
+ "calles/road-sign-warning": [
+  0.077,
+  0.499,
+  0.147
+ ],
+ "calles/sign-highway": [
+  0.132,
+  0.707,
+  1.0
+ ],
+ "autos/police": [
+  1.5,
+  1.4,
+  2.9
+ ],
+ "autos/sedan": [
+  1.5,
+  1.45,
+  2.55
+ ],
+ "autos/taxi": [
+  1.5,
+  1.65,
+  2.75
+ ],
+ "autos/van": [
+  1.5,
+  1.45,
+  2.75
+ ],
+ "autos/suv": [
+  1.5,
+  1.4,
+  2.55
+ ],
+ "autos/ambulance": [
+  1.5,
+  1.9,
+  3.25
+ ],
+ "autos/delivery": [
+  1.5,
+  2.5,
+  3.25
+ ],
+ "autos/truck": [
+  1.5,
+  1.45,
+  2.95
+ ],
+ "muebles/desk": [
+  0.734,
+  0.384,
+  0.556
+ ],
+ "muebles/chair": [
+  0.2,
+  0.47,
+  0.2
+ ],
+ "muebles/chairDesk": [
+  0.479,
+  0.418,
+  0.443
+ ],
+ "muebles/computerScreen": [
+  0.393,
+  0.294,
+  0.104
+ ],
+ "muebles/table": [
+  0.841,
+  0.327,
+  0.447
+ ],
+ "muebles/loungeSofa": [
+  0.98,
+  0.46,
+  0.41
+ ],
+ "muebles/televisionVintage": [
+  0.41,
+  0.27,
+  0.27
+ ],
+ "muebles/televisionModern": [
+  0.685,
+  0.455,
+  0.128
+ ],
+ "muebles/books": [
+  0.15,
+  0.104,
+  0.095
+ ],
+ "muebles/bookcaseClosed": [
+  0.4,
+  0.85,
+  0.25
+ ],
+ "muebles/cardboardBoxOpen": [
+  0.372,
+  0.281,
+  0.212
+ ],
+ "muebles/cardboardBoxClosed": [
+  0.212,
+  0.281,
+  0.212
+ ],
+ "muebles/lampRoundTable": [
+  0.152,
+  0.314,
+  0.176
+ ],
+ "muebles/doorway": [
+  0.486,
+  1.01,
+  0.146
+ ],
+ "muebles/wall": [
+  1,
+  1.29,
+  0.05
+ ],
+ "muebles/wallWindow": [
+  1,
+  1.29,
+  0.089
+ ],
+ "muebles/bedSingle": [
+  1.623,
+  0.505,
+  1.892
+ ],
+ "muebles/rugRectangle": [
+  1.57,
+  0.01,
+  0.92
+ ],
+ "muebles/radio": [
+  0.315,
+  0.228,
+  0.098
+ ],
+ "muebles/trashcan": [
+  0.496,
+  0.906,
+  0.44
+ ],
+ "muebles/pottedPlant": [
+  0.255,
+  0.536,
+  0.291
+ ],
+ "personajes/character-male-a": [
+  0.767,
+  0.671,
+  0.34
+ ],
+ "personajes/character-male-b": [
+  0.767,
+  0.661,
+  0.389
+ ],
+ "personajes/character-male-c": [
+  0.767,
+  0.793,
+  0.461
+ ],
+ "personajes/character-male-d": [
+  0.767,
+  0.722,
+  0.34
+ ],
+ "personajes/character-male-e": [
+  0.767,
+  0.676,
+  0.342
+ ],
+ "personajes/character-male-f": [
+  0.767,
+  0.671,
+  0.34
+ ],
+ "personajes/character-male-g": [
+  0.767,
+  0.671,
+  0.399
+ ],
+ "personajes/character-female-a": [
+  1.099,
+  0.776,
+  0.5
+ ],
+ "personajes/character-female-b": [
+  0.767,
+  0.723,
+  0.419
+ ],
+ "personajes/character-female-c": [
+  0.767,
+  0.776,
+  0.5
+ ],
+ "personajes/character-female-d": [
+  0.767,
+  0.776,
+  0.5
+ ],
+ "personajes/character-female-e": [
+  0.767,
+  0.716,
+  0.527
+ ],
+ "personajes/character-female-f": [
+  0.767,
+  0.671,
+  0.441
+ ],
+ "personajes/character-worker": [
+  0.767,
+  0.824,
+  0.464
+ ],
+ "personajes/character-soldier": [
+  0.767,
+  0.755,
+  0.592
+ ],
+ "personajes/item-luggage": [
+  0.103,
+  0.22,
+  0.27
+ ],
+ "personajes/item-luggage-upright": [
+  0.186,
+  0.324,
+  0.228
+ ]
+}
