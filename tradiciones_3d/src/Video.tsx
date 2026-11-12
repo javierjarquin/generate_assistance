@@ -52,6 +52,9 @@ const AMBIENTES: Record<string, Ambiente> = {
   noche: { fondo: "#060A14", niebla: [9, 26], amb: [0.75, "#9FB6E8"], sol: [1.5, "#C9D8FF"], relleno: [0.9, "#FFB15C"] },
   anden: { fondo: "#0D1015", niebla: [10, 28], amb: [1.0, "#E8F0FF"], sol: [2.0, "#FFFFFF"], relleno: [0.5, "#9EC5FF"] },
   oficina: { fondo: "#120F0C", niebla: [8, 20], amb: [0.7, "#FFE9CC"], sol: [2.2, "#FFF1D6"], relleno: [0.5, "#7FA8FF"] },
+  // Cuarto del bebé a las ocho de la noche (nicho de papás primerizos): tibio y
+  // suave, no la penumbra de un true crime.
+  cuarto: { fondo: "#17121D", niebla: [9, 24], amb: [0.95, "#FFEBD9"], sol: [1.9, "#FFF3E2"], relleno: [0.75, "#8FB8FF"] },
 };
 
 // Lo que cada objeto recibe además de sus props: el tiempo de la escena.
@@ -61,6 +64,8 @@ const OBJETOS: Record<string, { c: ComponentType<any>; t?: boolean }> = {
   Campo: { c: O.Campo }, Huevo: { c: O.Huevo, t: true }, Raices: { c: O.Raices, t: true }, Camino: { c: O.Camino },
   Ofrenda: { c: O.Ofrenda, t: true }, Velas: { c: O.Velas, t: true }, PapelPicado: { c: O.PapelPicado, t: true }, Piso: { c: O.Piso },
   Modelo: { c: O.Modelo },
+  // Nicho de papás primerizos (12/11/2026)
+  Bebe: { c: O.Bebe, t: true }, Cuna: { c: O.Cuna }, Biberon: { c: O.Biberon },
   // Piloto de escenas (11/11/2026)
   Personaje: { c: E.Personaje, t: true }, Multitud: { c: E.Multitud, t: true }, Vagon: { c: E.Vagon }, Vias: { c: E.Vias },
   Anden: { c: E.Anden }, Suelo: { c: E.Suelo }, Luz: { c: E.Luz, t: true },

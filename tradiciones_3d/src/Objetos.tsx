@@ -409,6 +409,191 @@ export function PapelPicado({ t, cantidad = 7, colores = ["#E0218A", "#FF9F0A", 
   );
 }
 
+// --- Nicho de papás primerizos (12/11/2026) ----------------------------------
+// La biblioteca de Kenney no trae bebé, cuna ni biberón (lo más cercano es
+// muebles/bedSingle), así que el protagonista va por código, igual que Flor y
+// Ofrenda. Estilo juguete y SIN cara realista: dos puntos por ojos y una boca
+// que se abre. Props nuevos van también al CATALOGO del bot.
+
+/** Un palito de madera: el marco y los barrotes de la cuna. */
+function Palo({ pos, tam, color, em }: { pos: [number, number, number]; tam: [number, number, number]; color: string; em: number }) {
+  return (
+    <mesh position={pos}>
+      <boxGeometry args={tam} />
+      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={em} roughness={0.75} />
+    </mesh>
+  );
+}
+
+/** Un bebé envuelto en su cobija, estilo juguete (alto ~1.6, centrado en y = 0).
+ *  duerme: ojos cerrados y respiración lenta. llora: boca abierta, cara roja,
+ *  puños arriba y temblorina. brazos: los saca del envoltorio. brillo: se ilumina. */
+export function Bebe({ t = 0, duerme = 0, llora = 0, brazos = 0, brillo = 0, cobija = "#7FB3D5" }: {
+  t?: number; duerme?: number; llora?: number; brazos?: number; brillo?: number; cobija?: string;
+}) {
+  const l = clamp01(llora), d = clamp01(duerme), b = clamp01(brazos);
+  const em = 0.1 + brillo * 0.6;
+  const resp = Math.sin(t * lerp(1.5, 7, l)) * lerp(0.02, 0.055, l);
+  const tiembla = Math.sin(t * 20) * 0.025 * l;
+  const piel = new THREE.Color("#F7D9BC").lerp(new THREE.Color("#DD5B47"), l * 0.5);
+  return (
+    <group position={[tiembla, 0, 0]} rotation={[0, 0, tiembla * 0.5]}>
+      <mesh position={[0, -0.32, 0]} scale={[0.5, 0.74 + resp, 0.44]}>
+        <sphereGeometry args={[1, 28, 18]} />
+        <meshStandardMaterial color={cobija} emissive={cobija} emissiveIntensity={em} roughness={0.8} />
+      </mesh>
+      {/* el dobladillo de la cobija, por donde asoma la cara */}
+      <mesh position={[0, 0.3, 0.03]} rotation={[0.14, 0, 0]} scale={[0.47, 0.15, 0.3]}>
+        <sphereGeometry args={[1, 24, 14]} />
+        <meshStandardMaterial color="#EFE4D2" emissive="#EFE4D2" emissiveIntensity={em * 0.8} roughness={0.9} />
+      </mesh>
+      <group position={[0, 0.63 + resp * 0.4, 0]}>
+        <mesh scale={[0.385, 0.365, 0.365]}>
+          <sphereGeometry args={[1, 28, 18]} />
+          <meshStandardMaterial color={piel} emissive={piel} emissiveIntensity={em} roughness={0.55} />
+        </mesh>
+        {/* gorrito: un casquete, no pelo */}
+        <mesh position={[0, 0.045, -0.03]} scale={[0.4, 0.355, 0.382]}>
+          <sphereGeometry args={[1, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2.35]} />
+          <meshStandardMaterial color={cobija} emissive={cobija} emissiveIntensity={em} roughness={0.85} />
+        </mesh>
+        {/* ojos: dos puntos; dormido, dos rayitas (más anchas, para que se lean) */}
+        {[-0.125, 0.125].map((x) => (
+          <mesh key={x} position={[x, 0.025, 0.345]} scale={[lerp(0.034, 0.055, d), lerp(0.034, 0.011, d), 0.02]}>
+            <sphereGeometry args={[1, 10, 8]} />
+            <meshBasicMaterial color="#3B2A20" />
+          </mesh>
+        ))}
+        {l > 0.02 && [-0.215, 0.215].map((x) => (
+          <mesh key={x} position={[x, -0.065, 0.285]} scale={0.08}>
+            <sphereGeometry args={[1, 12, 10]} />
+            <meshBasicMaterial color="#E8604C" transparent opacity={0.45 * l} />
+          </mesh>
+        ))}
+        {/* la boca: una rayita que se abre */}
+        <mesh position={[0, -0.15, 0.335]} scale={[0.058 + l * 0.032, 0.013 + l * 0.09, 0.02]}>
+          <sphereGeometry args={[1, 14, 10]} />
+          <meshBasicMaterial color="#8E3A33" />
+        </mesh>
+      </group>
+      {b > 0.02 && [-1, 1].map((lado) => (
+        <group key={lado} position={[lado * 0.42, 0.14, 0.16]} rotation={[0, 0, -lado * lerp(1.3, 0.55, l) * b]}>
+          <mesh position={[0, 0.16 * b, 0]}>
+            <capsuleGeometry args={[0.07, 0.2 * b, 5, 12]} />
+            <meshStandardMaterial color={piel} emissive={piel} emissiveIntensity={em} roughness={0.55} />
+          </mesh>
+          <mesh position={[0, 0.3 * b, 0]} scale={lerp(0.1, 0.085, l)}>
+            <sphereGeometry args={[1, 14, 10]} />
+            <meshStandardMaterial color={piel} emissive={piel} emissiveIntensity={em} roughness={0.55} />
+          </mesh>
+        </group>
+      ))}
+      {brillo > 0 && (
+        <mesh position={[0, -0.1, 0]} scale={[0.78, 1.15, 0.74]}>
+          <sphereGeometry args={[1, 24, 16]} />
+          <meshBasicMaterial color="#FFE2B0" transparent opacity={0.08 * brillo} blending={THREE.AdditiveBlending} depthWrite={false} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
+/** Cuna de barrotes, estilo juguete (2.5 de largo, 1.4 de alto; el colchón
+ *  queda en y ≈ -0.4). colchon 0 = cuna vacía. barrotes: cuántos por lado largo. */
+export function Cuna({ colchon = 1, barrotes = 9, brillo = 0, madera = "#B9793C" }: {
+  colchon?: number; barrotes?: number; brillo?: number; madera?: string;
+}) {
+  const c = clamp01(colchon);
+  const em = 0.08 + brillo * 0.5;
+  const X = 1.18, Z = 0.62;
+  return (
+    <group>
+      <Palo pos={[0, -0.62, 0]} tam={[2 * X + 0.14, 0.12, 2 * Z + 0.14]} color={madera} em={em} />
+      {c > 0.01 && (
+        <mesh position={[0, -0.47 + 0.1 * c, 0]} scale={[1, c, 1]}>
+          <boxGeometry args={[2 * X - 0.1, 0.2, 2 * Z - 0.1]} />
+          {/* la sábana, un poco apagada: en blanco puro el bebé se le perdía encima */}
+          <meshStandardMaterial color="#E3DDEA" emissive="#E3DDEA" emissiveIntensity={em * 0.6} roughness={0.95} />
+        </mesh>
+      )}
+      {[[-X, -Z], [X, -Z], [-X, Z], [X, Z]].map(([x, z], i) => (
+        <Palo key={i} pos={[x, -0.05, z]} tam={[0.14, 1.4, 0.14]} color={madera} em={em} />
+      ))}
+      {[-Z, Z].map((z) => <Palo key={z} pos={[0, 0.6, z]} tam={[2 * X + 0.14, 0.13, 0.14]} color={madera} em={em} />)}
+      {[-X, X].map((x) => <Palo key={x} pos={[x, 0.6, 0]} tam={[0.14, 0.13, 2 * Z + 0.14]} color={madera} em={em} />)}
+      {Array.from({ length: Math.max(0, barrotes) }, (_, i) => {
+        const x = lerp(-X + 0.18, X - 0.18, barrotes > 1 ? i / (barrotes - 1) : 0.5);
+        return [-Z, Z].map((z) => (
+          <mesh key={`${i}${z}`} position={[x, 0.06, z]}>
+            <cylinderGeometry args={[0.035, 0.035, 1.03, 8]} />
+            <meshStandardMaterial color={madera} emissive={madera} emissiveIntensity={em} roughness={0.75} />
+          </mesh>
+        ));
+      })}
+      {[0, 1, 2, 3, 4].map((i) => {
+        const z = lerp(-Z + 0.16, Z - 0.16, i / 4);
+        return [-X, X].map((x) => (
+          <mesh key={`${i}${x}`} position={[x, 0.06, z]}>
+            <cylinderGeometry args={[0.035, 0.035, 1.03, 8]} />
+            <meshStandardMaterial color={madera} emissive={madera} emissiveIntensity={em} roughness={0.75} />
+          </mesh>
+        ));
+      })}
+    </group>
+  );
+}
+
+/** Biberón con el nivel de leche animable (nivel 0 a 1): sirve para una toma y
+ *  para cantidades. Alto ~1.7, apoyado cerca de y = -0.8. */
+export function Biberon({ nivel = 0.6, brillo = 0, leche = "#FFF6E4", tapa = "#59A6C9" }: {
+  nivel?: number; brillo?: number; leche?: string; tapa?: string;
+}) {
+  const n = clamp01(nivel);
+  const em = 0.08 + brillo * 0.55;
+  const alto = 1.15, base = -0.78;
+  const h = Math.max(0.012, alto * n);
+  return (
+    <group>
+      {/* la leche primero: va dentro del cuerpo translúcido */}
+      <mesh position={[0, base + h / 2, 0]}>
+        <cylinderGeometry args={[0.305, 0.275, h, 28]} />
+        <meshStandardMaterial color={leche} emissive={leche} emissiveIntensity={0.14 + brillo * 0.5} roughness={0.45} />
+      </mesh>
+      {/* el plástico: translúcido, pero que se vea claro sobre fondo oscuro */}
+      <mesh position={[0, base + alto / 2, 0]}>
+        <cylinderGeometry args={[0.34, 0.3, alto, 28]} />
+        <meshStandardMaterial color="#DCEEF8" emissive="#DCEEF8" emissiveIntensity={0.45 + brillo * 0.5} roughness={0.2}
+          transparent opacity={0.5} />
+      </mesh>
+      {[0.3, 0.55, 0.8].map((f) => (
+        <mesh key={f} position={[0, base + alto * f, 0.345]} scale={[0.11, 0.014, 0.012]}>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshBasicMaterial color="#5E7A8A" />
+        </mesh>
+      ))}
+      <mesh position={[0, base + alto + 0.07, 0]}>
+        <cylinderGeometry args={[0.3, 0.335, 0.15, 24]} />
+        <meshStandardMaterial color={tapa} emissive={tapa} emissiveIntensity={em} roughness={0.6} />
+      </mesh>
+      {/* el chupón */}
+      <mesh position={[0, base + alto + 0.27, 0]}>
+        <cylinderGeometry args={[0.1, 0.235, 0.27, 20]} />
+        <meshStandardMaterial color="#F3D9B8" emissive="#F3D9B8" emissiveIntensity={em} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, base + alto + 0.43, 0]} scale={[0.1, 0.09, 0.1]}>
+        <sphereGeometry args={[1, 16, 12]} />
+        <meshStandardMaterial color="#F3D9B8" emissive="#F3D9B8" emissiveIntensity={em} roughness={0.5} />
+      </mesh>
+      {brillo > 0 && (
+        <mesh position={[0, base + alto * 0.5, 0]} scale={[0.6, 0.9, 0.6]}>
+          <sphereGeometry args={[1, 24, 16]} />
+          <meshBasicMaterial color={leche} transparent opacity={0.14 * brillo} blending={THREE.AdditiveBlending} depthWrite={false} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
 // --- Modelos de la biblioteca (public/modelos, Kenney CC0, estilo juguete) ----
 const CARGADOS = new Map<string, Promise<THREE.Object3D>>();
 
