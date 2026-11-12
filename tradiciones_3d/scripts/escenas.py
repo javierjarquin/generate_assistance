@@ -89,16 +89,35 @@ def sello(slug: str, destino: Path, ev: dict) -> dict | None:
         print(f"sin evidencia para el sello {clave!r}", flush=True)
         return None
     salida = destino / f"{clave}_sello.jpg"
+    es_nota = origen == nota
     try:
         with Image.open(origen) as im:
-            # De la nota, solo la parte de arriba; una foto va entera.
-            alto = min(im.height, int(ev.get("alto", ALTO_SELLO))) if origen == nota else im.height
-            im.convert("RGB").crop((0, 0, im.width, alto)).save(salida, quality=90)
+            if es_nota:
+                # De la nota, solo la parte de arriba: ahí vienen el medio, el
+                # titular y la foto, que es lo que se reconoce de un vistazo.
+                recorte = im.convert("RGB").crop((0, 0, im.width, min(im.height, int(ev.get("alto", ALTO_SELLO)))))
+            else:
+                recorte = _sin_negro(im.convert("RGB"))
+            recorte.save(salida, quality=90)
     except OSError as exc:
         print(f"no se pudo recortar {origen.name}: {exc}", flush=True)
         return None
-    return {"img": f"{slug}/{salida.name}", "credito": credito(slug, clave),
+    # La pieza de evidencia ya trae su fuente escrita abajo; la nota no.
+    return {"img": f"{slug}/{salida.name}", "credito": credito(slug, clave) if es_nota else "",
             **{k: float(ev[k]) for k in ("desde", "hasta") if k in ev}}
+
+
+def _sin_negro(im: Image.Image) -> Image.Image:
+    """La tarjeta sola, sin el negro de alrededor.
+
+    Las piezas de `evidencia/` vienen a pantalla completa (1080x1920) para el
+    render de siempre: el titular en el medio y negro arriba y abajo. Metida
+    así en el sello, que mide 780x640, la tarjeta queda diminuta y lo que se ve
+    es un rectángulo negro (11/11/2026, el sello de La Jornada en el video de
+    Chalco).
+    """
+    caja = im.convert("L").point(lambda p: 255 if p > 18 else 0).getbbox()
+    return im.crop(caja) if caja else im
 
 
 def foto_cruda(slug: str) -> Path | None:

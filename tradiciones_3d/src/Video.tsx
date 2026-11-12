@@ -165,10 +165,13 @@ function Sello({ ev, p }: { ev?: Evidencia; p: number }) {
       <div style={{ background: "#FFFFFF", padding: 10, borderRadius: 10, boxShadow: "0 18px 50px rgba(0,0,0,.65)", maxWidth: 800 }}>
         <Img src={staticFile(ev.img)} style={{ display: "block", maxWidth: 780, maxHeight: 640, objectFit: "contain" }} />
       </div>
-      <div style={{ marginTop: 12, fontFamily: "Arial, sans-serif", fontWeight: 700, fontSize: 30, color: "#FFD60A",
-        textShadow: "0 2px 10px rgba(0,0,0,.9)", background: "rgba(5,8,15,.7)", padding: "6px 16px", borderRadius: 10 }}>
-        FUENTE: {ev.credito.toUpperCase()}
-      </div>
+      {/* Sin crédito: la pieza ya lo trae escrito abajo y saldría dos veces. */}
+      {ev.credito && (
+        <div style={{ marginTop: 12, fontFamily: "Arial, sans-serif", fontWeight: 700, fontSize: 30, color: "#FFD60A",
+          textShadow: "0 2px 10px rgba(0,0,0,.9)", background: "rgba(5,8,15,.7)", padding: "6px 16px", borderRadius: 10 }}>
+          FUENTE: {ev.credito.toUpperCase()}
+        </div>
+      )}
     </div>
   );
 }
