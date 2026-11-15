@@ -152,6 +152,9 @@ def armar_props(guion: dict, tiempos: dict, lista: list[dict], audio: str | None
     # La luz y el corte entre escenas los puede fijar el guion (el nicho de
     # papás primerizos usa "cuarto"); sin los campos, el render queda como antes.
     del_video = {k: guion[k] for k in ("ambiente", "transicion") if k in guion}
+    # El canal de papás primerizos va siempre en plastilina pastel (15/11/2026).
+    if guion.get("formato") == "papasia":
+        del_video.setdefault("ambiente", "cuarto")
     return {"escenas": [{k: e[k] for k in campos if k in e} for e in guion["escenas"]],
             "tiempos": tiempos, "palabras": lista, "audio": audio, **del_video}
 
