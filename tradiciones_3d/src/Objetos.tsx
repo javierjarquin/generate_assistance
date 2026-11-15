@@ -409,6 +409,10 @@ export function PapelPicado({ t, cantidad = 7, colores = ["#E0218A", "#FF9F0A", 
   );
 }
 
+// --- Nicho de papás primerizos ---------------------------------------------
+// Bebe, Cuna y Biberon viven en Clay.tsx desde el 15/11/2026 (estilo plastilina
+// kawaii pastel). Props nuevos van también al CATALOGO del bot.
+
 // --- Modelos de la biblioteca (public/modelos, Kenney CC0, estilo juguete) ----
 const CARGADOS = new Map<string, Promise<THREE.Object3D>>();
 

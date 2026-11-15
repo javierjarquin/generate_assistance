@@ -2,8 +2,10 @@
 
     C:\\illustrated-narrator\\.venv\\Scripts\\python.exe tradiciones_3d\\scripts\\render.py <slug> [--hoja]
 
-1. Voz Fish 3 por escena (la misma voz y ajustes que producción) en
-   C:\\Android_in\\<slug>\\voz_3d\\; una escena cuyo texto no cambió no se vuelve a pedir.
+1. Una voz por escena en C:\\Android_in\\<slug>\\voz_3d\\; una escena cuyo texto no
+   cambió no se vuelve a pedir. La voz la elige el guion con `voz_narrador`
+   (viral_c, viral_a...; el perfil sale del .env del bot) y sin ese campo sale
+   Fish 3, la de tradiciones.
 2. Las escenas se pegan con 0.35 s de silencio -> public/<slug>/voz.wav.
 3. Whisper da los tiempos por palabra; las palabras salen del guion (Whisper
    escribe mal el náhuatl), alineadas con difflib.
@@ -17,6 +19,7 @@ lo borra el bot al terminar.
 import difflib
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -25,13 +28,48 @@ import wave
 from pathlib import Path
 
 AQUI = Path(__file__).resolve().parents[1]
-ANDROID_IN = Path(r"C:\Android_in")
+# La carpeta de entrada depende del canal (15/11/2026): el bot la pasa en la
+# variable ANDROID_IN (papasia: C:\Android_in\papasia). Sin ella, la de siempre.
+ANDROID_IN = Path(os.environ.get("ANDROID_IN") or r"C:\Android_in")
 TTS_KOKORO_SRC = r"C:\tts-kokoro\src"
 VOICESTUDIO = "http://localhost:3900/v1/audio/speech"
-VOZ = {"model": "omnivoice", "voice": "cbbc2aa7", "response_format": "wav", "language": "es",
+FISH3 = "cbbc2aa7"  # la voz de tradiciones; el default, para no mover lo que ya salió
+VOZ = {"model": "omnivoice", "voice": FISH3, "response_format": "wav", "language": "es",
        "num_step": 32, "seed": 1234}
+# El guion elige la voz con `voz_narrador`, igual que pipeline.voz_narrador():
+# el perfil vive en el .env del bot y aquí solo se lee. El nicho de papás
+# primerizos va con viral_c (mujer joven); tradiciones, sin el campo, sigue en
+# Fish 3.
+BOT_ENV = Path(r"C:\dato-mata-gato-bot\.env")
+PERFILES = {"fish3": "VOICESTUDIO_VOICE_ID_CRIMEN", "javier": "VOICESTUDIO_VOICE_ID_CRIMEN_JAVIER",
+            "viral_a": "VOICESTUDIO_VOICE_ID_VIRAL_A", "viral_b": "VOICESTUDIO_VOICE_ID_VIRAL_B",
+            "viral_c": "VOICESTUDIO_VOICE_ID_VIRAL_C"}
 PAUSA = 0.35  # s de silencio entre escenas
 FFMPEG = "ffmpeg"
+
+
+def _del_env(clave: str) -> str:
+    """El valor de una variable: primero el entorno, luego el .env del bot. Este
+    script no corre dentro del bot, así que no lo hereda."""
+    valor = (os.getenv(clave) or "").strip()
+    if valor or not BOT_ENV.exists():
+        return valor
+    for linea in BOT_ENV.read_text(encoding="utf-8", errors="replace").splitlines():
+        nombre, sep, resto = linea.strip().partition("=")
+        if sep and not nombre.startswith("#") and nombre.strip() == clave:
+            return resto.split("#")[0].strip()
+    return ""
+
+
+def voz_del_guion(guion: dict) -> dict:
+    """Los ajustes de voz de este video. Sin `voz_narrador` (o con una voz sin
+    perfil configurado) sale Fish 3 y el pedido queda IDÉNTICO al de siempre,
+    así que la voz ya generada de un tradiciones no se vuelve a pedir."""
+    nombre = str(guion.get("voz_narrador") or "").strip()
+    perfil = _del_env(PERFILES[nombre]) if nombre in PERFILES else ""
+    if nombre and not perfil:
+        print(f"voz '{nombre}': sin perfil en el .env, va con Fish 3", flush=True)
+    return {**VOZ, "voice": perfil or FISH3}
 
 
 def _wav_dur(ruta: Path) -> float:
@@ -39,9 +77,11 @@ def _wav_dur(ruta: Path) -> float:
         return w.getnframes() / w.getframerate()
 
 
-def voz(guion: dict, trabajo: Path, salida: Path) -> dict:
+def voz(guion: dict, trabajo: Path, salida: Path, ajustes: dict | None = None) -> dict:
     """Una voz por escena y el audio pegado. Devuelve {"duracion", "escenas": [{id, ini, fin}]}."""
     import requests
+
+    ajustes = ajustes or VOZ
 
     sys.path.insert(0, TTS_KOKORO_SRC)
     from tts_kokoro.domain.text_normalizer import normalize_text
@@ -53,11 +93,11 @@ def voz(guion: dict, trabajo: Path, salida: Path) -> dict:
     lista, escenas, t = [], [], 0.0
     for e in guion["escenas"]:
         texto = normalize_text(e["texto"])
-        huella = hashlib.sha1(json.dumps([texto, VOZ], ensure_ascii=False).encode("utf-8")).hexdigest()[:10]
+        huella = hashlib.sha1(json.dumps([texto, ajustes], ensure_ascii=False).encode("utf-8")).hexdigest()[:10]
         wav = trabajo / f"{e['id']}-{huella}.wav"
         if not wav.exists():
             inicio = time.time()
-            r = requests.post(VOICESTUDIO, timeout=1800, json={**VOZ, "input": texto})
+            r = requests.post(VOICESTUDIO, timeout=1800, json={**ajustes, "input": texto})
             r.raise_for_status()
             wav.write_bytes(r.content)
             print(f"voz {e['id']}: {time.time() - inicio:.0f} s", flush=True)
@@ -108,9 +148,15 @@ def palabras(guion: dict, wav: Path) -> list[dict]:
 
 def armar_props(guion: dict, tiempos: dict, lista: list[dict], audio: str | None) -> dict:
     """Solo lo que el render usa de cada escena."""
-    campos = ("id", "texto", "visual", "camara", "etiquetas", "claves")
+    campos = ("id", "texto", "visual", "camara", "etiquetas", "claves", "ambiente")
+    # La luz y el corte entre escenas los puede fijar el guion (el nicho de
+    # papás primerizos usa "cuarto"); sin los campos, el render queda como antes.
+    del_video = {k: guion[k] for k in ("ambiente", "transicion") if k in guion}
+    # El canal de papás primerizos va siempre en plastilina pastel (15/11/2026).
+    if guion.get("formato") == "papasia":
+        del_video.setdefault("ambiente", "cuarto")
     return {"escenas": [{k: e[k] for k in campos if k in e} for e in guion["escenas"]],
-            "tiempos": tiempos, "palabras": lista, "audio": audio}
+            "tiempos": tiempos, "palabras": lista, "audio": audio, **del_video}
 
 
 def render(props: Path, salida: Path) -> None:
@@ -132,7 +178,9 @@ def main(argv: list[str]) -> int:
     guion = json.loads((ANDROID_IN / slug / "guion.json").read_text(encoding="utf-8"))
     publico = AQUI / "public" / slug
     inicio = time.time()
-    tiempos = voz(guion, ANDROID_IN / slug / "voz_3d", publico / "voz.wav")
+    ajustes = voz_del_guion(guion)
+    print(f"voz: perfil {ajustes['voice']} ({guion.get('voz_narrador') or 'fish3'})", flush=True)
+    tiempos = voz(guion, ANDROID_IN / slug / "voz_3d", publico / "voz.wav", ajustes)
     print(f"voz lista: {tiempos['duracion']:.1f} s de audio, en {time.time() - inicio:.0f} s", flush=True)
     lista = palabras(guion, publico / "voz.wav")
     props = publico / "props.json"

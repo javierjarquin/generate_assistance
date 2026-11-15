@@ -3,6 +3,7 @@ import { ThreeCanvas } from "@remotion/three";
 import type { ComponentType } from "react";
 import { useMemo } from "react";
 import { AbsoluteFill, Img, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import * as C from "./Clay";
 import * as E from "./Escenas";
 import * as O from "./Objetos";
 import { clamp01, lerp, suave } from "./Objetos";
@@ -46,12 +47,17 @@ export type TradicionProps = {
 };
 
 // La luz de cada mundo. "calido" es la de tradiciones (la de siempre).
-type Ambiente = { fondo: string; niebla: [number, number]; amb: [number, string]; sol: [number, string]; relleno: [number, string] };
+// `claro`: el estilo de plastilina pastel (Clay.tsx), con su propia luz, su
+// decorado desenfocado y los letreros en claro.
+type Ambiente = { fondo: string; niebla: [number, number]; amb: [number, string]; sol: [number, string]; relleno: [number, string]; claro?: boolean };
 const AMBIENTES: Record<string, Ambiente> = {
   calido: { fondo: "#0B0705", niebla: [7, 16], amb: [0.55, "#FFE6C7"], sol: [2.4, "#FFE2B0"], relleno: [0.6, "#FF8A3D"] },
   noche: { fondo: "#060A14", niebla: [9, 26], amb: [0.75, "#9FB6E8"], sol: [1.5, "#C9D8FF"], relleno: [0.9, "#FFB15C"] },
   anden: { fondo: "#0D1015", niebla: [10, 28], amb: [1.0, "#E8F0FF"], sol: [2.0, "#FFFFFF"], relleno: [0.5, "#9EC5FF"] },
   oficina: { fondo: "#120F0C", niebla: [8, 20], amb: [0.7, "#FFE9CC"], sol: [2.2, "#FFF1D6"], relleno: [0.5, "#7FA8FF"] },
+  // El canal de papás primerizos (15/11/2026): plastilina kawaii pastel sobre
+  // una nube rosa. Antes era un cuarto en penumbra y se veía plano.
+  cuarto: { fondo: C.FONDO, niebla: [11, 30], amb: [1, "#FFFFFF"], sol: [1, "#FFFFFF"], relleno: [0.5, "#FFC2D8"], claro: true },
 };
 
 // Lo que cada objeto recibe además de sus props: el tiempo de la escena.
@@ -61,9 +67,18 @@ const OBJETOS: Record<string, { c: ComponentType<any>; t?: boolean }> = {
   Campo: { c: O.Campo }, Huevo: { c: O.Huevo, t: true }, Raices: { c: O.Raices, t: true }, Camino: { c: O.Camino },
   Ofrenda: { c: O.Ofrenda, t: true }, Velas: { c: O.Velas, t: true }, PapelPicado: { c: O.PapelPicado, t: true }, Piso: { c: O.Piso },
   Modelo: { c: O.Modelo },
+  // Nicho de papás primerizos (12/11/2026)
+  Bebe: { c: C.Bebe, t: true }, Cuna: { c: C.Cuna }, Biberon: { c: C.Biberon, t: true },
   // Piloto de escenas (11/11/2026)
   Personaje: { c: E.Personaje, t: true }, Multitud: { c: E.Multitud, t: true }, Vagon: { c: E.Vagon }, Vias: { c: E.Vias },
   Anden: { c: E.Anden }, Suelo: { c: E.Suelo }, Luz: { c: E.Luz, t: true },
+};
+// En el ambiente claro, lo que el guion ya usa sale en su versión de plastilina.
+const OBJETOS_CLAROS: typeof OBJETOS = {
+  Calendario: { c: C.Calendario }, Sol: { c: C.Sol }, Particulas: { c: C.Particulas, t: true }, Aroma: { c: C.Particulas, t: true },
+  Forma: { c: C.Forma },
+  // El piso oscuro de tradiciones no va aquí: el suelo es la nube rosa.
+  Piso: { c: () => null },
 };
 const DEL_GRUPO = new Set(["objeto", "posicion", "escala", "rotacion", "gira"]);
 
@@ -110,8 +125,8 @@ function toma(camara: Escena["camara"], p: number): Toma {
   return camara;
 }
 
-function Objeto({ v, p, t }: { v: Visual; p: number; t: number }) {
-  const def = OBJETOS[v.objeto];
+function Objeto({ v, p, t, claro }: { v: Visual; p: number; t: number; claro?: boolean }) {
+  const def = (claro && OBJETOS_CLAROS[v.objeto]) || OBJETOS[v.objeto];
   if (!def) return null;
   const props: Record<string, unknown> = {};
   for (const [k, x] of Object.entries(v)) if (!DEL_GRUPO.has(k)) props[k] = valor(x, p);
@@ -128,18 +143,36 @@ function Objeto({ v, p, t }: { v: Visual; p: number; t: number }) {
   );
 }
 
-function Mundo({ e, p, t }: { e: Escena; p: number; t: number }) {
+function Mundo({ e, p, t, claro }: { e: Escena; p: number; t: number; claro?: boolean }) {
   const c = toma(e.camara, p);
   return <>
     <O.Camara pos={c.pos} mira={c.mira} />
-    {e.visual.map((v, i) => <Objeto key={`${e.id}-${i}`} v={v} p={p} t={t} />)}
+    {e.visual.map((v, i) => <Objeto key={`${e.id}-${i}`} v={v} p={p} t={t} claro={claro} />)}
   </>;
 }
 
-function Letrero({ etiquetas, p }: { etiquetas?: Etiqueta[]; p: number }) {
+const REDONDA = '"Segoe UI Black", "Segoe UI", "Arial Rounded MT Bold", Arial, sans-serif';
+
+function Letrero({ etiquetas, p, claro }: { etiquetas?: Etiqueta[]; p: number; claro?: boolean }) {
   const e = (etiquetas ?? []).find((x) => p >= x.desde && p < x.hasta);
   if (!e) return null;
   const op = Math.min(suave((p - e.desde) / 0.05), suave((e.hasta - p) / 0.05));
+  if (claro) {
+    // Una tarjeta de malvavisco: entra con un rebote chiquito.
+    const rebote = 1 + Math.sin(clamp01((p - e.desde) / 0.07) * Math.PI) * 0.06;
+    return (
+      <div style={{ position: "absolute", top: 1330, left: 70, right: 70, display: "flex", justifyContent: "center", opacity: op,
+        transform: `translateY(${(1 - op) * 24}px) scale(${rebote})` }}>
+        <div style={{ background: "rgba(255,253,250,.94)", borderRadius: 44, padding: "24px 44px 26px", textAlign: "center",
+          boxShadow: "0 14px 0 rgba(255,157,181,.35), 0 26px 50px rgba(190,110,140,.28)", border: "5px solid #FFD3E0" }}>
+          <div style={{ fontFamily: REDONDA, fontWeight: 900, fontSize: e.titulo.length > 18 ? 54 : 70, color: "#F2668F",
+            lineHeight: 1.08 }}>{e.titulo}</div>
+          {e.subtitulo && <div style={{ marginTop: 10, fontFamily: '"Segoe UI", Arial, sans-serif', fontWeight: 600, fontSize: 36,
+            color: "#9A7F8E" }}>{e.subtitulo}</div>}
+        </div>
+      </div>
+    );
+  }
   return (
     <div style={{ position: "absolute", top: 1330, left: 90, right: 90, textAlign: "center", opacity: op, background: "rgba(11,7,5,.62)", borderRadius: 24, padding: "22px 20px",
       transform: `translateY(${(1 - op) * 20}px)` }}>
@@ -284,7 +317,7 @@ function frases(palabras: Palabra[]): Palabra[][] {
   return out;
 }
 
-function Subtitulos({ t, lista, claves }: { t: number; lista: Palabra[][]; claves: Set<string> }) {
+function Subtitulos({ t, lista, claves, claro }: { t: number; lista: Palabra[][]; claves: Set<string>; claro?: boolean }) {
   const frase = lista.find((f, i) => t >= f[0].t - 0.05 && t < (lista[i + 1]?.[0].t ?? f[f.length - 1].f + 0.6) - 0.05);
   if (!frase) return null;
   // Con fondo propio: un objeto armado con Forma puede subir hasta esta franja
@@ -293,6 +326,29 @@ function Subtitulos({ t, lista, claves }: { t: number; lista: Palabra[][]; clave
   // <span> pegados no dan dónde partir el renglón y una frase larga
   // ("fotoperiodista Rubén Espinosa") se salía del cuadro por la derecha.
   const letras = frase.reduce((n, w) => n + w.w.length + 1, 0);
+  if (claro) {
+    return (
+      <div style={{ position: "absolute", top: 290, left: 70, right: 70, textAlign: "center", fontFamily: REDONDA, fontWeight: 900,
+        fontSize: letras > 22 ? 52 : 62, lineHeight: 1.3 }}>
+        <span style={{ display: "inline-block", maxWidth: "100%", background: "rgba(255,253,250,.93)", borderRadius: 40,
+          padding: "14px 26px 18px", boxShadow: "0 10px 0 rgba(255,157,181,.3), 0 20px 40px rgba(190,110,140,.22)" }}>
+          {frase.map((w, i) => {
+            const dicha = t >= w.t - 0.03;
+            const clave = claves.has(limpia(w.w));
+            return (
+              <span key={i}>
+                <span style={{ color: dicha ? (clave ? "#FFFFFF" : "#5B4250") : "rgba(91,66,80,.3)",
+                  background: dicha && clave ? "#FF8FAB" : "transparent", padding: "0 12px", borderRadius: 18 }}>
+                  {w.w}
+                </span>
+                {i < frase.length - 1 ? " " : ""}
+              </span>
+            );
+          })}
+        </span>
+      </div>
+    );
+  }
   return (
     <div style={{ position: "absolute", top: 300, left: 80, right: 80, textAlign: "center", fontFamily: "Arial, sans-serif",
       fontWeight: 800, fontSize: letras > 22 ? 50 : 60, lineHeight: 1.25, textShadow: "0 3px 18px rgba(0,0,0,.85)" }}>
@@ -333,22 +389,38 @@ export function Tradicion({ escenas, tiempos, palabras, audio, ambiente, recreac
   const e = escenas.find((x) => x.id === marcas[i].id) ?? escenas[i];
   const a = AMBIENTES[e.ambiente ?? ambiente ?? "calido"] ?? AMBIENTES.calido;
   const enCierre = !!cierre && t >= cierre.desde;
+  const claro = !!a.claro;
+  const cam = toma(e.camara, p);
   return (
-    <AbsoluteFill style={{ backgroundColor: a.fondo }}>
-      <ThreeCanvas width={width} height={height} camera={{ fov: 40, near: 0.1, far: 80 }}>
-        <color attach="background" args={[a.fondo]} />
+    <AbsoluteFill style={{ background: claro ? C.FONDO_CSS : a.fondo }}>
+      {/* Plastilina: el decorado va en su propio lienzo, desenfocado, para el
+          efecto miniatura (poca profundidad de campo) sin posproceso. */}
+      {claro && (
+        <AbsoluteFill style={{ filter: "blur(9px)" }}>
+          <ThreeCanvas width={width} height={height} camera={{ fov: 40, near: 0.1, far: 80 }} flat>
+            <C.Luces sombras={false} relleno={1.1} />
+            <O.Camara pos={cam.pos} mira={cam.mira} />
+            <C.Decorado t={t} />
+          </ThreeCanvas>
+        </AbsoluteFill>
+      )}
+      <ThreeCanvas width={width} height={height} camera={{ fov: 40, near: 0.1, far: 80 }} flat={claro}
+        shadows={claro ? "percentage" : false}>
+        {!claro && <color attach="background" args={[a.fondo]} />}
         <fog attach="fog" args={[a.fondo, a.niebla[0], a.niebla[1]]} />
-        <ambientLight intensity={a.amb[0]} color={a.amb[1]} />
-        <directionalLight position={[2.5, 5, 4]} intensity={a.sol[0]} color={a.sol[1]} />
-        <directionalLight position={[-3, 1, -2]} intensity={a.relleno[0]} color={a.relleno[1]} />
-        <Mundo e={e} p={p} t={t - marcas[i].ini} />
+        {claro ? <><C.Luces /><C.Cojin /></> : <>
+          <ambientLight intensity={a.amb[0]} color={a.amb[1]} />
+          <directionalLight position={[2.5, 5, 4]} intensity={a.sol[0]} color={a.sol[1]} />
+          <directionalLight position={[-3, 1, -2]} intensity={a.relleno[0]} color={a.relleno[1]} />
+        </>}
+        <Mundo e={e} p={p} t={t - marcas[i].ini} claro={claro} />
       </ThreeCanvas>
       <Sello ev={e.evidencia} p={p} />
-      <Letrero etiquetas={e.etiquetas} p={p} />
-      <Transicion cortes={cortes} t={t} dur={transicion} color={a.fondo} />
+      <Letrero etiquetas={e.etiquetas} p={p} claro={claro} />
+      <Transicion cortes={cortes} t={t} dur={transicion} color={claro ? "#FFF3F5" : a.fondo} />
       {/* El cierre tapa la escena: ahí ya no hay nada reconstruido que marcar. */}
       {cierre && <CierreMarca cierre={cierre} t={t} />}
-      <Subtitulos t={t} lista={lista} claves={claves} />
+      <Subtitulos t={t} lista={lista} claves={claves} claro={claro} />
       {!enCierre && logo && <Logo src={logo} />}
       {!enCierre && recreacion && <Recreacion />}
       {gato && <GatoAsomado gato={gato} t={t} />}
