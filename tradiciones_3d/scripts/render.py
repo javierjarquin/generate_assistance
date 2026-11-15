@@ -28,7 +28,9 @@ import wave
 from pathlib import Path
 
 AQUI = Path(__file__).resolve().parents[1]
-ANDROID_IN = Path(r"C:\Android_in")
+# La carpeta de entrada depende del canal (15/11/2026): el bot la pasa en la
+# variable ANDROID_IN (papasia: C:\Android_in\papasia). Sin ella, la de siempre.
+ANDROID_IN = Path(os.environ.get("ANDROID_IN") or r"C:\Android_in")
 TTS_KOKORO_SRC = r"C:\tts-kokoro\src"
 VOICESTUDIO = "http://localhost:3900/v1/audio/speech"
 FISH3 = "cbbc2aa7"  # la voz de tradiciones; el default, para no mover lo que ya salió
